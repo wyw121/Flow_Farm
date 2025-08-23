@@ -1,0 +1,48 @@
+# Rust
+rust_gui/target/
+rust_gui/Cargo.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+automation.log
+
+# Temporary files
+temp/
+*.tmp
+*.temp
+
+# Configuration (if contains sensitive data)
+# config/config.json
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ADB/Android
+*.xml
+ui*.xml
