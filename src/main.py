@@ -90,9 +90,12 @@ def setup_environment():
     for directory in directories:
         Path(directory).mkdir(exist_ok=True)
     
-    # 加载环境变量
-    from dotenv import load_dotenv
-    load_dotenv('.env')
+    # 尝试加载环境变量（可选）
+    try:
+        from dotenv import load_dotenv
+        load_dotenv('.env')
+    except ImportError:
+        pass  # python-dotenv不是必需的
 
 
 def main():
@@ -145,7 +148,7 @@ def main():
         try:
             logger = get_logger(__name__)
             logger.critical(f"程序启动失败: {e}", exc_info=True)
-        except:
+        except Exception:
             print(f"严重错误: {e}")
         
         sys.exit(1)
@@ -156,7 +159,7 @@ def main():
             logger = get_logger(__name__)
             logger.info("程序正常退出")
             logging.shutdown()
-        except:
+        except Exception:
             pass
 
 
