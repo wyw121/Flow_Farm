@@ -1,0 +1,194 @@
+{
+	"folders": [
+		{
+			"name": "Flow_Farm",
+			"path": "."
+		}
+	],
+	"settings": {
+		"python.defaultInterpreterPath": "./venv/Scripts/python.exe",
+		"python.linting.enabled": true,
+		"python.linting.pylintEnabled": true,
+		"python.linting.flake8Enabled": true,
+		"python.formatting.provider": "black",
+		"python.testing.pytestEnabled": true,
+		"python.testing.pytestArgs": [
+			"tests"
+		],
+		"files.exclude": {
+			"**/__pycache__": true,
+			"**/*.pyc": true,
+			"**/node_modules": true,
+			"**/.git": false,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true,
+			"**/*.egg-info": true,
+			"**/dist": true,
+			"**/build": true
+		},
+		"search.exclude": {
+			"**/node_modules": true,
+			"**/bower_components": true,
+			"**/*.code-search": true,
+			"**/__pycache__": true,
+			"**/venv": true,
+			"**/env": true
+		},
+		"editor.rulers": [88],
+		"editor.formatOnSave": true,
+		"editor.codeActionsOnSave": {
+			"source.organizeImports": "explicit"
+		},
+		"files.trimTrailingWhitespace": true,
+		"files.insertFinalNewline": true,
+		"terminal.integrated.env.windows": {
+			"PYTHONPATH": "${workspaceFolder}/src"
+		},
+		"github.copilot.enable": {
+			"*": true,
+			"yaml": true,
+			"plaintext": true,
+			"markdown": true,
+			"python": true
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-python.python",
+			"ms-python.flake8",
+			"ms-python.pylint",
+			"ms-python.black-formatter",
+			"ms-python.isort",
+			"github.copilot",
+			"github.copilot-chat",
+			"ms-vscode.vscode-json",
+			"yzhang.markdown-all-in-one",
+			"streetsidesoftware.code-spell-checker",
+			"ms-python.debugpy"
+		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Flow Farm - Debug Mode",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder}/src/main.py",
+				"args": ["--debug", "--log-level", "DEBUG"],
+				"console": "integratedTerminal",
+				"envFile": "${workspaceFolder}/.env",
+				"cwd": "${workspaceFolder}",
+				"python": "${workspaceFolder}/venv/Scripts/python.exe"
+			},
+			{
+				"name": "Flow Farm - GUI Mode",
+				"type": "debugpy",
+				"request": "launch", 
+				"program": "${workspaceFolder}/src/main.py",
+				"args": ["--gui"],
+				"console": "integratedTerminal",
+				"envFile": "${workspaceFolder}/.env",
+				"cwd": "${workspaceFolder}",
+				"python": "${workspaceFolder}/venv/Scripts/python.exe"
+			},
+			{
+				"name": "Run Tests",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "pytest",
+				"args": ["tests/", "-v"],
+				"console": "integratedTerminal",
+				"cwd": "${workspaceFolder}",
+				"python": "${workspaceFolder}/venv/Scripts/python.exe"
+			}
+		]
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Setup Development Environment",
+				"type": "shell",
+				"command": "python",
+				"args": ["-m", "venv", "venv"],
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "shared"
+				},
+				"options": {
+					"cwd": "${workspaceFolder}"
+				},
+				"problemMatcher": []
+			},
+			{
+				"label": "Install Dependencies",
+				"type": "shell",
+				"command": "${workspaceFolder}/venv/Scripts/pip.exe",
+				"args": ["install", "-r", "requirements.txt"],
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "shared"
+				},
+				"options": {
+					"cwd": "${workspaceFolder}"
+				},
+				"dependsOn": "Setup Development Environment"
+			},
+			{
+				"label": "Run Tests",
+				"type": "shell",
+				"command": "${workspaceFolder}/venv/Scripts/python.exe",
+				"args": ["-m", "pytest", "tests/", "-v"],
+				"group": "test",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "shared"
+				},
+				"options": {
+					"cwd": "${workspaceFolder}"
+				}
+			},
+			{
+				"label": "Build Development Version",
+				"type": "shell",
+				"command": "${workspaceFolder}/venv/Scripts/python.exe",
+				"args": ["scripts/build.py", "--mode", "development"],
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always", 
+					"focus": false,
+					"panel": "shared"
+				},
+				"options": {
+					"cwd": "${workspaceFolder}"
+				}
+			},
+			{
+				"label": "Build Production Version",
+				"type": "shell",
+				"command": "${workspaceFolder}/venv/Scripts/python.exe",
+				"args": ["scripts/build.py", "--mode", "production", "--encrypt"],
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "shared"
+				},
+				"options": {
+					"cwd": "${workspaceFolder}"
+				}
+			}
+		]
+	}
+}

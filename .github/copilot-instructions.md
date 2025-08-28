@@ -1,0 +1,357 @@
+# Flow Farm - 手机流量农场自动化系统
+
+## 项目概述
+
+Flow Farm 是一个企业级手机流量农场自动化系统，专为批量设备管理和社交媒体自动化操作而设计。系统通过Python实现多设备并发控制，支持抖音、小红书等主流平台的智能引流操作，具备完善的权限管理和用户界面。
+
+## 高级项目信息
+
+- **项目类型**: 企业级自动化系统
+- **仓库大小**: 中等规模（预计100-500个文件）
+- **主要语言**: Python 3.8+ (100%)
+- **目标运行时**: Windows 10/11, Python 3.8-3.11
+- **架构模式**: 模块化分层架构 + MVP设计模式
+- **部署方式**: 加密可执行文件 + 配置文件
+
+## 核心技术栈
+
+- **编程语言**: Python 3.8+
+- **GUI框架**: tkinter (主要) / PyQt5 (备选)
+- **自动化引擎**: ADB + uiautomator2 + Appium
+- **设备通信**: Android Debug Bridge (ADB)
+- **数据存储**: SQLite (本地) + JSON配置
+- **加密保护**: PyInstaller + 自定义加密算法
+- **权限系统**: 基于角色的访问控制 (RBAC)
+- **日志系统**: Python logging + 文件轮转
+
+## 项目架构 (ProjectLayout)
+
+### 目录结构详解
+```
+Flow_Farm/                          # 项目根目录
+├── .github/                        # GitHub配置和CI/CD
+│   ├── copilot-instructions.md     # 主要Copilot指令文件
+│   ├── instructions/               # 模块化指令目录
+│   └── workflows/                  # GitHub Actions工作流
+├── src/                           # 源代码目录 (主要开发区域)
+│   ├── main.py                    # 应用程序入口点
+│   ├── core/                      # 核心业务逻辑模块
+│   │   ├── __init__.py           
+│   │   ├── device_manager.py      # 设备管理 (ADB连接和控制)
+│   │   ├── automation_engine.py   # 自动化引擎 (UI操作核心)
+│   │   ├── task_scheduler.py      # 任务调度器 (多任务管理)
+│   │   └── config_manager.py      # 配置管理器
+│   ├── gui/                       # GUI界面模块 (用户交互)
+│   │   ├── __init__.py
+│   │   ├── main_window.py         # 主窗口 (应用程序主界面)
+│   │   ├── components/            # 可复用组件
+│   │   │   ├── device_panel.py    # 设备控制面板
+│   │   │   ├── task_panel.py      # 任务管理面板
+│   │   │   └── status_bar.py      # 状态栏组件
+│   │   ├── windows/               # 独立窗口
+│   │   │   ├── admin_panel.py     # 管理员控制面板
+│   │   │   ├── user_panel.py      # 用户操作面板
+│   │   │   └── settings_window.py # 设置窗口
+│   │   └── dialogs/               # 对话框
+│   │       ├── login_dialog.py    # 登录对话框
+│   │       └── device_dialog.py   # 设备配置对话框
+│   ├── platforms/                 # 平台特定自动化模块
+│   │   ├── __init__.py
+│   │   ├── base_platform.py       # 平台基类 (抽象接口)
+│   │   ├── xiaohongshu/           # 小红书自动化
+│   │   │   ├── __init__.py
+│   │   │   ├── automation.py      # 小红书自动化逻辑
+│   │   │   ├── ui_elements.py     # UI元素定义
+│   │   │   └── strategies.py      # 操作策略
+│   │   └── douyin/                # 抖音自动化
+│   │       ├── __init__.py
+│   │       ├── automation.py      # 抖音自动化逻辑
+│   │       ├── ui_elements.py     # UI元素定义
+│   │       └── strategies.py      # 操作策略
+│   ├── auth/                      # 权限认证系统
+│   │   ├── __init__.py
+│   │   ├── user_manager.py        # 用户管理 (CRUD操作)
+│   │   ├── permission.py          # 权限控制 (RBAC实现)
+│   │   ├── session.py             # 会话管理
+│   │   └── crypto.py              # 加密工具
+│   └── utils/                     # 工具类和帮助函数
+│       ├── __init__.py
+│       ├── logger.py              # 日志配置
+│       ├── adb_helper.py          # ADB命令封装
+│       ├── ui_parser.py           # UI XML解析
+│       └── validator.py           # 数据验证
+├── config/                        # 配置文件目录
+│   ├── app_config.json           # 应用程序配置
+│   ├── device_config.json        # 设备配置模板
+│   ├── platform_config.json      # 平台特定配置
+│   └── logging.conf              # 日志配置
+├── data/                         # 数据文件目录
+│   ├── database.db               # SQLite数据库
+│   ├── cache/                    # 缓存文件
+│   └── exports/                  # 导出数据
+├── logs/                         # 日志文件目录
+│   ├── app.log                   # 应用程序日志
+│   ├── device.log                # 设备操作日志
+│   └── error.log                 # 错误日志
+├── tests/                        # 测试文件目录
+│   ├── __init__.py
+│   ├── unit/                     # 单元测试
+│   ├── integration/              # 集成测试
+│   └── gui/                      # GUI测试
+├── scripts/                      # 构建和部署脚本
+│   ├── build.py                  # 构建脚本 (PyInstaller配置)
+│   ├── encrypt.py                # 加密脚本
+│   ├── package.py                # 打包脚本
+│   └── validate_build.py         # 构建验证
+├── docs/                         # 项目文档
+│   ├── README.md                 # 项目说明
+│   ├── API.md                    # API文档
+│   ├── USER_GUIDE.md            # 用户指南
+│   └── DEVELOPER.md             # 开发者文档
+├── requirements.txt              # Python依赖列表
+├── requirements-dev.txt          # 开发依赖列表
+├── .gitignore                    # Git忽略文件
+├── .env.example                  # 环境变量模板
+└── Flow_Farm.code-workspace      # VS Code工作区配置
+```
+
+### 架构模式说明
+- **分层架构**: core(业务逻辑) → gui(表示层) → platforms(平台层)
+- **MVP模式**: Model(数据) + View(GUI) + Presenter(控制器)
+- **模块化设计**: 每个功能模块独立，便于维护和扩展
+- **插件化平台**: 新平台可通过继承base_platform轻松添加
+
+### 关键配置文件
+- `src/main.py`: 应用程序入口，包含启动逻辑
+- `config/app_config.json`: 主要配置文件，包含所有系统设置
+- `requirements.txt`: 生产环境依赖，构建时必须安装
+- `.github/copilot-instructions.md`: 本文件，Copilot工作指南
+
+### 数据流向
+1. **用户操作** → GUI组件 → 核心模块 → 平台模块 → 设备执行
+2. **设备反馈** → 平台模块 → 核心模块 → GUI更新 → 用户可见
+
+### 开发时文件位置规则
+- 新增设备管理功能: `src/core/device_manager.py`
+- 新增GUI组件: `src/gui/components/`
+- 新增平台支持: `src/platforms/新平台名/`
+- 新增权限功能: `src/auth/`
+- 新增工具函数: `src/utils/`
+
+## 开发规范
+
+### 代码规范
+- 使用PEP 8编码规范
+- 函数名使用下划线命名法（snake_case）
+- 类名使用驼峰命名法（PascalCase）
+- 常量使用全大写（UPPER_CASE）
+- 所有函数和类必须包含docstring文档
+
+### 注释规范
+- 中文注释，便于国内团队理解
+- 关键业务逻辑必须添加详细注释
+- API接口必须包含参数说明和返回值说明
+
+### 安全规范
+- 敏感信息（API密钥、数据库密码）必须加密存储
+- 用户权限验证在每个关键操作前进行
+- 设备连接信息加密传输
+
+## 构建指令 (BuildInstructions)
+
+### 环境设置 (必须按顺序执行)
+```bash
+# 1. 创建Python虚拟环境 (必需步骤)
+python -m venv venv
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Linux/Mac
+
+# 2. 安装核心依赖 (必须在虚拟环境中)
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# 3. 配置ADB环境 (必需步骤)
+# Windows: 下载 Android SDK Platform Tools 到 tools/adb/
+# 确保 adb.exe 在 PATH 中或配置 config/adb_path.json
+
+# 4. 验证设备连接 (开发前必须执行)
+adb devices
+# 输出应显示: List of devices attached
+```
+
+### 开发环境启动
+```bash
+# 启动开发模式 (推荐用于调试)
+python src/main.py --debug --log-level DEBUG
+
+# 启动GUI界面
+python src/main.py --gui
+
+# 运行特定模块测试
+python -m pytest tests/test_device_manager.py -v
+```
+
+### 构建和打包
+```bash
+# 构建开发版本 (未加密)
+python scripts/build.py --mode development
+
+# 构建生产版本 (加密保护)
+python scripts/build.py --mode production --encrypt
+
+# 验证构建结果
+python scripts/validate_build.py
+
+# 创建分发包
+python scripts/package.py --output dist/ --include-docs
+```
+
+### 测试验证 (必须步骤)
+```bash
+# 运行完整测试套件 (构建前必须通过)
+python -m pytest tests/ -v --cov=src --cov-report=html
+
+# 运行设备连接测试
+python tests/integration/test_device_connection.py
+
+# 运行GUI测试 (需要显示器)
+python tests/gui/test_main_window.py
+
+# 性能测试 (可选)
+python tests/performance/test_multi_device.py
+```
+
+### 已验证的构建流程
+1. **总是在虚拟环境中工作** - 避免依赖冲突
+2. **构建前运行完整测试** - 确保代码质量
+3. **验证ADB连接** - 构建前确保设备管理正常
+4. **分阶段构建** - 先开发版本，测试通过后再生产版本
+5. **构建时间**: 开发版本约2-3分钟，生产版本约5-8分钟
+
+### 常见构建问题和解决方案
+- **PyInstaller导入错误**: 添加 `--hidden-import` 参数
+- **ADB路径问题**: 配置 `config/adb_path.json`
+- **权限错误**: 以管理员身份运行构建脚本
+- **内存不足**: 构建时关闭其他应用程序
+
+## 核心功能模块
+
+### 设备管理模块 (src/core/device_manager.py)
+- 自动发现和连接Android设备
+- 设备状态监控和健康检查
+- 多设备并发控制
+
+### 自动化引擎 (src/core/automation_engine.py)
+- 基于Appium的UI自动化
+- 图像识别和OCR功能
+- 智能等待和重试机制
+
+### 任务调度器 (src/core/task_scheduler.py)
+- 任务队列管理
+- 定时任务执行
+- 任务状态跟踪
+
+### 权限系统 (src/auth/)
+- 基于角色的访问控制（RBAC）
+- 用户认证和会话管理
+- 操作日志记录
+
+## 平台特定操作
+
+### 抖音自动化 (src/platforms/douyin/)
+- 自动关注用户
+- 视频点赞和评论
+- 直播间互动
+- 数据收集和分析
+
+### 小红书自动化 (src/platforms/xiaohongshu/)
+- 笔记点赞和收藏
+- 用户关注操作
+- 评论互动
+- 热门内容监控
+
+## 错误处理和日志
+
+### 日志配置
+- 使用Python logging模块
+- 日志级别：DEBUG, INFO, WARNING, ERROR, CRITICAL
+- 日志文件按日期轮转
+
+### 异常处理
+- 网络连接异常重试机制
+- 设备离线自动重连
+- UI元素查找失败的降级处理
+
+## 性能优化
+
+### 并发控制
+- 使用线程池管理设备操作
+- 避免过度并发导致设备负载过高
+- 智能任务分配算法
+
+### 资源管理
+- 及时释放设备连接
+- 内存使用监控
+- 临时文件清理
+
+## 安全和加密
+
+### 代码保护
+- 使用PyInstaller打包
+- 添加自定义加密层
+- 防逆向工程措施
+
+### 数据安全
+- 用户数据加密存储
+- 设备标识信息脱敏
+- 操作日志安全存储
+
+## 测试策略
+
+### 单元测试
+- 核心功能模块100%覆盖
+- 使用pytest框架
+- Mock外部依赖
+
+### 集成测试
+- 设备连接测试
+- 平台操作测试
+- 权限系统测试
+
+### 性能测试
+- 多设备并发测试
+- 长时间运行稳定性测试
+- 内存泄漏检测
+
+## 部署说明
+
+### 客户端部署
+- 提供一键安装包
+- 自动检测和配置ADB环境
+- 设备驱动自动安装
+
+### 权限配置
+- 管理员初始化系统
+- 用户权限分配
+- 操作审计日志
+
+## 重要提醒
+
+1. **始终遵循相关平台的使用条款和法律法规**
+2. **合理控制操作频率，避免被平台检测为异常行为**
+3. **定期备份重要数据和配置**
+4. **监控设备状态，避免过度使用导致设备损坏**
+5. **保护用户隐私，严格控制数据访问权限**
+
+## 开发优先级
+
+1. 设备管理和连接模块
+2. 基础自动化引擎
+3. 权限认证系统
+4. GUI界面开发
+5. 平台特定操作实现
+6. 加密和安全功能
+7. 测试和优化
+8. 部署和分发
+
+当实现新功能时，请优先考虑代码的可维护性、安全性和用户体验。所有涉及设备操作的代码都应该包含适当的错误处理和日志记录。
