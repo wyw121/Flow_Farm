@@ -1,0 +1,39 @@
+# Flow Farm 员工客户端依赖
+# GUI框架
+tkinter  # Python内置，无需安装
+
+# 网络通信
+requests==2.31.0
+websockets==12.0
+
+# 数据库和ORM
+sqlalchemy==2.0.23
+
+# 认证和加密
+cryptography==41.0.7
+python-jose[cryptography]==3.3.0
+
+# 设备自动化
+uiautomator2==3.0.1
+pure-python-adb==0.3.0.dev0
+
+# 配置管理
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# 日志和工具
+loguru==0.7.2
+python-dotenv==1.0.0
+
+# 数据处理
+pandas==2.1.4
+numpy==1.25.2
+
+# 图像处理 (可选，用于截图分析)
+Pillow==10.1.0
+opencv-python==4.8.1.78
+
+# 开发和测试
+pytest==7.4.3
+black==23.11.0
+flake8==6.1.0

@@ -1,8 +1,20 @@
 {
 	"folders": [
 		{
-			"name": "Flow_Farm",
+			"name": "🏢 Flow Farm - 完整项目",
 			"path": "."
+		},
+		{
+			"name": "🖥️ 服务器后端 (管理员)",
+			"path": "./server-backend"
+		},
+		{
+			"name": "🌐 服务器前端 (管理员)",
+			"path": "./server-frontend"
+		},
+		{
+			"name": "💻 员工客户端",
+			"path": "./employee-client"
 		}
 	],
 	"settings": {
@@ -41,9 +53,27 @@
 		},
 		"files.trimTrailingWhitespace": true,
 		"files.insertFinalNewline": true,
+
+		// 全局Python环境
 		"terminal.integrated.env.windows": {
 			"PYTHONPATH": "${workspaceFolder}/src"
 		},
+
+		// 模块特定配置
+		"[server-backend]": {
+			"python.defaultInterpreterPath": "./server-backend/venv/Scripts/python.exe",
+			"terminal.integrated.env.windows": {
+				"PYTHONPATH": "${workspaceFolder}/server-backend"
+			}
+		},
+
+		"[employee-client]": {
+			"python.defaultInterpreterPath": "./employee-client/venv/Scripts/python.exe",
+			"terminal.integrated.env.windows": {
+				"PYTHONPATH": "${workspaceFolder}/employee-client/src"
+			}
+		},
+
 		"github.copilot.enable": {
 			"*": true,
 			"yaml": true,
@@ -84,7 +114,7 @@
 			{
 				"name": "Flow Farm - GUI Mode",
 				"type": "debugpy",
-				"request": "launch", 
+				"request": "launch",
 				"program": "${workspaceFolder}/src/main.py",
 				"args": ["--gui"],
 				"console": "integratedTerminal",
@@ -107,6 +137,168 @@
 	"tasks": {
 		"version": "2.0.0",
 		"tasks": [
+			// ========== 全局任务 ==========
+			{
+				"label": "🏗️ 初始化整个项目",
+				"type": "shell",
+				"command": "echo",
+				"args": ["开始初始化Flow Farm项目..."],
+				"group": "build",
+				"dependsOrder": "sequence",
+				"dependsOn": [
+					"初始化服务器后端",
+					"初始化服务器前端",
+					"初始化员工客户端"
+				]
+			},
+
+			// ========== 服务器后端任务 ==========
+			{
+				"label": "初始化服务器后端",
+				"type": "shell",
+				"command": "python",
+				"args": ["-m", "venv", "venv"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}/server-backend"
+				},
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"panel": "shared",
+					"group": "backend"
+				}
+			},
+			{
+				"label": "🚀 启动服务器后端",
+				"type": "shell",
+				"command": "${workspaceFolder}/server-backend/venv/Scripts/python.exe",
+				"args": ["-m", "uvicorn", "app.main:app", "--reload", "--port", "8000"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}/server-backend"
+				},
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"panel": "dedicated",
+					"group": "backend"
+				},
+				"isBackground": true,
+				"problemMatcher": []
+			},
+			{
+				"label": "🧪 测试服务器后端",
+				"type": "shell",
+				"command": "${workspaceFolder}/server-backend/venv/Scripts/python.exe",
+				"args": ["-m", "pytest", "tests/", "-v"],
+				"group": "test",
+				"options": {
+					"cwd": "${workspaceFolder}/server-backend"
+				}
+			},
+
+			// ========== 服务器前端任务 ==========
+			{
+				"label": "初始化服务器前端",
+				"type": "shell",
+				"command": "npm",
+				"args": ["install"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}/server-frontend"
+				},
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"panel": "shared",
+					"group": "frontend"
+				}
+			},
+			{
+				"label": "🌐 启动服务器前端开发",
+				"type": "shell",
+				"command": "npm",
+				"args": ["run", "dev"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}/server-frontend"
+				},
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"panel": "dedicated",
+					"group": "frontend"
+				},
+				"isBackground": true,
+				"problemMatcher": []
+			},
+			{
+				"label": "🏗️ 构建服务器前端",
+				"type": "shell",
+				"command": "npm",
+				"args": ["run", "build"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}/server-frontend"
+				}
+			},
+
+			// ========== 员工客户端任务 ==========
+			{
+				"label": "初始化员工客户端",
+				"type": "shell",
+				"command": "python",
+				"args": ["-m", "venv", "venv"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}/employee-client"
+				},
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"panel": "shared",
+					"group": "client"
+				}
+			},
+			{
+				"label": "💻 启动员工客户端GUI",
+				"type": "shell",
+				"command": "${workspaceFolder}/employee-client/venv/Scripts/python.exe",
+				"args": ["src/main.py", "--mode", "gui", "--debug"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}/employee-client"
+				},
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"panel": "dedicated",
+					"group": "client"
+				}
+			},
+			{
+				"label": "⚡ 启动员工客户端控制台",
+				"type": "shell",
+				"command": "${workspaceFolder}/employee-client/venv/Scripts/python.exe",
+				"args": ["src/main.py", "--mode", "console", "--debug"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}/employee-client"
+				}
+			},
+			{
+				"label": "🧪 测试员工客户端",
+				"type": "shell",
+				"command": "${workspaceFolder}/employee-client/venv/Scripts/python.exe",
+				"args": ["-m", "pytest", "tests/", "-v"],
+				"group": "test",
+				"options": {
+					"cwd": "${workspaceFolder}/employee-client"
+				}
+			},
+
+			// ========== 原有兼容任务 ==========
 			{
 				"label": "Setup Development Environment",
 				"type": "shell",
@@ -165,7 +357,7 @@
 				"group": "build",
 				"presentation": {
 					"echo": true,
-					"reveal": "always", 
+					"reveal": "always",
 					"focus": false,
 					"panel": "shared"
 				},
