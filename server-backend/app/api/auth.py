@@ -112,22 +112,23 @@ def require_user_admin_or_above(current_user: User = Depends(get_current_user)):
 
 @router.post("/login", response_model=LoginResponse)
 async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-    """用户登录"""
+    """用户登录 - 支持用户名、邮箱、手机号登录"""
     user_service = UserService(db)
-    user = user_service.authenticate_user(login_data.username, login_data.password)
+    user = user_service.authenticate_user(login_data.identifier, login_data.password)
 
     # 记录登录日志
     login_log = LoginLog(
         user_id=user.id if user else None,
         login_status="success" if user else "failed",
-        failure_reason=None if user else "用户名或密码错误",
+        failure_reason=None if user else "用户名、邮箱或手机号错误，或密码错误",
     )
     db.add(login_log)
 
     if not user:
         db.commit()
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="用户名或密码错误"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="用户名、邮箱或手机号错误，或密码错误",
         )
 
     if not user.is_active:

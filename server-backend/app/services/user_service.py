@@ -39,15 +39,37 @@ class UserService:
         """验证密码"""
         return pwd_context.verify(plain_password, hashed_password)
 
-    def authenticate_user(self, username: str, password: str) -> Optional[User]:
-        """用户认证"""
-        user = self.get_user_by_username(username)
+    def authenticate_user(self, identifier: str, password: str) -> Optional[User]:
+        """用户认证 - 支持用户名、邮箱、手机号登录"""
+        # 尝试通过用户名、邮箱或手机号查找用户
+        user = self.get_user_by_identifier(identifier)
         if not user or not self.verify_password(password, user.hashed_password):
             return None
         return user
 
+    def get_user_by_identifier(self, identifier: str) -> Optional[User]:
+        """根据标识符（用户名、邮箱或手机号）获取用户"""
+        return (
+            self.db.query(User)
+            .filter(
+                (User.username == identifier)
+                | (User.email == identifier)
+                | (User.phone == identifier)
+            )
+            .first()
+        )
+
     def get_user_by_username(self, username: str) -> Optional[User]:
         """根据用户名获取用户"""
+        return self.db.query(User).filter(User.username == username).first()
+
+    def get_user_by_email(self, email: str) -> Optional[User]:
+        """根据邮箱获取用户"""
+        return self.db.query(User).filter(User.email == email).first()
+
+    def get_user_by_phone(self, phone: str) -> Optional[User]:
+        """根据手机号获取用户"""
+        return self.db.query(User).filter(User.phone == phone).first()
         return self.db.query(User).filter(User.username == username).first()
 
     def get_user_by_id(self, user_id: int) -> Optional[User]:
@@ -126,8 +148,41 @@ class UserService:
                 status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在"
             )
 
+        # 处理数据字典
+        update_data = user_data.dict(exclude_unset=True)
+
+        # 检查用户名唯一性
+        if "username" in update_data and update_data["username"] != user.username:
+            existing_user = self.get_user_by_username(update_data["username"])
+            if existing_user:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="用户名已存在"
+                )
+
+        # 检查邮箱唯一性
+        if "email" in update_data and update_data["email"] != user.email:
+            existing_user = self.get_user_by_email(update_data["email"])
+            if existing_user:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="邮箱已存在"
+                )
+
+        # 检查手机号唯一性
+        if "phone" in update_data and update_data["phone"] != user.phone:
+            existing_user = self.get_user_by_phone(update_data["phone"])
+            if existing_user:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="手机号已存在"
+                )
+
+        # 处理密码更新
+        if "password" in update_data:
+            update_data["hashed_password"] = self.get_password_hash(
+                update_data.pop("password")
+            )
+
         # 更新用户信息
-        for field, value in user_data.dict(exclude_unset=True).items():
+        for field, value in update_data.items():
             setattr(user, field, value)
 
         self.db.commit()

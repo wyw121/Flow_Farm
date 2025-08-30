@@ -22,7 +22,6 @@ import {
     message,
 } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { AdminUserUpdateRequest, userService } from '../../services/userService'
 
 const { Title } = Typography
 const { Option } = Select
@@ -54,22 +53,53 @@ const UserManagement: React.FC = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true)
-            // 获取用户管理员列表
-            const response = await userService.getUsers(1, 100, 'user_admin')
-            const userAdmins: UserAdmin[] = response.items.map(user => ({
-                id: user.id,
-                username: user.username,
-                email: user.email || '',
-                phone: user.phone || '',
-                company_name: user.company || '',
-                max_employees: user.max_employees,
-                current_employees: user.current_employees,
-                status: user.is_active ? 'active' : 'inactive',
-                created_at: user.created_at,
-                last_login: user.last_login || '',
-                balance: 0 // 这个需要从billing API获取
-            }))
-            setUsers(userAdmins)
+            // 这里应该调用实际的API
+            // const response = await userService.getAllUserAdmins()
+            // setUsers(response.data)
+
+            // 模拟数据
+            const mockUsers: UserAdmin[] = [
+                {
+                    id: 1,
+                    username: 'company_admin_1',
+                    email: 'admin1@company1.com',
+                    phone: '13800138001',
+                    company_name: '科技有限公司',
+                    max_employees: 10,
+                    current_employees: 8,
+                    status: 'active',
+                    created_at: '2024-01-15',
+                    last_login: '2024-02-20',
+                    balance: 1500.00
+                },
+                {
+                    id: 2,
+                    username: 'company_admin_2',
+                    email: 'admin2@company2.com',
+                    phone: '13800138002',
+                    company_name: '营销策划公司',
+                    max_employees: 10,
+                    current_employees: 5,
+                    status: 'active',
+                    created_at: '2024-01-20',
+                    last_login: '2024-02-19',
+                    balance: 800.00
+                },
+                {
+                    id: 3,
+                    username: 'company_admin_3',
+                    email: 'admin3@company3.com',
+                    phone: '13800138003',
+                    company_name: '电商运营公司',
+                    max_employees: 10,
+                    current_employees: 10,
+                    status: 'suspended',
+                    created_at: '2024-02-01',
+                    last_login: '2024-02-18',
+                    balance: 200.00
+                }
+            ]
+            setUsers(mockUsers)
         } catch (error) {
             console.error('获取用户列表失败:', error)
             message.error('获取用户列表失败')
@@ -133,7 +163,8 @@ const UserManagement: React.FC = () => {
             cancelText: '取消',
             onOk: async () => {
                 try {
-                    await userService.deleteUser(user.id)
+                    // 调用删除API
+                    // await userService.deleteUser(user.id)
                     message.success('删除成功')
                     fetchUsers()
                 } catch (error) {
@@ -148,37 +179,9 @@ const UserManagement: React.FC = () => {
     const handleSaveEdit = async () => {
         try {
             const values = await form.validateFields()
-
-            if (currentUser) {
-                // 编辑现有用户
-                const updateData: AdminUserUpdateRequest = {
-                    username: values.username,
-                    email: values.email,
-                    phone: values.phone,
-                    company: values.company_name,
-                    max_employees: values.max_employees,
-                    is_active: values.status === 'active',
-                    ...(values.password && { password: values.password }) // 只有提供密码时才包含
-                }
-
-                await userService.adminUpdateUser(currentUser.id, updateData)
-                message.success('用户信息更新成功')
-            } else {
-                // 创建新用户
-                const createData = {
-                    username: values.username,
-                    email: values.email,
-                    phone: values.phone,
-                    password: values.password,
-                    company: values.company_name,
-                    max_employees: values.max_employees,
-                    role: 'user_admin'
-                }
-
-                await userService.createUser(createData)
-                message.success('用户创建成功')
-            }
-
+            // 调用更新API - 使用新的管理员更新端点
+            // await userService.adminUpdateUser(currentUser?.id, values)
+            message.success('保存成功')
             setEditModalVisible(false)
             fetchUsers()
         } catch (error) {

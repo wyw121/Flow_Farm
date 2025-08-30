@@ -15,6 +15,7 @@ from ..api.auth import (
 from ..database import get_db
 from ..models import AuditLog, User
 from ..schemas import (
+    AdminUserUpdate,
     CompanyStatistics,
     PaginatedResponse,
     UserCreate,
@@ -204,6 +205,53 @@ async def update_user(
     audit_log = AuditLog(
         user_id=current_user.id,
         action="update_user",
+        resource_type="user",
+        resource_id=str(user_id),
+        details=user_data.dict(exclude_unset=True),
+    )
+    db.add(audit_log)
+    db.commit()
+
+    return UserResponse.from_orm(updated_user)
+
+
+@router.put("/admin/{user_id}", response_model=UserResponse)
+async def admin_update_user(
+    user_id: int,
+    user_data: AdminUserUpdate,
+    current_user: User = Depends(require_system_admin),
+    db: Session = Depends(get_db),
+):
+    """系统管理员更新用户信息（包括密码）"""
+    user_service = UserService(db)
+
+    # 系统管理员可以更新任何用户
+    target_user = user_service.get_user_by_id(user_id)
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MSG
+        )
+
+    # 不能修改自己
+    if user_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="不能修改自己的信息"
+        )
+
+    # 转换为UserUpdate格式进行更新
+    update_data = UserUpdate(**user_data.dict(exclude={"role"}))
+    updated_user = user_service.update_user(user_id, update_data)
+
+    # 如果有角色更新，单独处理
+    if user_data.role and user_data.role != updated_user.role:
+        updated_user.role = user_data.role
+        db.commit()
+        db.refresh(updated_user)
+
+    # 记录审计日志
+    audit_log = AuditLog(
+        user_id=current_user.id,
+        action="admin_update_user",
         resource_type="user",
         resource_id=str(user_id),
         details=user_data.dict(exclude_unset=True),

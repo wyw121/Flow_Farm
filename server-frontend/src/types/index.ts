@@ -22,7 +22,7 @@ export interface UserWithStats extends User {
 }
 
 export interface LoginRequest {
-  username: string
+  identifier: string // 用户名、邮箱或手机号
   password: string
 }
 

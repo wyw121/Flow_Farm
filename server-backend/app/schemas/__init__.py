@@ -8,6 +8,29 @@ from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 
 
+# 认证相关模型
+class LoginRequest(BaseModel):
+    """登录请求模型"""
+
+    identifier: str  # 用户名、邮箱或手机号
+    password: str
+
+
+class LoginResponse(BaseModel):
+    """登录响应模型"""
+
+    access_token: str
+    token_type: str = "bearer"
+    user: "UserResponse"
+
+
+class ChangePasswordRequest(BaseModel):
+    """修改密码请求模型"""
+
+    old_password: str
+    new_password: str
+
+
 # 用户相关模型
 class UserBase(BaseModel):
     """用户基础模型"""
@@ -31,12 +54,28 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     """更新用户模型"""
 
+    username: Optional[str] = None
     email: Optional[EmailStr] = None
-    full_name: Optional[str] = None
     phone: Optional[str] = None
+    password: Optional[str] = None  # 新增密码更新字段
+    full_name: Optional[str] = None
     company: Optional[str] = None
     is_active: Optional[bool] = None
     max_employees: Optional[int] = None
+
+
+class AdminUserUpdate(BaseModel):
+    """管理员更新用户模型 - 系统管理员专用"""
+
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    password: Optional[str] = None
+    full_name: Optional[str] = None
+    company: Optional[str] = None
+    is_active: Optional[bool] = None
+    max_employees: Optional[int] = None
+    role: Optional[str] = None  # 管理员可以修改角色
 
 
 class UserResponse(UserBase):

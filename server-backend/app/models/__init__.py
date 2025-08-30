@@ -29,7 +29,8 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
-    email = Column(String(100), unique=True, index=True)
+    email = Column(String(100), unique=True, index=True, nullable=True)
+    phone = Column(String(20), unique=True, index=True, nullable=True)
     hashed_password = Column(String(255), nullable=False)
 
     # 用户角色: system_admin, user_admin, employee

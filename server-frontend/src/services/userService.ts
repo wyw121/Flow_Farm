@@ -1,10 +1,28 @@
 import { CompanyStatistics, PaginatedResponse, User, UserCreate, UserUpdate, UserWithStats } from '../types'
 import { apiClient } from './api'
 
+export interface AdminUserUpdateRequest {
+  username?: string
+  email?: string
+  phone?: string
+  password?: string
+  full_name?: string
+  company?: string
+  is_active?: boolean
+  max_employees?: number
+  role?: string
+}
+
 export const userService = {
   // 创建用户
   async createUser(userData: UserCreate): Promise<User> {
     const response = await apiClient.post('/api/v1/users/', userData)
+    return response.data
+  },
+
+  // 系统管理员更新用户信息（包括密码）
+  async adminUpdateUser(userId: number, userData: AdminUserUpdateRequest): Promise<User> {
+    const response = await apiClient.put(`/api/v1/users/admin/${userId}`, userData)
     return response.data
   },
 

@@ -27,7 +27,32 @@ export const login = createAsyncThunk(
       localStorage.setItem('token', response.access_token)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || '登录失败')
+      // 处理不同类型的错误
+      let errorMessage = '登录失败'
+
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data
+        } else if (error.response.data.detail) {
+          // 如果是字符串，直接使用
+          if (typeof error.response.data.detail === 'string') {
+            errorMessage = error.response.data.detail
+          } else if (Array.isArray(error.response.data.detail)) {
+            // 如果是验证错误数组，提取错误信息
+            errorMessage = error.response.data.detail
+              .map((err: any) => err.msg || err.message || '验证失败')
+              .join(', ')
+          } else {
+            errorMessage = '请求格式错误'
+          }
+        } else {
+          errorMessage = '服务器响应错误'
+        }
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+
+      return rejectWithValue(errorMessage)
     }
   }
 )
@@ -48,7 +73,15 @@ export const getCurrentUser = createAsyncThunk(
       return response
     } catch (error: any) {
       localStorage.removeItem('token')
-      return rejectWithValue(error.response?.data?.detail || '获取用户信息失败')
+
+      let errorMessage = '获取用户信息失败'
+      if (error.response?.data?.detail) {
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail
+        }
+      }
+
+      return rejectWithValue(errorMessage)
     }
   }
 )
