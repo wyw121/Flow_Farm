@@ -81,6 +81,16 @@
 			"markdown": true,
 			"python": true
 		},
+		
+		// 启用GitHub Copilot提示文件功能
+		"chat.promptFiles": true,
+		
+		// GitHub Copilot指令文件设置
+		"github.copilot.advanced": {
+			"inlineSuggestEnable": true,
+			"listMaxCount": 10
+		},
+		
 		"powershell.cwd": "🏢 Flow Farm - 完整项目"
 	},
 	"extensions": {
