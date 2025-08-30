@@ -19,11 +19,13 @@ from ..schemas import (
     PaginatedResponse,
     UserCreate,
     UserResponse,
-    UserStatistics,
     UserUpdate,
     UserWithStats,
 )
 from ..services.user_service import UserService
+
+# 常量定义
+USER_NOT_FOUND_MSG = "用户不存在"
 
 router = APIRouter()
 
@@ -81,10 +83,10 @@ async def create_user(
     return UserResponse.from_orm(new_user)
 
 
-@router.get("/", response_model=List[UserResponse])
+@router.get("/", response_model=PaginatedResponse)
 async def get_users(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, le=1000),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
     role: Optional[str] = Query(None),
     current_user: User = Depends(require_user_admin_or_above),
     db: Session = Depends(get_db),
@@ -93,15 +95,27 @@ async def get_users(
     user_service = UserService(db)
 
     if current_user.role == "system_admin":
-        # 系统管理员可以看到所有用户管理员
-        if role is None:
-            role = "user_admin"
-        users = user_service.get_users_by_parent(current_user.id)
+        # 系统管理员可以看到所有用户管理员和员工
+        users = user_service.get_all_users()
+        if role:
+            users = [user for user in users if user.role == role]
     else:
         # 用户管理员只能看到自己的员工
         users = user_service.get_users_by_parent(current_user.id)
 
-    return [UserResponse.from_orm(user) for user in users[skip : skip + limit]]
+    # 分页计算
+    total = len(users)
+    skip = (page - 1) * size
+    paginated_users = users[skip : skip + size]
+    pages = (total + size - 1) // size
+
+    return PaginatedResponse(
+        items=[UserWithStats.from_orm(user).__dict__ for user in paginated_users],
+        total=total,
+        page=page,
+        size=size,
+        pages=pages,
+    )
 
 
 @router.get("/my-employees", response_model=List[UserResponse])
@@ -150,7 +164,9 @@ async def get_user(
 
     user_with_stats = user_service.get_user_with_stats(user_id)
     if not user_with_stats:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MSG
+        )
 
     return user_with_stats
 
@@ -168,7 +184,9 @@ async def update_user(
     # 权限检查
     target_user = user_service.get_user_by_id(user_id)
     if not target_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MSG
+        )
 
     if current_user.role == "user_admin":
         # 用户管理员只能更新自己和自己的员工
@@ -208,7 +226,9 @@ async def delete_user(
     # 权限检查
     target_user = user_service.get_user_by_id(user_id)
     if not target_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MSG
+        )
 
     if current_user.role == "user_admin":
         # 用户管理员只能删除自己的员工
@@ -225,7 +245,9 @@ async def delete_user(
 
     success = user_service.delete_user(user_id)
     if not success:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MSG
+        )
 
     # 记录审计日志
     audit_log = AuditLog(
@@ -274,8 +296,8 @@ async def get_company_statistics(
     return stats
 
 
-@router.get("/statistics/all-companies", response_model=List[CompanyStatistics])
-async def get_all_companies_statistics(
+@router.get("/companies/statistics", response_model=List[CompanyStatistics])
+async def get_companies_statistics(
     current_user: User = Depends(require_system_admin), db: Session = Depends(get_db)
 ):
     """获取所有公司的统计信息（仅系统管理员）"""
@@ -291,3 +313,53 @@ async def get_all_companies_statistics(
             stats_list.append(stats)
 
     return stats_list
+
+
+@router.post("/{user_id}/toggle-status", response_model=UserResponse)
+async def toggle_user_status(
+    user_id: int,
+    current_user: User = Depends(require_user_admin_or_above),
+    db: Session = Depends(get_db),
+):
+    """切换用户状态（启用/停用）"""
+    user_service = UserService(db)
+
+    target_user = user_service.get_user_by_id(user_id)
+    if not target_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
+
+    # 权限检查
+    if current_user.role == "user_admin":
+        # 用户管理员只能操作自己的员工
+        if target_user.parent_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="无权操作该用户"
+            )
+    elif current_user.role == "system_admin":
+        # 系统管理员只能操作用户管理员
+        if target_user.role != "user_admin" or target_user.parent_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="系统管理员只能操作自己创建的用户管理员",
+            )
+
+    # 切换状态
+    target_user.is_active = not target_user.is_active
+    db.commit()
+    db.refresh(target_user)
+
+    # 记录审计日志
+    audit_log = AuditLog(
+        user_id=current_user.id,
+        action="toggle_user_status",
+        resource_type="user",
+        resource_id=str(target_user.id),
+        details={
+            "target_username": target_user.username,
+            "new_status": target_user.is_active,
+        },
+    )
+    db.add(audit_log)
+    db.commit()
+
+    return UserResponse.from_orm(target_user)

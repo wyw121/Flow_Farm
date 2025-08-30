@@ -153,6 +153,10 @@ class UserService:
         """获取指定父级用户的子用户列表"""
         return self.db.query(User).filter(User.parent_id == parent_id).all()
 
+    def get_all_users(self) -> List[User]:
+        """获取所有用户列表"""
+        return self.db.query(User).all()
+
     def get_user_with_stats(self, user_id: int) -> Optional[UserWithStats]:
         """获取带统计信息的用户信息"""
         user = self.get_user_by_id(user_id)
@@ -311,6 +315,8 @@ class UserService:
         active_employees = 0
         total_work_records = 0
         today_work_records = 0
+        total_follows = 0
+        today_follows = 0
         employee_stats = []
 
         for employee in employees:
@@ -337,6 +343,9 @@ class UserService:
                 + work_stats.today_comments
             )
 
+            total_follows += work_stats.total_follows
+            today_follows += work_stats.today_follows
+
             employee_stats.append(
                 UserStatistics(
                     user_id=employee.id,
@@ -356,14 +365,31 @@ class UserService:
             or 0.0
         )
 
+        # 计算未付款金额
+        unpaid_amount = (
+            self.db.query(func.sum(BillingRecord.total_amount))
+            .filter(
+                and_(
+                    BillingRecord.user_id == user_admin_id,
+                    BillingRecord.status == "pending",
+                )
+            )
+            .scalar()
+            or 0.0
+        )
+
         return CompanyStatistics(
             user_admin_id=user_admin_id,
+            user_admin_name=user_admin.full_name or user_admin.username,
             company_name=user_admin.company or "未设置公司名称",
             total_employees=len(employees),
             active_employees=active_employees,
+            total_follows=total_follows,
+            today_follows=today_follows,
             total_work_records=total_work_records,
             today_work_records=today_work_records,
             total_billing_amount=total_billing,
+            unpaid_amount=unpaid_amount,
             employees=employee_stats,
         )
 

@@ -1,0 +1,78 @@
+# 员工客户端忽略文件
+
+# Python字节码
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境
+venv/
+env/
+.venv/
+
+# 配置文件
+config/local_*
+config/user_*
+.env
+
+# 数据文件
+data/
+*.db
+*.sqlite
+
+# 日志文件
+logs/
+*.log
+
+# 缓存文件
+cache/
+.cache/
+
+# 临时文件
+temp/
+tmp/
+*.tmp
+
+# 设备相关文件
+screenshots/
+device_dumps/
+*.xml
+*.png
+*.jpg
+
+# 构建文件
+build/
+dist/
+*.spec
+
+# 测试文件
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 用户数据
+user_data/
+profiles/
+
+# 导出数据
+exports/
+
+# 备份文件
+*.backup
+*.bak
+
+# IDE文件
+.vscode/
+.idea/
+
+# OS生成的文件
+.DS_Store
+Thumbs.db
+
+# 加密相关
+*.key
+*.encrypted
+
+# 自动化相关
+automation_logs/
+recording/

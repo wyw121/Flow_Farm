@@ -1,0 +1,96 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 400px;
+}
+
+.dashboard-layout {
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  background: #001529;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: white;
+}
+
+.dashboard-logo {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-left: 1rem;
+}
+
+.dashboard-content {
+  margin: 24px 16px;
+  padding: 24px;
+  background: white;
+  border-radius: 8px;
+}
+
+.stat-card {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1890ff;
+}
+
+.stat-title {
+  margin-top: 8px;
+  color: #666;
+}
+
+.user-dropdown {
+  margin-right: 1rem;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.table-actions {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filters {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.export-button {
+  margin-left: auto;
+}

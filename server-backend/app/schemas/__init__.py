@@ -230,12 +230,16 @@ class CompanyStatistics(BaseModel):
     """公司统计模型"""
 
     user_admin_id: int
+    user_admin_name: str
     company_name: str
     total_employees: int
-    active_employees: int
-    total_work_records: int
-    today_work_records: int
-    total_billing_amount: float
+    active_employees: int = 0
+    total_follows: int = 0
+    today_follows: int = 0
+    total_work_records: int = 0
+    today_work_records: int = 0
+    total_billing_amount: float = 0.0
+    unpaid_amount: float = 0.0
     employees: List[UserStatistics] = []
 
 

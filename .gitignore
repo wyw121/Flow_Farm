@@ -73,6 +73,69 @@ venv.bak/
 .conda/
 
 # =============================================================================
+# Node.js相关文件
+# =============================================================================
+
+# 依赖目录
+node_modules/
+jspm_packages/
+
+# 可选的npm缓存目录
+.npm
+
+# 可选的eslint缓存
+.eslintcache
+
+# 可选的REPL历史
+.node_repl_history
+
+# 输出的包目录
+*.tgz
+
+# Yarn依赖目录
+.yarn-integrity
+
+# dotenv环境变量文件
+.env
+.env.test
+
+# parcel-bundler缓存
+.cache/
+.parcel-cache/
+
+# Next.js构建输出
+.next/
+out/
+
+# Nuxt.js构建输出
+.nuxt/
+dist/
+
+# Gatsby文件
+.cache/
+public/
+
+# Vite
+dist/
+dist-ssr/
+*.local
+
+# Rollup.js的默认构建输出
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# GSAP文件
+.gsap-cache/
+
+# TypeScript缓存
+*.tsbuildinfo
+
+# Storybook构建输出
+storybook-static/
+
+# =============================================================================
 # 环境变量和配置文件
 # =============================================================================
 
@@ -109,6 +172,16 @@ backups/
 *.backup
 *.bak
 
+# 数据库备份
+*.dump
+*.sql
+
+# 导入导出文件
+imports/
+exports/
+*.import
+*.export
+
 # =============================================================================
 # 日志文件
 # =============================================================================
@@ -142,6 +215,20 @@ cache/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Windows系统文件
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# 更多临时和缓存文件
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+cython_debug/
 
 # =============================================================================
 # IDE和编辑器配置
@@ -200,6 +287,34 @@ dist/
 *.build/
 *.dist/
 *.onefile-build/
+
+# 更多构建文件
+*.spec
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.hypothesis/
+
+# 编译文件
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.dll
+*.dylib
+
+# 安装包
+*.egg
+*.egg-info/
+pip-wheel-metadata/
+
+# 特定的加密和部署包目录
+encrypted_deployment_package/
+deployment_package/
+release/
+releases/
 
 # =============================================================================
 # 设备相关文件
@@ -375,6 +490,72 @@ prototype/
 # 供应商文件
 vendor/
 third_party/
+
+# =============================================================================
+# 项目特定忽略规则（Flow Farm）
+# =============================================================================
+
+# 上传文件
+uploads/
+upload/
+
+# 工作区文件（保留主工作区文件）
+*.code-workspace
+!Flow_Farm.code-workspace
+
+# 测试数据
+test_data/
+sample_data/
+
+# 运行时生成的文件
+*.pid
+*.lock
+*.socket
+
+# 自动生成的文档
+auto_generated_docs/
+
+# 性能分析文件
+*.prof
+*.profile
+
+# 调试文件
+debug/
+*.debug
+
+# 监控和统计文件
+monitoring/
+stats/
+metrics/
+
+# 配置文件备份
+*.conf.bak
+*.cfg.bak
+*.ini.bak
+
+# 旧版本和存档
+old/
+archive/
+deprecated/
+legacy/
+
+# 本地开发文件
+local/
+dev/
+development/
+
+# 生成的图片和媒体文件
+generated_images/
+generated_media/
+*.generated.*
+
+# 设备特定文件
+device_configs/
+*.device
+
+# 平台数据
+platform_data/
+automation_data/
 
 # =============================================================================
 # 注意事项
