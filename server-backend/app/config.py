@@ -22,9 +22,7 @@ class Settings(BaseSettings):
     PORT: int = 8000
 
     # 数据库配置
-    DATABASE_URL: str = "postgresql://flowfarm:password@localhost:5432/flowfarm_db"
-    # 或者使用SQLite (开发环境)
-    # DATABASE_URL: str = "sqlite:///./flowfarm.db"
+    DATABASE_URL: str = "sqlite:///./data/flow_farm.db"
 
     # JWT配置
     SECRET_KEY: str = "flow-farm-super-secret-key-change-in-production"
@@ -54,6 +52,11 @@ class Settings(BaseSettings):
 
     # 安全配置
     BCRYPT_ROUNDS: int = 12
+
+    # 默认管理员配置
+    DEFAULT_ADMIN_USERNAME: str = "admin"
+    DEFAULT_ADMIN_EMAIL: str = "admin@flowfarm.com"
+    DEFAULT_ADMIN_PASSWORD: str = "admin123"
 
     # KPI配置
     KPI_CALCULATION_INTERVAL: int = 3600  # 秒，KPI计算间隔

@@ -80,7 +80,8 @@
 			"plaintext": true,
 			"markdown": true,
 			"python": true
-		}
+		},
+		"powershell.cwd": "🏢 Flow Farm - 完整项目"
 	},
 	"extensions": {
 		"recommendations": [

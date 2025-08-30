@@ -10,10 +10,9 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
 
-from .api import auth, devices, kpi, reports, users
+from .api import auth, billing, devices, kpi, reports, users
 from .config import settings
-from .database import SessionLocal, engine
-from .models import Base
+from .database import Base, SessionLocal, engine
 
 
 @asynccontextmanager
@@ -55,6 +54,7 @@ security = HTTPBearer()
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["用户管理"])
 app.include_router(kpi.router, prefix="/api/v1/kpi", tags=["KPI统计"])
+app.include_router(billing.router, prefix="/api/v1/billing", tags=["计费管理"])
 app.include_router(devices.router, prefix="/api/v1/devices", tags=["设备管理"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["数据报表"])
 

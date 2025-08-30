@@ -1,28 +1,60 @@
-# Flow Farm - 手机流量农场自动化系统
+# Flow Farm - 计费自动化流量农场系统
 
 ## 项目概述
 
-Flow Farm 是一个企业级手机流量农场自动化系统，专为批量设备管理和社交媒体自动化操作而设计。系统通过Python实现多设备并发控制，支持抖音、小红书等主流平台的智能引流操作，具备完善的权限管理和用户界面。
+Flow Farm 是一个企业级计费自动化流量农场系统，专为多角色权限管理和社交媒体自动化操作而设计。系统采用三角色架构（系统管理员、用户管理员、员工），通过Python实现多设备并发控制，支持抖音、小红书等主流平台的智能引流操作，具备完善的权限管理、计费系统和用户界面。
 
 ## 高级项目信息
 
-- **项目类型**: 企业级自动化系统
-- **仓库大小**: 中等规模（预计100-500个文件）
-- **主要语言**: Python 3.8+ (100%)
-- **目标运行时**: Windows 10/11, Python 3.8-3.11
-- **架构模式**: 模块化分层架构 + MVP设计模式
-- **部署方式**: 加密可执行文件 + 配置文件
+- **项目类型**: 企业级计费自动化系统
+- **仓库大小**: 大型规模（预计500-1000个文件）
+- **主要语言**: Python 3.8+ (Backend/Client), Vue.js 3 + TypeScript (Frontend)
+- **目标运行时**: Windows 10/11, Python 3.8-3.11, Node.js 18+
+- **架构模式**: 微服务架构 + C/S架构 + RBAC权限系统
+- **部署方式**: 服务器端Web应用 + 加密桌面客户端
+
+## 三角色系统架构
+
+### 系统管理员（一级管理员，服务器端）
+- 开通用户管理员权限
+- 查看所有员工工作信息和统计数据
+- 设置收费规则和计费标准
+- 系统配置和监控
+
+### 用户管理员（二级管理员，服务器端）
+- 开通员工权限（最多10个用户）
+- 查看本公司员工工作信息
+- 查看结算界面，调整关注数量
+- 扣费计划管理
+
+### 员工（脚本用户，桌面客户端）
+- 多设备自动化控制
+- 抖音、小红书关注引流操作
+- 工作数据上传和同步
+- 任务执行和状态汇报
 
 ## 核心技术栈
 
-- **编程语言**: Python 3.8+
+### 服务器端技术栈
+- **后端框架**: FastAPI + Python 3.8+
+- **前端框架**: Vue.js 3 + TypeScript + Vite
+- **数据库**: SQLite (开发) / PostgreSQL (生产)
+- **认证系统**: JWT + OAuth2
+- **API文档**: OpenAPI 3.0 (Swagger)
+
+### 员工客户端技术栈
 - **GUI框架**: tkinter (主要) / PyQt5 (备选)
 - **自动化引擎**: ADB + uiautomator2 + Appium
 - **设备通信**: Android Debug Bridge (ADB)
-- **数据存储**: SQLite (本地) + JSON配置
+- **数据存储**: SQLite (本地缓存) + REST API
 - **加密保护**: PyInstaller + 自定义加密算法
+- **网络通信**: requests + websocket-client
+
+### 共享技术栈
 - **权限系统**: 基于角色的访问控制 (RBAC)
 - **日志系统**: Python logging + 文件轮转
+- **计费系统**: 自定义计费规则引擎
+- **数据同步**: RESTful API + WebSocket
 
 ## 项目架构 (ProjectLayout)
 
@@ -32,22 +64,84 @@ Flow_Farm/                          # 项目根目录
 ├── .github/                        # GitHub配置和CI/CD
 │   ├── copilot-instructions.md     # 主要Copilot指令文件
 │   ├── instructions/               # 模块化指令目录
+│   ├── prompts/                    # 提示文件目录
 │   └── workflows/                  # GitHub Actions工作流
-├── src/                           # 源代码目录 (主要开发区域)
-│   ├── main.py                    # 应用程序入口点
-│   ├── core/                      # 核心业务逻辑模块
-│   │   ├── __init__.py           
-│   │   ├── device_manager.py      # 设备管理 (ADB连接和控制)
-│   │   ├── automation_engine.py   # 自动化引擎 (UI操作核心)
-│   │   ├── task_scheduler.py      # 任务调度器 (多任务管理)
-│   │   └── config_manager.py      # 配置管理器
-│   ├── gui/                       # GUI界面模块 (用户交互)
-│   │   ├── __init__.py
-│   │   ├── main_window.py         # 主窗口 (应用程序主界面)
-│   │   ├── components/            # 可复用组件
-│   │   │   ├── device_panel.py    # 设备控制面板
-│   │   │   ├── task_panel.py      # 任务管理面板
-│   │   │   └── status_bar.py      # 状态栏组件
+├── server-backend/                 # 服务器后端 (FastAPI)
+│   ├── app/                       # 应用程序代码
+│   │   ├── main.py               # FastAPI应用入口
+│   │   ├── config.py             # 配置管理
+│   │   ├── database.py           # 数据库连接
+│   │   ├── api/                  # API路由
+│   │   ├── models/               # 数据模型
+│   │   ├── schemas/              # Pydantic模式
+│   │   └── services/             # 业务逻辑
+│   ├── requirements.txt          # Python依赖
+│   └── data/                     # 数据库文件
+├── server-frontend/                # 服务器前端 (Vue.js)
+│   ├── src/                      # 源代码
+│   │   ├── main.ts              # 应用入口
+│   │   ├── App.vue              # 根组件
+│   │   ├── components/          # Vue组件
+│   │   ├── views/               # 页面视图
+│   │   ├── router/              # 路由配置
+│   │   └── stores/              # Pinia状态管理
+│   ├── package.json             # Node.js依赖
+│   └── vite.config.ts           # Vite配置
+├── employee-client/                # 员工客户端 (Python GUI)
+│   ├── src/                     # 源代码目录
+│   │   ├── main.py              # 应用程序入口点
+│   │   ├── core/                # 核心业务逻辑模块
+│   │   │   ├── device_manager.py    # 设备管理 (ADB连接和控制)
+│   │   │   ├── automation_engine.py # 自动化引擎 (UI操作核心)
+│   │   │   ├── task_scheduler.py    # 任务调度器 (多任务管理)
+│   │   │   └── config_manager.py    # 配置管理器
+│   │   ├── gui/                 # GUI界面模块 (用户交互)
+│   │   │   ├── main_window.py   # 主窗口 (应用程序主界面)
+│   │   │   ├── components/      # 可复用组件
+│   │   │   ├── windows/         # 独立窗口
+│   │   │   └── dialogs/         # 对话框
+│   │   ├── platforms/           # 平台特定自动化模块
+│   │   │   ├── base_platform.py     # 平台基类
+│   │   │   ├── xiaohongshu/     # 小红书自动化
+│   │   │   └── douyin/          # 抖音自动化
+│   │   ├── auth/                # 权限认证系统
+│   │   └── utils/               # 工具类和帮助函数
+│   ├── requirements.txt         # Python依赖
+│   └── config/                  # 配置文件目录
+├── config/                        # 全局配置文件目录
+├── docs/                         # 项目文档
+├── tests/                        # 测试文件目录
+├── scripts/                      # 构建和部署脚本
+└── Flow_Farm.code-workspace      # VS Code工作区配置
+```
+
+### 架构模式说明
+- **微服务架构**: server-backend 和 server-frontend 分离
+- **C/S架构**: 服务器端Web应用 + 桌面客户端
+- **分层架构**: core(业务逻辑) → gui(表示层) → platforms(平台层)
+- **MVP模式**: Model(数据) + View(GUI) + Presenter(控制器)
+- **模块化设计**: 每个功能模块独立，便于维护和扩展
+- **插件化平台**: 新平台可通过继承base_platform轻松添加
+
+### 关键配置文件
+- `server-backend/app/main.py`: FastAPI应用入口，包含API路由
+- `server-frontend/src/main.ts`: Vue.js应用入口
+- `employee-client/src/main.py`: 员工客户端入口
+- `config/app_config.json`: 主要配置文件，包含所有系统设置
+- `Flow_Farm.code-workspace`: VS Code工作区配置
+
+### 数据流向
+1. **管理员操作** → Web前端 → API → 数据库 → 权限验证
+2. **员工操作** → 桌面客户端 → API → 数据库 → 任务分发
+3. **设备操作** → 平台模块 → 自动化引擎 → ADB → 数据上报
+
+### 开发时文件位置规则
+- 新增API接口: `server-backend/app/api/`
+- 新增Web页面: `server-frontend/src/views/`
+- 新增设备管理功能: `employee-client/src/core/device_manager.py`
+- 新增GUI组件: `employee-client/src/gui/components/`
+- 新增平台支持: `employee-client/src/platforms/新平台名/`
+- 新增权限功能: `employee-client/src/auth/`
 │   │   ├── windows/               # 独立窗口
 │   │   │   ├── admin_panel.py     # 管理员控制面板
 │   │   │   ├── user_panel.py      # 用户操作面板
@@ -160,39 +254,116 @@ Flow_Farm/                          # 项目根目录
 ## 构建指令 (BuildInstructions)
 
 ### 环境设置 (必须按顺序执行)
+
+#### 服务器后端环境
 ```bash
-# 1. 创建Python虚拟环境 (必需步骤)
+# 进入服务器后端目录
+cd server-backend
+
+# 创建Python虚拟环境
 python -m venv venv
 venv\Scripts\activate  # Windows
-# source venv/bin/activate  # Linux/Mac
 
-# 2. 安装核心依赖 (必须在虚拟环境中)
+# 安装后端依赖
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# 3. 配置ADB环境 (必需步骤)
-# Windows: 下载 Android SDK Platform Tools 到 tools/adb/
-# 确保 adb.exe 在 PATH 中或配置 config/adb_path.json
+# 初始化数据库
+python -c "from app.init_db import create_tables; create_tables()"
+```
 
-# 4. 验证设备连接 (开发前必须执行)
+#### 服务器前端环境  
+```bash
+# 进入服务器前端目录
+cd server-frontend
+
+# 安装Node.js依赖
+npm install
+
+# 验证安装
+npm run type-check
+```
+
+#### 员工客户端环境
+```bash
+# 进入员工客户端目录
+cd employee-client
+
+# 创建Python虚拟环境
+python -m venv venv
+venv\Scripts\activate
+
+# 安装客户端依赖
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# 配置ADB环境 (必需步骤)
+# Windows: 下载 Android SDK Platform Tools
+# 确保 adb.exe 在 PATH 中
+
+# 验证设备连接 (开发前必须执行)
 adb devices
-# 输出应显示: List of devices attached
 ```
 
 ### 开发环境启动
+
+#### 启动服务器后端
 ```bash
-# 启动开发模式 (推荐用于调试)
-python src/main.py --debug --log-level DEBUG
+cd server-backend
+venv\Scripts\activate
+python -m uvicorn app.main:app --reload --port 8000
+# API文档访问: http://localhost:8000/docs
+```
 
-# 启动GUI界面
-python src/main.py --gui
+#### 启动服务器前端
+```bash
+cd server-frontend
+npm run dev
+# Web界面访问: http://localhost:3000
+```
 
-# 运行特定模块测试
-python -m pytest tests/test_device_manager.py -v
+#### 启动员工客户端
+```bash
+cd employee-client
+venv\Scripts\activate
+python src/main.py --gui --debug
 ```
 
 ### 构建和打包
+
+#### 构建服务器后端
 ```bash
+cd server-backend
+venv\Scripts\activate
+
+# 运行测试
+python -m pytest tests/ -v
+
+# 构建Docker镜像 (生产环境)
+docker build -t flow-farm-backend:latest .
+```
+
+#### 构建服务器前端  
+```bash
+cd server-frontend
+
+# 运行测试
+npm run test:unit
+
+# 构建生产版本
+npm run build
+
+# 构建结果在 dist/ 目录
+```
+
+#### 构建员工客户端
+```bash
+cd employee-client
+venv\Scripts\activate
+
+# 运行测试
+python -m pytest tests/ -v
+
 # 构建开发版本 (未加密)
 python scripts/build.py --mode development
 
@@ -201,9 +372,17 @@ python scripts/build.py --mode production --encrypt
 
 # 验证构建结果
 python scripts/validate_build.py
+```
 
-# 创建分发包
-python scripts/package.py --output dist/ --include-docs
+### 完整项目构建
+```bash
+# 在项目根目录执行
+python scripts/build_all.py --mode production
+
+# 这将依次构建：
+# 1. 服务器后端 (Docker镜像)
+# 2. 服务器前端 (静态文件)
+# 3. 员工客户端 (加密可执行文件)
 ```
 
 ### 测试验证 (必须步骤)

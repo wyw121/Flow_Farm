@@ -4,30 +4,116 @@ applyTo: "src/auth/**/*.py"
 
 # 权限认证系统开发指令
 
-## 用户管理系统
+## 适用范围
+本指令适用于所有权限认证相关的Python文件，包括用户管理、权限控制、会话管理等。
 
-- 支持用户注册、登录、注销功能
-- 实现密码加密存储（使用bcrypt或类似库）
-- 支持用户角色分配（管理员、普通用户）
-- 实现用户会话管理
+## 三角色权限架构
 
-## 权限控制机制
+### 角色层级设计
+1. **系统管理员 (SYSTEM_ADMIN)** - 权限级别: 1
+   - 全系统访问权限
+   - 用户管理员账户管理
+   - 系统配置和监控
+   - 计费规则设置
 
+2. **用户管理员 (USER_ADMIN)** - 权限级别: 2  
+   - 公司内员工管理（最多10个）
+   - 本公司数据查看
+   - 计费和结算功能
+   - 工作量调整权限
+
+3. **员工 (EMPLOYEE)** - 权限级别: 3
+   - 基本数据上报权限
+   - 个人工作数据查看
+   - 任务接收和执行
+   - 有限的系统交互
+
+### 权限验证机制
+- 基于JWT的身份认证
+- 角色继承权限模型
+- 操作级别权限控制
+- 会话状态管理
+
+## 实现规范
+
+### 用户认证
 ```python
-from functools import wraps
+class AuthManager:
+    def authenticate(self, username: str, password: str) -> bool:
+        # 实现用户名密码验证
+        pass
+    
+    def generate_token(self, user: User) -> str:
+        # 生成JWT Token
+        pass
+    
+    def verify_token(self, token: str) -> Optional[User]:
+        # 验证Token有效性
+        pass
+```
+
+### 权限控制
+```python
+def require_permission(permission: str):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            current_user = get_current_user()
+            if not has_permission(current_user, permission):
+                raise PermissionDeniedError()
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+```
+
+### 权限枚举定义
+```python
 from enum import Enum
 
 class UserRole(Enum):
-    ADMIN = "admin"
-    USER = "user"
-    GUEST = "guest"
+    SYSTEM_ADMIN = "system_admin"
+    USER_ADMIN = "user_admin"
+    EMPLOYEE = "employee"
 
 class Permission(Enum):
-    DEVICE_MANAGE = "device_manage"
-    TASK_CREATE = "task_create"
-    TASK_EXECUTE = "task_execute"
+    # 系统管理员专有权限
+    MANAGE_USER_ADMINS = "manage_user_admins"
+    VIEW_ALL_DATA = "view_all_data"
     SYSTEM_CONFIG = "system_config"
-    USER_MANAGE = "user_manage"
+    BILLING_RULES = "billing_rules"
+    
+    # 用户管理员权限
+    MANAGE_EMPLOYEES = "manage_employees"
+    VIEW_COMPANY_DATA = "view_company_data"
+    BILLING_MANAGEMENT = "billing_management"
+    ADJUST_WORKLOAD = "adjust_workload"
+    
+    # 员工权限
+    UPLOAD_DATA = "upload_data"
+    RECEIVE_TASKS = "receive_tasks"
+    VIEW_PERSONAL_DATA = "view_personal_data"
+    DEVICE_CONTROL = "device_control"
+```
+
+## 安全要求
+- 密码哈希存储（bcrypt）
+- Token有效期管理
+- 防止暴力破解
+- 敏感操作审计日志
+- 加密传输敏感数据
+
+## 数据库设计
+- 用户表：存储基本用户信息
+- 角色表：定义角色权限
+- 权限表：具体权限定义
+- 会话表：活跃会话管理
+- 审计表：操作日志记录
+
+## 重要提醒
+- 严格验证用户输入
+- 实现适当的错误处理
+- 记录所有权限相关操作
+- 定期清理过期会话
+- 监控异常登录行为
 
 def require_permission(permission: Permission):
     """权限检查装饰器"""
