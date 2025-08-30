@@ -6,17 +6,11 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 
 from fastapi import HTTPException, status
-from sqlalchemy import and_, func
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
-from ..models import BillingRecord, PricingRule, User, WorkRecord
-from ..schemas import (
-    BillingRecordCreate,
-    BillingRecordResponse,
-    PricingRuleCreate,
-    PricingRuleResponse,
-    PricingRuleUpdate,
-)
+from app.models import BillingRecord, PricingRule, User, WorkRecord
+from app.schemas import PricingRuleCreate, PricingRuleUpdate
 
 
 class BillingService:

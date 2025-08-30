@@ -3,7 +3,6 @@
 管理服务器后端的所有配置项
 """
 
-import os
 from typing import List
 
 from pydantic_settings import BaseSettings
@@ -91,7 +90,10 @@ LOGGING_CONFIG = {
             "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         },
         "detailed": {
-            "format": "%(asctime)s - %(name)s - %(levelname)s - %(module)s - %(funcName)s - %(message)s",
+            "format": (
+                "%(asctime)s - %(name)s - %(levelname)s - %(module)s - "
+                "%(funcName)s - %(message)s"
+            ),
         },
     },
     "handlers": {

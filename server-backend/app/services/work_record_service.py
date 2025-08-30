@@ -2,7 +2,6 @@
 工作记录管理服务
 """
 
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -12,8 +11,8 @@ from fastapi import HTTPException
 from sqlalchemy import and_, desc, func
 from sqlalchemy.orm import Session
 
-from ..models import User, WorkRecord
-from ..schemas import ExportRequest, WorkRecordCreate, WorkRecordUpdate
+from app.models import User, WorkRecord
+from app.schemas import ExportRequest, WorkRecordCreate, WorkRecordUpdate
 
 
 class WorkRecordService:

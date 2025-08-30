@@ -2,7 +2,7 @@
 认证相关API路由
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -11,11 +11,11 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from ..config import settings
-from ..database import get_db
-from ..models import AuditLog, LoginLog, User
-from ..schemas import ChangePasswordRequest, LoginRequest, LoginResponse, UserResponse
-from ..services.user_service import UserService
+from app.config import settings
+from app.database import get_db
+from app.models import AuditLog, LoginLog, User
+from app.schemas import ChangePasswordRequest, LoginRequest, LoginResponse, UserResponse
+from app.services.user_service import UserService
 
 router = APIRouter()
 security = HTTPBearer()
@@ -26,9 +26,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """创建访问令牌"""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(
+        expire = datetime.now(timezone.utc) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 

@@ -2,9 +2,7 @@ import { DollarOutlined, RiseOutlined, TeamOutlined, UserOutlined } from '@ant-d
 import { Alert, Card, Col, Row, Spin, Statistic, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { billingService } from '../../services/billingService'
 import { userService } from '../../services/userService'
-import { workRecordService } from '../../services/workRecordService'
 import { RootState } from '../../store'
 
 const { Title } = Typography
@@ -30,28 +28,37 @@ const Dashboard: React.FC = () => {
       setLoading(true)
       setError(null)
 
+      // 获取仪表板数据 - 使用统一的API
+      const dashboardResponse = await fetch('/api/v1/reports/dashboard', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!dashboardResponse.ok) {
+        throw new Error(`HTTP ${dashboardResponse.status}: ${dashboardResponse.statusText}`)
+      }
+
+      const dashboardData = await dashboardResponse.json()
+
+      // 从仪表板数据中提取统计信息
+      const workStats = dashboardData.work_stats || {}
+      const companyStats = dashboardData.company_stats || {}
+
       // 获取员工列表
       const employeesResponse = await userService.getUsers(1, 100, 'employee')
       const totalEmployees = employeesResponse.items.length
-
-      // 获取工作统计
-      const workStats = await workRecordService.getWorkStatistics()
-
-      // 获取计费记录
-      const billingResponse = await billingService.getBillingRecords()
-      const totalBilling = billingResponse.items.reduce((sum, record) => sum + record.total_amount, 0)
-      const unpaidAmount = billingResponse.items
-        .filter(record => record.status === 'pending')
-        .reduce((sum, record) => sum + record.total_amount, 0)
 
       setStats({
         totalEmployees,
         totalFollows: workStats.total_follows || 0,
         todayFollows: workStats.today_follows || 0,
-        totalBilling,
-        unpaidAmount,
+        totalBilling: companyStats.total_billing || 0,
+        unpaidAmount: companyStats.unpaid_amount || 0,
       })
     } catch (err: any) {
+      console.error('加载仪表板数据失败:', err)
       setError(err.message || '加载数据失败')
     } finally {
       setLoading(false)

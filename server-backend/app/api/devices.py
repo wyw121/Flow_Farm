@@ -2,14 +2,12 @@
 设备管理相关API路由
 """
 
-from typing import List
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from ..api.auth import get_current_user
-from ..database import get_db
-from ..models import User
+from app.api.auth import get_current_user
+from app.database import get_db
+from app.models import User
 
 router = APIRouter()
 

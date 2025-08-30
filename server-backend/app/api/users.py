@@ -7,14 +7,14 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from ..api.auth import (
+from app.api.auth import (
     get_current_user,
     require_system_admin,
     require_user_admin_or_above,
 )
-from ..database import get_db
-from ..models import AuditLog, User
-from ..schemas import (
+from app.database import get_db
+from app.models import AuditLog, User
+from app.schemas import (
     AdminUserUpdate,
     CompanyStatistics,
     PaginatedResponse,
@@ -23,7 +23,7 @@ from ..schemas import (
     UserUpdate,
     UserWithStats,
 )
-from ..services.user_service import UserService
+from app.services.user_service import UserService
 
 # 常量定义
 USER_NOT_FOUND_MSG = "用户不存在"

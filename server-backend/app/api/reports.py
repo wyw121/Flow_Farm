@@ -2,14 +2,12 @@
 数据报表相关API路由
 """
 
-from typing import List, Optional
-
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from ..api.auth import get_current_user, require_user_admin_or_above
-from ..database import get_db
-from ..models import User
+from app.api.auth import get_current_user, require_user_admin_or_above
+from app.database import get_db
+from app.models import User
 
 router = APIRouter()
 
@@ -23,7 +21,7 @@ async def get_dashboard_data(
     # 根据用户角色返回不同的仪表盘数据
     if current_user.role == "system_admin":
         # 系统管理员看到所有用户管理员的汇总数据
-        from ..services.user_service import UserService
+        from app.services.user_service import UserService
 
         user_service = UserService(db)
         user_admins = user_service.get_users_by_parent(current_user.id)
@@ -43,8 +41,8 @@ async def get_dashboard_data(
 
     elif current_user.role == "user_admin":
         # 用户管理员看到自己公司的详细数据
-        from ..services.user_service import UserService
-        from ..services.work_record_service import WorkRecordService
+        from app.services.user_service import UserService
+        from app.services.work_record_service import WorkRecordService
 
         user_service = UserService(db)
         work_service = WorkRecordService(db)

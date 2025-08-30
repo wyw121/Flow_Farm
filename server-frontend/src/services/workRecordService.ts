@@ -39,8 +39,9 @@ export const workRecordService = {
     if (startDate) params.append('start_date', startDate)
     if (endDate) params.append('end_date', endDate)
 
-    const response = await apiClient.get(`/api/v1/kpi/statistics/?${params}`)
-    return response.data
+    // 直接调用用户管理员报告API获取当前用户的统计数据
+    const response = await apiClient.get(`/api/v1/reports/dashboard`)
+    return response.data?.work_stats || {}
   },
 
   // 导出工作记录

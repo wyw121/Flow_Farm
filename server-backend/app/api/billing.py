@@ -7,20 +7,20 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from ..api.auth import (
+from app.api.auth import (
     get_current_user,
     require_system_admin,
     require_user_admin_or_above,
 )
-from ..database import get_db
-from ..models import AuditLog, User
-from ..schemas import (
+from app.database import get_db
+from app.models import AuditLog, User
+from app.schemas import (
     BillingRecordResponse,
     PricingRuleCreate,
     PricingRuleResponse,
     PricingRuleUpdate,
 )
-from ..services.billing_service import BillingService
+from app.services.billing_service import BillingService
 
 router = APIRouter()
 

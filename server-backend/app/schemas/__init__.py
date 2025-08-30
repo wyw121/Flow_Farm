@@ -21,7 +21,7 @@ class LoginResponse(BaseModel):
 
     access_token: str
     token_type: str = "bearer"
-    user: "UserResponse"
+    user: Optional["UserResponse"] = None
 
 
 class ChangePasswordRequest(BaseModel):
@@ -218,29 +218,6 @@ class PricingRuleResponse(PricingRuleBase):
         from_attributes = True
 
 
-# 认证相关模型
-class LoginRequest(BaseModel):
-    """登录请求模型"""
-
-    username: str
-    password: str
-
-
-class LoginResponse(BaseModel):
-    """登录响应模型"""
-
-    access_token: str
-    token_type: str = "bearer"
-    user: UserResponse
-
-
-class ChangePasswordRequest(BaseModel):
-    """修改密码请求模型"""
-
-    current_password: str
-    new_password: str
-
-
 # 统计数据模型
 class WorkStatistics(BaseModel):
     """工作统计模型"""
@@ -352,3 +329,7 @@ class ExportResponse(BaseModel):
     download_url: str
     filename: str
     expires_at: datetime
+
+
+# 更新前向引用
+LoginResponse.model_rebuild()

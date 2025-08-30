@@ -10,11 +10,10 @@ from passlib.context import CryptContext
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
-from ..models import BillingRecord, User, WorkRecord
-from ..schemas import (
+from app.models import BillingRecord, User, WorkRecord
+from app.schemas import (
     CompanyStatistics,
     UserCreate,
-    UserResponse,
     UserStatistics,
     UserUpdate,
     UserWithStats,

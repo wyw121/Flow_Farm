@@ -7,10 +7,10 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from .config import settings
-from .database import Base, SessionLocal, engine
-from .models import PricingRule, SystemSettings, User
-from .services.user_service import UserService
+from app.config import settings
+from app.database import Base, SessionLocal, engine
+from app.models import PricingRule, SystemSettings, User
+from app.services.user_service import UserService
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

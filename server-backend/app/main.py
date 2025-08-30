@@ -6,13 +6,12 @@ Flow Farm 服务器后端 - FastAPI应用程序
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer
 
 from .api import auth, billing, devices, kpi, reports, users
 from .config import settings
-from .database import Base, SessionLocal, engine
+from .database import Base, engine
 
 
 @asynccontextmanager
@@ -46,9 +45,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# 安全配置
-security = HTTPBearer()
 
 # 注册API路由
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])

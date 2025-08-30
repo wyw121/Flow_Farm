@@ -15,7 +15,7 @@ export const billingService = {
 
     if (userId) params.append('user_id', userId.toString())
 
-    const response = await apiClient.get(`/api/v1/billing/records/?${params}`)
+    const response = await apiClient.get(`/api/v1/billing/billing-records/?${params}`)
     return response.data
   },
 
