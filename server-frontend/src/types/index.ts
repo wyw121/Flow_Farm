@@ -22,13 +22,12 @@ export interface UserWithStats extends User {
 }
 
 export interface LoginRequest {
-  identifier: string // 用户名、邮箱或手机号
+  username: string // 用户名、邮箱或手机号
   password: string
 }
 
 export interface LoginResponse {
-  access_token: string
-  token_type: string
+  token: string
   user: User
 }
 

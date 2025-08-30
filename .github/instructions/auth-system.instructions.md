@@ -1,32 +1,72 @@
----
-applyTo: "src/auth/**/*.py"
----
-
-# 权限认证系统开发指令
+# 认证系统开发指令
 
 ## 适用范围
-本指令适用于所有权限认证相关的Python文件，包括用户管理、权限控制、会话管理等。
+这些指令适用于 `src/auth/**/*.py` 路径下的所有认证相关代码文件。
+
+## 技术栈
+
+### 核心技术
+- **认证框架**: JWT (JSON Web Tokens)
+- **密码加密**: bcrypt / argon2
+- **会话管理**: Redis / 内存存储
+- **权限控制**: RBAC (基于角色的访问控制)
+- **数据验证**: Pydantic / marshmallow
+- **加密工具**: cryptography
 
 ## 三角色权限架构
 
-### 角色层级设计
-1. **系统管理员 (SYSTEM_ADMIN)** - 权限级别: 1
-   - 全系统访问权限
-   - 用户管理员账户管理
-   - 系统配置和监控
-   - 计费规则设置
+### 1. 系统管理员 (SystemAdmin)
+```python
+class SystemAdmin:
+    """系统管理员 - 权限级别: 1 (最高)"""
 
-2. **用户管理员 (USER_ADMIN)** - 权限级别: 2  
-   - 公司内员工管理（最多10个）
-   - 本公司数据查看
-   - 计费和结算功能
-   - 工作量调整权限
+    PERMISSIONS = [
+        "user:create",           # 创建用户管理员
+        "user:read:all",         # 查看所有用户
+        "user:update:all",       # 更新所有用户
+        "user:delete:all",       # 删除用户
+        "system:settings",       # 系统设置
+        "billing:configure",     # 计费配置
+        "reports:global",        # 全局报表
+        "audit:logs",           # 审计日志
+    ]
 
-3. **员工 (EMPLOYEE)** - 权限级别: 3
-   - 基本数据上报权限
-   - 个人工作数据查看
-   - 任务接收和执行
-   - 有限的系统交互
+    MAX_MANAGED_USERS = None  # 无限制
+```
+
+### 2. 用户管理员 (UserAdmin)
+```python
+class UserAdmin:
+    """用户管理员 - 权限级别: 2"""
+
+    PERMISSIONS = [
+        "employee:create",       # 创建员工 (最多10个)
+        "employee:read:company", # 查看本公司员工
+        "employee:update:company", # 更新本公司员工
+        "employee:delete:company", # 删除本公司员工
+        "billing:view:company",  # 查看本公司计费
+        "reports:company",       # 本公司报表
+        "tasks:assign",         # 分配任务
+    ]
+
+    MAX_MANAGED_USERS = 10    # 最多管理10个员工
+```
+
+### 3. 员工 (Employee)
+```python
+class Employee:
+    """员工 - 权限级别: 3 (最低)"""
+
+    PERMISSIONS = [
+        "task:execute",         # 执行任务
+        "work_record:create",   # 创建工作记录
+        "work_record:read:self", # 查看自己的工作记录
+        "device:manage:self",   # 管理自己的设备
+        "profile:update:self",  # 更新自己的资料
+    ]
+
+    MAX_MANAGED_USERS = 0     # 不能管理其他用户
+```
 
 ### 权限验证机制
 - 基于JWT的身份认证
@@ -42,11 +82,11 @@ class AuthManager:
     def authenticate(self, username: str, password: str) -> bool:
         # 实现用户名密码验证
         pass
-    
+
     def generate_token(self, user: User) -> str:
         # 生成JWT Token
         pass
-    
+
     def verify_token(self, token: str) -> Optional[User]:
         # 验证Token有效性
         pass
@@ -80,13 +120,13 @@ class Permission(Enum):
     VIEW_ALL_DATA = "view_all_data"
     SYSTEM_CONFIG = "system_config"
     BILLING_RULES = "billing_rules"
-    
+
     # 用户管理员权限
     MANAGE_EMPLOYEES = "manage_employees"
     VIEW_COMPANY_DATA = "view_company_data"
     BILLING_MANAGEMENT = "billing_management"
     ADJUST_WORKLOAD = "adjust_workload"
-    
+
     # 员工权限
     UPLOAD_DATA = "upload_data"
     RECEIVE_TASKS = "receive_tasks"

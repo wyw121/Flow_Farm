@@ -1,53 +1,68 @@
----
-applyTo: "server-frontend/**/*.{vue,ts,js}"
----
-
 # 服务器前端开发指令
 
 ## 适用范围
-本指令适用于 `server-frontend/` 目录下的所有 Vue.js、TypeScript 和 JavaScript 文件，专门用于构建管理员 Web 界面。
+这些指令适用于 `server-frontend/**/*.{vue,ts,js}` 路径下的所有前端代码文件。
 
-## 技术要求
+## 技术栈
 
-### 框架和库
-- 使用 Vue.js 3 + Composition API
-- 使用 TypeScript 进行类型安全
-- 使用 Vite 作为构建工具
-- 使用 Pinia 进行状态管理
-- 使用 Vue Router 进行路由管理
-- 使用 Element Plus 作为 UI 组件库
+### 核心框架和库
+- **前端框架**: Vue.js 3 + TypeScript + Vite
+- **UI组件库**: Ant Design Vue
+- **状态管理**: Pinia
+- **路由管理**: Vue Router
+- **HTTP客户端**: Axios
+- **图表库**: ECharts + vue-echarts
+- **时间处理**: dayjs
+- **表单验证**: Ant Design Vue 内置验证
 
-### 三角色界面系统
-1. **系统管理员界面**
-   - 用户管理模块（增删改查用户管理员）
-   - 全系统数据统计仪表板
-   - 计费规则配置界面
-   - 系统监控和日志查看
-
-2. **用户管理员界面**
-   - 员工管理模块（最多10个员工）
-   - 本公司数据统计
-   - 计费和结算界面
-   - 工作量调整工具
-
-### 界面设计规范
-- 使用响应式设计，支持桌面和平板
-- 遵循 Material Design 设计原则
-- 使用统一的颜色主题和字体
-- 提供明暗两种主题模式
-- 确保良好的用户体验
-
-### 状态管理
-- 使用 Pinia stores 管理全局状态
-- 实现用户认证状态管理
-- 缓存 API 响应数据
-- 处理异步操作状态
-
-### API 集成
-- 使用 axios 进行 HTTP 请求
-- 实现请求拦截器处理认证
-- 统一错误处理和提示
-- 实现自动重试机制
+### 项目结构
+```
+server-frontend/src/
+├── main.ts                 # 应用程序入口
+├── App.vue                 # 根组件
+├── types/                  # TypeScript类型定义
+│   ├── index.ts           # 通用类型
+│   ├── api.ts             # API相关类型
+│   └── user.ts            # 用户相关类型
+├── components/             # 可复用组件
+│   ├── Layout/            # 布局组件
+│   ├── Charts/            # 图表组件
+│   ├── Forms/             # 表单组件
+│   └── Common/            # 通用组件
+├── pages/                  # 页面组件
+│   ├── Login.tsx          # 登录页面
+│   ├── SystemAdmin/       # 系统管理员页面
+│   │   ├── Dashboard.tsx
+│   │   ├── UserManagement.tsx
+│   │   └── SystemSettings.tsx
+│   └── UserAdmin/         # 用户管理员页面
+│       ├── Dashboard.tsx
+│       ├── EmployeeManagement.tsx
+│       └── BillingManagement.tsx
+├── services/               # 服务层
+│   ├── api.ts             # API基础配置
+│   ├── authService.ts     # 认证服务
+│   ├── userService.ts     # 用户服务
+│   ├── billingService.ts  # 计费服务
+│   └── workRecordService.ts # 工作记录服务
+├── store/                  # Pinia状态管理
+│   ├── index.ts           # Store配置
+│   ├── authSlice.ts       # 认证状态
+│   ├── userSlice.ts       # 用户状态
+│   └── appSlice.ts        # 应用状态
+├── router/                 # 路由配置
+│   ├── index.ts           # 路由主配置
+│   └── guards.ts          # 路由守卫
+├── utils/                  # 工具函数
+│   ├── request.ts         # HTTP请求封装
+│   ├── auth.ts            # 认证工具
+│   ├── date.ts            # 日期工具
+│   └── validation.ts      # 验证工具
+└── styles/                 # 样式文件
+    ├── globals.css        # 全局样式
+    ├── variables.css      # CSS变量
+    └── components.css     # 组件样式
+```
 
 ### 路由和权限
 - 基于角色的路由守卫
@@ -117,7 +132,7 @@ import { authApi } from '@/api/auth'
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string>('')
-  
+
   const login = async (credentials: LoginCredentials) => {
     try {
       const response = await authApi.login(credentials)
@@ -128,17 +143,17 @@ export const useAuthStore = defineStore('auth', () => {
       throw new Error('登录失败')
     }
   }
-  
+
   const logout = () => {
     user.value = null
     token.value = ''
     localStorage.removeItem('token')
   }
-  
+
   const hasPermission = (permission: string): boolean => {
     return user.value?.permissions.includes(permission) || false
   }
-  
+
   return {
     user,
     token,
@@ -174,17 +189,17 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  
+
   if (to.meta.requiresAuth && !authStore.token) {
     next('/login')
     return
   }
-  
+
   if (to.meta.role && authStore.user?.role !== to.meta.role) {
     next('/403')
     return
   }
-  
+
   next()
 })
 ```

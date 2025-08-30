@@ -48,7 +48,7 @@ const Login: React.FC = () => {
           size="large"
         >
           <Form.Item
-            name="identifier"
+            name="username"
             rules={[
               { required: true, message: '请输入用户名、邮箱或手机号!' },
               { min: 3, message: '至少3个字符!' },

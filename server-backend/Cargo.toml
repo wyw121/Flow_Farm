@@ -1,0 +1,62 @@
+[package]
+name = "flow-farm-backend"
+version = "1.0.0"
+edition = "2021"
+description = "Flow Farm 服务器后端 - 员工工作量管理和KPI统计系统"
+authors = ["Flow Farm Team"]
+
+[dependencies]
+# Web框架
+axum = "0.7"
+axum-extra = { version = "0.9", features = ["typed-header"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["fs", "cors", "trace"] }
+
+# 异步运行时
+tokio = { version = "1.0", features = ["full"] }
+
+# 序列化/反序列化
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# 数据库
+sqlx = { version = "0.7", features = [
+    "runtime-tokio-rustls",
+    "sqlite",
+    "chrono",
+    "uuid",
+] }
+
+# 认证
+jsonwebtoken = "9.2"
+bcrypt = "0.15"
+
+# 时间处理
+chrono = { version = "0.4", features = ["serde"] }
+
+# UUID
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+# 环境变量
+dotenvy = "0.15"
+
+# 日志
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# 错误处理
+anyhow = "1.0"
+thiserror = "1.0"
+
+# 配置
+config = "0.14"
+
+# HTTP客户端
+reqwest = { version = "0.11", features = ["json"] }
+
+# 验证
+validator = { version = "0.18", features = ["derive"] }
+
+[dev-dependencies]
+# 测试
+tokio-test = "0.4"

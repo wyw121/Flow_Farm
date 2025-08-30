@@ -24,7 +24,7 @@ export const login = createAsyncThunk(
   async (loginData: LoginRequest, { rejectWithValue }) => {
     try {
       const response = await authService.login(loginData)
-      localStorage.setItem('token', response.access_token)
+      localStorage.setItem('token', response.token)
       return response
     } catch (error: any) {
       // 处理不同类型的错误
@@ -110,7 +110,7 @@ const authSlice = createSlice({
         state.loading = false
         state.isAuthenticated = true
         state.user = action.payload.user
-        state.token = action.payload.access_token
+        state.token = action.payload.token
         state.error = null
       })
       .addCase(login.rejected, (state, action) => {

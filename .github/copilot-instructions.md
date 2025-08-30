@@ -1,19 +1,70 @@
-# Flow Farm - 计费自动化流量农场系统
+# Flow Farm - 计费自动化流量农场系统 Copilot 指令
 
 ## 项目概述
 
-Flow Farm 是一个企业级计费自动化流量农场系统，专为多角色权限管理和社交媒体自动化操作而设计。系统采用三角色架构（系统管理员、用户管理员、员工），通过Python实现多设备并发控制，支持抖音、小红书等主流平台的智能引流操作，具备完善的权限管理、计费系统和用户界面。
+Flow Farm 是一个企业级计费自动化流量农场系统，专为多角色权限管理和社交媒体自动化操作而设计。系统采用三角色架构（系统管理员、用户管理员、员工），通过Rust实现高性能的服务器端，支持抖音、小红书等主流平台的智能引流操作。
 
-## 高级项目信息
+## 技术栈和架构
 
-- **项目类型**: 企业级计费自动化系统
-- **仓库大小**: 大型规模（预计500-1000个文件）
-- **主要语言**: Python 3.8+ (Backend/Client), Vue.js 3 + TypeScript (Frontend)
-- **目标运行时**: Windows 10/11, Python 3.8-3.11, Node.js 18+
-- **架构模式**: 微服务架构 + C/S架构 + RBAC权限系统
-- **部署方式**: 服务器端Web应用 + 加密桌面客户端
+### 服务器端技术栈
+- **后端框架**: Axum 0.7 - 高性能异步Web框架
+- **数据库**: SQLx + SQLite - 类型安全的数据库访问
+- **认证**: JWT + bcrypt - 安全的身份认证
+- **序列化**: Serde - 高效的JSON处理
+- **异步运行时**: Tokio - 高性能异步运行时
+- **日志**: Tracing - 结构化日志
+- **错误处理**: Anyhow + Thiserror - 优雅的错误处理
 
-## 三角色系统架构
+### 前端技术栈
+- **前端框架**: Vue.js 3 + TypeScript + Vite
+- **UI组件库**: Ant Design Vue
+- **状态管理**: Pinia
+- **路由管理**: Vue Router
+- **HTTP客户端**: Axios
+
+### 员工客户端技术栈
+- **GUI框架**: tkinter (主要) / PyQt5 (备选)
+- **自动化引擎**: ADB + uiautomator2 + Appium
+- **设备通信**: Android Debug Bridge (ADB)
+- **数据存储**: SQLite (本地缓存) + REST API
+
+## 编程规范和约定
+
+### 代码规范
+- **Rust代码**: 遵循 Rust 官方编码规范，使用 `rustfmt` 格式化，`clippy` 检查
+- **前端代码**: 遵循 Vue.js 3 和 TypeScript 最佳实践
+- **Python代码**: 遵循 PEP 8 编码规范
+- **函数命名**: snake_case (Rust/Python), camelCase (TypeScript)
+- **类型命名**: PascalCase
+- **常量命名**: UPPER_CASE
+
+### 注释和文档
+- 所有公共API和主要功能必须包含详细的文档注释
+- 中文注释，便于国内团队理解
+- 关键业务逻辑必须添加详细注释
+- 使用Rust的 `///` 文档注释格式
+
+### 错误处理
+- Rust: 使用 `Result<T, E>` 和 `?` 操作符
+- 前端: 统一的错误处理机制
+- 敏感信息加密存储，用户权限验证在每个关键操作前进行
+
+## 项目结构和模块化指令
+
+本项目使用模块化的指令系统，每个模块都有专门的指令文件：
+
+| 模块/路径模式 | 指令文件 | 描述 |
+|--------------|----------|------|
+| `server-backend/src/**/*.rs` | [server-backend.instructions.md](.github/instructions/server-backend.instructions.md) | Rust后端开发指令 |
+| `server-frontend/**/*.{vue,ts,js}` | [server-frontend.instructions.md](.github/instructions/server-frontend.instructions.md) | Vue.js前端开发指令 |
+| `employee-client/**/*.py` | [employee-client.instructions.md](.github/instructions/employee-client.instructions.md) | Python客户端开发指令 |
+| `src/auth/**/*.py` | [auth-system.instructions.md](.github/instructions/auth-system.instructions.md) | 认证系统指令 |
+| `src/core/**/*.py` | [core-modules.instructions.md](.github/instructions/core-modules.instructions.md) | 核心模块指令 |
+| `src/gui/**/*.py` | [gui-development.instructions.md](.github/instructions/gui-development.instructions.md) | GUI开发指令 |
+| `src/platforms/**/*.py` | [platform-automation.instructions.md](.github/instructions/platform-automation.instructions.md) | 平台自动化指令 |
+| `scripts/**/*.py` | [build-scripts.instructions.md](.github/instructions/build-scripts.instructions.md) | 构建脚本指令 |
+
+## 三角色系统架构指导
 
 ### 系统管理员（一级管理员，服务器端）
 - 开通用户管理员权限
@@ -33,28 +84,95 @@ Flow Farm 是一个企业级计费自动化流量农场系统，专为多角色�
 - 工作数据上传和同步
 - 任务执行和状态汇报
 
-## 核心技术栈
+## 开发工作流
 
-### 服务器端技术栈
-- **后端框架**: FastAPI + Python 3.8+
-- **前端框架**: Vue.js 3 + TypeScript + Vite
-- **数据库**: SQLite (开发) / PostgreSQL (生产)
-- **认证系统**: JWT + OAuth2
-- **API文档**: OpenAPI 3.0 (Swagger)
+### 1. 代码生成和修改
+当需要生成或修改代码时：
+- 首先阅读相应的模块指令文件
+- 确保理解该模块的特定要求和约定
+- 生成的代码必须符合项目的架构模式和编码规范
+- 包含适当的错误处理和日志记录
 
-### 员工客户端技术栈
-- **GUI框架**: tkinter (主要) / PyQt5 (备选)
-- **自动化引擎**: ADB + uiautomator2 + Appium
-- **设备通信**: Android Debug Bridge (ADB)
-- **数据存储**: SQLite (本地缓存) + REST API
-- **加密保护**: PyInstaller + 自定义加密算法
-- **网络通信**: requests + websocket-client
+### 2. API开发
+- 遵循RESTful API设计原则
+- 使用OpenAPI 3.0规范生成文档
+- 实现适当的认证和授权
+- 包含输入验证和错误响应
 
-### 共享技术栈
-- **权限系统**: 基于角色的访问控制 (RBAC)
-- **日志系统**: Python logging + 文件轮转
-- **计费系统**: 自定义计费规则引擎
-- **数据同步**: RESTful API + WebSocket
+### 3. 数据库设计
+- 使用SQLx进行类型安全的数据库操作
+- 实现适当的索引和查询优化
+- 遵循数据库规范化原则
+- 包含迁移脚本
+
+### 4. 前端开发
+- 使用Vue 3组合式API
+- 实现响应式设计
+- 遵循组件化开发模式
+- 包含类型定义和错误处理
+
+## 安全和性能指导
+
+### 安全要求
+- 所有API端点必须实现适当的认证和授权
+- 敏感数据必须加密存储
+- 输入数据必须验证和清理
+- 实现适当的审计日志
+
+### 性能要求
+- 数据库查询必须优化
+- 实现适当的缓存策略
+- 异步操作使用Tokio
+- 前端实现懒加载和代码分割
+
+## 测试策略
+
+### 单元测试
+- Rust: 使用内置的测试框架
+- 前端: 使用Vitest进行单元测试
+- Python: 使用pytest框架
+- 目标覆盖率: 80%+
+
+### 集成测试
+- API端点测试
+- 数据库集成测试
+- 前后端集成测试
+
+### 性能测试
+- 负载测试
+- 并发测试
+- 内存泄漏检测
+
+## 部署和DevOps
+
+### 构建流程
+- Rust: `cargo build --release`
+- 前端: `npm run build`
+- Python: PyInstaller打包
+
+### 监控和日志
+- 使用结构化日志
+- 实现健康检查端点
+- 监控系统性能指标
+
+## 重要提醒
+
+1. **始终遵循相关平台的使用条款和法律法规**
+2. **合理控制操作频率，避免被平台检测为异常行为**
+3. **定期备份重要数据和配置**
+4. **监控设备状态，避免过度使用导致设备损坏**
+5. **保护用户隐私，严格控制数据访问权限**
+
+## 获取更多帮助
+
+在使用Copilot时，可以使用以下提示：
+- `@workspace` 或 `#codebase` 来引用整个代码库
+- `#<filename>` 来引用特定文件
+- 明确指定你要修改的模块和功能
+- 参考相应的指令文件获取模块特定的指导
+
+当创建pull request时，请在描述的第一行添加：
+_This pull request was created as a result of the following prompt in Copilot Chat._
 
 ## 项目架构 (ProjectLayout)
 
@@ -272,7 +390,7 @@ pip install -r requirements.txt
 python -c "from app.init_db import create_tables; create_tables()"
 ```
 
-#### 服务器前端环境  
+#### 服务器前端环境
 ```bash
 # 进入服务器前端目录
 cd server-frontend
@@ -343,7 +461,7 @@ python -m pytest tests/ -v
 docker build -t flow-farm-backend:latest .
 ```
 
-#### 构建服务器前端  
+#### 构建服务器前端
 ```bash
 cd server-frontend
 
