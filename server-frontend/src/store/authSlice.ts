@@ -13,7 +13,7 @@ interface AuthState {
 const initialState: AuthState = {
   user: null,
   token: localStorage.getItem('token'),
-  isAuthenticated: !!localStorage.getItem('token'),
+  isAuthenticated: false, // 初始为false，需要验证token有效性
   loading: false,
   error: null,
 }
