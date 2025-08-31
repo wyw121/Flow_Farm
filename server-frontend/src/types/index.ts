@@ -71,15 +71,12 @@ export interface BillingRecord {
 
 export interface PricingRule {
   id: number
-  name: string
-  description?: string
-  rule_type: string
+  rule_name: string
+  billing_type: string
   unit_price: number
-  billing_period: string
-  rule_config?: any
   is_active: boolean
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface UserCreate {

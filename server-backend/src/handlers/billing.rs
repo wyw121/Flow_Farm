@@ -116,11 +116,18 @@ pub async fn create_pricing_rule(
 
 // 更新价格规则
 pub async fn update_pricing_rule(
-    State((database, config)): State<AppState>,
+    State((database, _config)): State<AppState>,
     auth_context: AuthContext,
     Path(rule_id): Path<i32>,
     Json(request): Json<CreatePricingRuleRequest>,
 ) -> Result<ResponseJson<ApiResponse<PricingRule>>, StatusCode> {
+    // 基本验证
+    if request.rule_name.is_empty() || request.billing_type.is_empty() || request.unit_price < 0.0 {
+        return Ok(ResponseJson(ApiResponse::error(
+            "输入数据无效：规则名称和计费类型不能为空，单价不能为负数".to_string(),
+        )));
+    }
+
     let service = BillingService::new(database);
 
     match service

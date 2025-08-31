@@ -26,8 +26,9 @@ import React, { useEffect, useState } from 'react'
 import { billingService } from '../../services/billingService'
 import { PricingRule } from '../../types'
 
-const { Title } = Typography
+const { Title, Text } = Typography
 const { Option } = Select
+const { TextArea } = Input
 
 const PricingSettings: React.FC = () => {
   const [rules, setRules] = useState<PricingRule[]>([])
@@ -161,9 +162,26 @@ const PricingSettings: React.FC = () => {
       ),
     },
     {
+      title: '描述',
+      dataIndex: 'description',
+      key: 'description',
+      ellipsis: true,
+      render: (text: string) => (
+        <Text ellipsis={{ tooltip: text }}>
+          {text || '暂无描述'}
+        </Text>
+      ),
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (date: string) => new Date(date).toLocaleDateString(),
+    },
+    {
       title: '操作',
       key: 'action',
-      render: (_: any, record: PricingRule) => (
+      render: (record: PricingRule) => (
         <Space size="middle">
           <Button
             type="link"
@@ -173,7 +191,8 @@ const PricingSettings: React.FC = () => {
             编辑
           </Button>
           <Popconfirm
-            title="确定要删除这个规则吗？"
+            title="确定要删除此收费规则吗？"
+            description="删除后无法恢复，请谨慎操作。"
             onConfirm={() => handleDelete(record.id)}
             okText="确定"
             cancelText="取消"
@@ -191,6 +210,17 @@ const PricingSettings: React.FC = () => {
     },
   ]
 
+  const ruleTypeOptions = [
+    { value: 'employee_count', label: '按员工数计费' },
+    { value: 'follow_count', label: '按关注数计费' },
+  ]
+
+  const billingPeriodOptions = [
+    { value: 'monthly', label: '按月' },
+    { value: 'yearly', label: '按年' },
+    { value: 'one_time', label: '一次性' },
+  ]
+
   return (
     <div>
       <div className="page-header">
@@ -205,7 +235,7 @@ const PricingSettings: React.FC = () => {
               icon={<PlusOutlined />}
               onClick={handleCreate}
             >
-              添加规则
+              添加收费规则
             </Button>
           </Col>
         </Row>
@@ -283,23 +313,30 @@ const PricingSettings: React.FC = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item
-            name="unit_price"
-            label="单价 (¥)"
-            rules={[
-              { required: true, message: '请输入单价' },
-              { type: 'number', min: 0.01, message: '单价必须大于0' },
-            ]}
-          >
-            <InputNumber
-              placeholder="请输入单价"
-              precision={2}
-              min={0.01}
-              style={{ width: '100%' }}
-              addonAfter="元"
-            />
-          </Form.Item>
-
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                name="unit_price"
+                label="单价 (¥)"
+                rules={[
+                  { required: true, message: '请输入单价' },
+                  { type: 'number', min: 0.01, message: '单价必须大于0' },
+                ]}
+              >
+                <InputNumber
+                  placeholder="请输入单价"
+                  precision={2}
+                  min={0.01}
+                  style={{ width: '100%' }}
+                  addonAfter="元"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+                <Select placeholder="请选择计费周期">
+                  {billingPeriodOptions.map(option => (
+                    <Option key={option.value} value={option.value}>
+                      {option.label}
           <Form.Item
             name="is_active"
             label="规则状态"

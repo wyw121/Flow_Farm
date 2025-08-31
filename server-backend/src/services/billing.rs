@@ -43,7 +43,6 @@ impl BillingService {
         let rules = sqlx::query_as::<_, PricingRule>(
             "SELECT id, rule_name, billing_type, unit_price, is_active, created_at, updated_at
              FROM pricing_rules
-             WHERE is_active = true
              ORDER BY created_at DESC",
         )
         .fetch_all(&self.database.pool)
@@ -89,6 +88,8 @@ impl BillingService {
             return Err(anyhow!("权限不足"));
         }
 
+        tracing::info!("更新价格规则 {} 数据: {:?}", rule_id, request);
+
         let rule = sqlx::query_as::<_, PricingRule>(
             "UPDATE pricing_rules
              SET rule_name = ?, billing_type = ?, unit_price = ?, updated_at = datetime('now')
@@ -102,6 +103,7 @@ impl BillingService {
         .fetch_one(&self.database.pool)
         .await?;
 
+        tracing::info!("价格规则更新成功: {:?}", rule);
         Ok(rule)
     }
 

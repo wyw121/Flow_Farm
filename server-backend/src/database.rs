@@ -100,6 +100,28 @@ impl Database {
         .execute(&self.pool)
         .await?;
 
+        // 删除旧的价格规则表（如果存在）并重新创建
+        sqlx::query("DROP TABLE IF EXISTS pricing_rules")
+            .execute(&self.pool)
+            .await?;
+
+        // 创建价格规则表
+        sqlx::query(
+            r#"
+            CREATE TABLE pricing_rules (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                rule_name TEXT NOT NULL,
+                billing_type TEXT NOT NULL,
+                unit_price REAL NOT NULL,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            "#,
+        )
+        .execute(&self.pool)
+        .await?;
+
         // 创建系统配置表
         sqlx::query(
             r#"
@@ -145,7 +167,52 @@ impl Database {
         // 创建测试用户（仅在开发环境）
         self.create_test_users().await?;
 
+        // 创建测试价格规则
+        self.create_test_pricing_rules().await?;
+
         tracing::info!("✅ 数据库迁移完成");
+        Ok(())
+    }
+
+    async fn create_test_pricing_rules(&self) -> Result<()> {
+        tracing::info!("🔄 创建测试价格规则数据");
+
+        // 检查是否已存在价格规则
+        let rules_count = sqlx::query("SELECT COUNT(*) as count FROM pricing_rules")
+            .fetch_one(&self.pool)
+            .await?
+            .get::<i64, _>("count");
+
+        if rules_count == 0 {
+            // 创建默认价格规则
+            let rules = vec![
+                ("抖音关注", "douyin_follow", 0.05),
+                ("抖音点赞", "douyin_like", 0.02),
+                ("小红书关注", "xiaohongshu_follow", 0.08),
+                ("小红书点赞", "xiaohongshu_like", 0.03),
+                ("小红书收藏", "xiaohongshu_favorite", 0.04),
+            ];
+
+            for (rule_name, billing_type, unit_price) in rules {
+                sqlx::query(
+                    r#"
+                    INSERT INTO pricing_rules (rule_name, billing_type, unit_price, is_active)
+                    VALUES (?, ?, ?, ?)
+                    "#,
+                )
+                .bind(rule_name)
+                .bind(billing_type)
+                .bind(unit_price)
+                .bind(true)
+                .execute(&self.pool)
+                .await?;
+            }
+
+            tracing::info!("✅ 测试价格规则创建完成");
+        } else {
+            tracing::info!("ℹ️  价格规则已存在，跳过创建");
+        }
+
         Ok(())
     }
 
