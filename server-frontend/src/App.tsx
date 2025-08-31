@@ -1,136 +1,154 @@
-/**
- * 重构后的App组件
- * 移除冗余的调试组件和控制台日志，优化路由和状态管理
- */
-
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { ConfigProvider, App as AntApp } from 'antd'
-import zhCN from 'antd/locale/zh_CN'
-import './AppNew.css'
-
-import { AppDispatch } from './store'
-import { 
-  checkAuthStatusAsync, 
-  selectUser,
-  selectIsAuthenticated,
-  selectIsLoading 
-} from './store/authSliceNew'
-
-// 页面组件
-import LoginNew from './pages/LoginNew'
+import './App.css'
+import AuthDebugger from './components/AuthDebugger'
+import DebugAuth from './components/DebugAuth'
+import RootRedirect from './components/RootRedirect'
+import UnauthorizedPage from './components/UnauthorizedPage'
+import Login from './pages/Login'
 import SystemAdminDashboard from './pages/SystemAdminDashboard'
 import UserAdminDashboard from './pages/UserAdminDashboard'
-import UnauthorizedPage from './components/UnauthorizedPage'
-import ProtectedRouteNew from './components/ProtectedRouteNew'
-import { UserRole } from './services/auth'
+import { RootState } from './store'
+import { getCurrentUser } from './store/authSlice'
 
-// 路由权限映射
-const ROLE_ROUTES = {
-  system_admin: '/admin',
-  user_admin: '/user-admin',
-  employee: '/employee'
-} as const
+const App: React.FC = () => {
+  const dispatch = useDispatch()
+  const { isAuthenticated, user, loading } = useSelector((state: RootState) => state.auth)
 
-const AppContent: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>()
-  const isAuthenticated = useSelector(selectIsAuthenticated)
-  const isLoading = useSelector(selectIsLoading)
-  const user = useSelector(selectUser)
-
-  // 应用启动时检查认证状态
+  // 应用启动时验证token有效性
   useEffect(() => {
-    dispatch(checkAuthStatusAsync())
+    const token = localStorage.getItem('token')
+    if (token) {
+      console.log('应用启动：验证现有token...')
+      dispatch(getCurrentUser() as any)
+    } else {
+      console.log('应用启动：无token，跳过验证')
+    }
   }, [dispatch])
 
+  // 调试信息
+  useEffect(() => {
+    console.log('App状态更新:', {
+      isAuthenticated,
+      userRole: user?.role,
+      userId: user?.id,
+      username: user?.username,
+      loading,
+      timestamp: new Date().toISOString()
+    })
+  }, [isAuthenticated, user, loading])
+
   // 全局加载状态
-  if (isLoading) {
+  if (loading) {
+    console.log('App：显示全局加载状态')
     return (
-      <div className="app-loading">
-        <div className="loading-content">
-          <div className="loading-spinner"></div>
-          <p>正在验证登录状态...</p>
-        </div>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '16px'
+      }}>
+        正在验证登录状态...
       </div>
     )
   }
 
-  // 未认证状态 - 显示登录页面
+  // 未认证时显示登录页面
   if (!isAuthenticated) {
+    console.log('App：用户未认证，显示登录页面')
     return (
       <Routes>
-        <Route path="/login" element={<LoginNew />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Login />} />
       </Routes>
     )
   }
 
-  // 已认证但用户信息异常
+  // 已认证但用户信息为空的异常情况
   if (!user) {
+    console.log('App：异常状态 - 已认证但用户为空')
     return (
-      <div className="app-error">
-        <div className="error-content">
-          <h3>用户信息加载失败</h3>
-          <p>请尝试刷新页面或重新登录</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="retry-button"
-          >
-            刷新页面
-          </button>
-        </div>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '16px'
+      }}>
+        <div>用户信息加载异常</div>
+        <button
+          onClick={() => window.location.reload()}
+          style={{ marginTop: '20px', padding: '10px 20px' }}
+        >
+          刷新页面
+        </button>
       </div>
     )
   }
 
-  // 获取用户对应的默认路由
-  const defaultRoute = ROLE_ROUTES[user.role as keyof typeof ROLE_ROUTES] || '/unauthorized'
-
+  // 已认证时的主要路由
+  console.log('App：用户已认证，渲染主要路由', { userRole: user.role })
   return (
-    <Routes>
-      {/* 根路径重定向到用户角色对应的页面 */}
-      <Route path="/" element={<Navigate to={defaultRoute} replace />} />
-      
-      {/* 系统管理员路由 */}
-      <Route
-        path="/admin/*"
-        element={
-          <ProtectedRouteNew allowedRoles={['system_admin' as UserRole]}>
-            <SystemAdminDashboard />
-          </ProtectedRouteNew>
-        }
-      />
-      
-      {/* 用户管理员路由 */}
-      <Route
-        path="/user-admin/*"
-        element={
-          <ProtectedRouteNew allowedRoles={['user_admin' as UserRole]}>
-            <UserAdminDashboard />
-          </ProtectedRouteNew>
-        }
-      />
-      
-      {/* 未授权页面 */}
-      <Route path="/unauthorized" element={<UnauthorizedPage />} />
-      
-      {/* 登录页面（已认证用户访问会重定向） */}
-      <Route path="/login" element={<Navigate to={defaultRoute} replace />} />
-      
-      {/* 其他未匹配路由 */}
-      <Route path="*" element={<Navigate to={defaultRoute} replace />} />
-    </Routes>
-  )
-}
+    <>
+      <AuthDebugger show={true} />
+      <DebugAuth />
+      <Routes>
+        {/* 登录页面重定向 */}
+        <Route path="/login" element={<RootRedirect />} />
 
-const App: React.FC = () => {
-  return (
-    <ConfigProvider locale={zhCN}>
-      <AntApp>
-        <AppContent />
-      </AntApp>
-    </ConfigProvider>
+        {/* 系统管理员路由 */}
+        <Route
+          path="/system-admin/*"
+          element={
+            user?.role === 'system_admin' ? (
+              <SystemAdminDashboard />
+            ) : (
+              <Navigate to="/unauthorized" replace />
+            )
+          }
+        />
+
+        {/* 用户管理员路由 */}
+        <Route
+          path="/user-admin/*"
+          element={
+            user?.role === 'user_admin' ? (
+              <UserAdminDashboard />
+            ) : (
+              <Navigate to="/unauthorized" replace />
+            )
+          }
+        />
+
+        {/* 调试路由 */}
+        <Route
+          path="/debug"
+          element={
+            <div style={{ padding: '20px' }}>
+              <h2>调试信息</h2>
+              <div>用户角色: "{user?.role}"</div>
+              <div>角色类型: {typeof user?.role}</div>
+              <div>角色长度: {user?.role?.length}</div>
+              <div>是系统管理员: {user?.role === 'system_admin' ? 'true' : 'false'}</div>
+              <div>是用户管理员: {user?.role === 'user_admin' ? 'true' : 'false'}</div>
+              <div>是员工: {user?.role === 'employee' ? 'true' : 'false'}</div>
+              <pre>{JSON.stringify(user, null, 2)}</pre>
+            </div>
+          }
+        />
+
+        {/* 根路径智能重定向 */}
+        <Route path="/" element={<RootRedirect />} />
+
+        {/* 无权限页面 */}
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+        {/* 404页面 - 重定向到根路径 */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   )
 }
 
