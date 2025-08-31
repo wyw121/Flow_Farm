@@ -5,12 +5,14 @@
 Flow Farm 是一个企业级计费自动化流量农场系统，专为多角色权限管理和社交媒体自动化操作而设计。
 
 ### 核心特性
+
 - **三角色架构**: 系统管理员、用户管理员、员工
 - **多平台支持**: 抖音、小红书等主流社交媒体平台
 - **自动化引流**: 智能设备控制和任务调度
 - **计费管理**: 精确的使用统计和费用计算
 
 ### 技术架构
+
 - **服务器后端**: Rust + Axum + SQLx + SQLite
 - **服务器前端**: React.js + TypeScript + Vite
 - **员工客户端**: Python + tkinter + ADB
@@ -18,6 +20,7 @@ Flow Farm 是一个企业级计费自动化流量农场系统，专为多角色�
 ## 构建指令 (BuildInstructions)
 
 ### 环境要求
+
 - **Rust**: 1.75+ (server-backend)
 - **Node.js**: 18+ (server-frontend)
 - **Python**: 3.8+ (employee-client)
@@ -26,6 +29,7 @@ Flow Farm 是一个企业级计费自动化流量农场系统，专为多角色�
 ### 快速启动 (推荐顺序)
 
 #### 1. 服务器后端 (Rust)
+
 ```bash
 cd server-backend
 cargo build --release
@@ -35,6 +39,7 @@ cargo run --release
 ```
 
 #### 2. 服务器前端 (React)
+
 ```bash
 cd server-frontend
 npm install
@@ -43,6 +48,7 @@ npm run dev
 ```
 
 #### 3. 员工客户端 (Python)
+
 ```bash
 cd employee-client
 python -m venv venv
@@ -55,43 +61,46 @@ python src/main.py --gui --debug
 
 本项目使用模块化的指令系统，每个模块都有专门的指令文件：
 
-| 模块/路径模式 | 指令文件 | 描述 |
-|--------------|----------|------|
-| `server-backend/src/**/*.rs` | [server-backend.instructions.md](.github/instructions/server-backend.instructions.md) | Rust后端开发指令 |
-| `server-frontend/**/*.{tsx,ts,jsx,js}` | [server-frontend.instructions.md](.github/instructions/server-frontend.instructions.md) | React.js前端开发指令 |
-| `employee-client/**/*.py` | [employee-client.instructions.md](.github/instructions/employee-client.instructions.md) | Python客户端开发指令 |
-| `src/auth/**/*.py` | [auth-system.instructions.md](.github/instructions/auth-system.instructions.md) | 认证系统指令 |
-| `src/core/**/*.py` | [core-modules.instructions.md](.github/instructions/core-modules.instructions.md) | 核心模块指令 |
-| `src/gui/**/*.py` | [gui-development.instructions.md](.github/instructions/gui-development.instructions.md) | GUI开发指令 |
-| `src/platforms/**/*.py` | [platform-automation.instructions.md](.github/instructions/platform-automation.instructions.md) | 平台自动化指令 |
-| `scripts/**/*.py` | [build-scripts.instructions.md](.github/instructions/build-scripts.instructions.md) | 构建脚本指令 |
+| 模块/路径模式                          | 指令文件                                                                                        | 描述                  |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------- |
+| `server-backend/src/**/*.rs`           | [server-backend.instructions.md](.github/instructions/server-backend.instructions.md)           | Rust 后端开发指令     |
+| `server-frontend/**/*.{tsx,ts,jsx,js}` | [server-frontend.instructions.md](.github/instructions/server-frontend.instructions.md)         | React.js 前端开发指令 |
+| `employee-client/**/*.py`              | [employee-client.instructions.md](.github/instructions/employee-client.instructions.md)         | Python 客户端开发指令 |
+| `src/auth/**/*.py`                     | [auth-system.instructions.md](.github/instructions/auth-system.instructions.md)                 | 认证系统指令          |
+| `src/core/**/*.py`                     | [core-modules.instructions.md](.github/instructions/core-modules.instructions.md)               | 核心模块指令          |
+| `src/gui/**/*.py`                      | [gui-development.instructions.md](.github/instructions/gui-development.instructions.md)         | GUI 开发指令          |
+| `src/platforms/**/*.py`                | [platform-automation.instructions.md](.github/instructions/platform-automation.instructions.md) | 平台自动化指令        |
+| `scripts/**/*.py`                      | [build-scripts.instructions.md](.github/instructions/build-scripts.instructions.md)             | 构建脚本指令          |
 
-## 专用Prompt文件
+## 专用 Prompt 文件
 
-项目还提供了专门的prompt文件，用于特定的开发任务：
+项目还提供了专门的 prompt 文件，用于特定的开发任务：
 
-| Prompt文件 | 用途 | 使用方法 |
-|-----------|------|----------|
-| [server-optimization.prompt.md](.github/prompts/server-optimization.prompt.md) | 服务器端重构和优化 | 在Copilot Chat中附加此prompt |
-| [api-development.prompt.md](.github/prompts/api-development.prompt.md) | API开发和文档生成 | 用于设计和实现REST API |
-| [rbac-system.prompt.md](.github/prompts/rbac-system.prompt.md) | 权限系统开发 | 实现三角色权限控制 |
-| [device-automation.prompt.md](.github/prompts/device-automation.prompt.md) | 设备自动化开发 | 员工客户端自动化功能 |
+| Prompt 文件                                                                    | 用途               | 使用方法                        |
+| ------------------------------------------------------------------------------ | ------------------ | ------------------------------- |
+| [server-optimization.prompt.md](.github/prompts/server-optimization.prompt.md) | 服务器端重构和优化 | 在 Copilot Chat 中附加此 prompt |
+| [api-development.prompt.md](.github/prompts/api-development.prompt.md)         | API 开发和文档生成 | 用于设计和实现 REST API         |
+| [rbac-system.prompt.md](.github/prompts/rbac-system.prompt.md)                 | 权限系统开发       | 实现三角色权限控制              |
+| [device-automation.prompt.md](.github/prompts/device-automation.prompt.md)     | 设备自动化开发     | 员工客户端自动化功能            |
 
 ## 三角色系统架构指导
 
 ### 系统管理员（一级管理员，服务器端）
+
 - 开通用户管理员权限
 - 查看所有员工工作信息和统计数据
 - 设置收费规则和计费标准
 - 系统配置和监控
 
 ### 用户管理员（二级管理员，服务器端）
-- 开通员工权限（最多10个用户）
+
+- 开通员工权限（最多 10 个用户）
 - 查看本公司员工工作信息
 - 查看结算界面，调整关注数量
 - 扣费计划管理
 
 ### 员工（脚本用户，桌面客户端）
+
 - 多设备自动化控制
 - 抖音、小红书关注引流操作
 - 工作数据上传和同步
@@ -101,32 +110,35 @@ python src/main.py --gui --debug
 
 本项目使用模块化的指令系统，每个模块都有专门的指令文件：
 
-| 模块/路径模式 | 指令文件 | 描述 |
-|--------------|----------|------|
-| `server-backend/src/**/*.rs` | [server-backend.instructions.md](.github/instructions/server-backend.instructions.md) | Rust后端开发指令 |
-| `server-frontend/**/*.{vue,ts,js}` | [server-frontend.instructions.md](.github/instructions/server-frontend.instructions.md) | Vue.js前端开发指令 |
-| `employee-client/**/*.py` | [employee-client.instructions.md](.github/instructions/employee-client.instructions.md) | Python客户端开发指令 |
-| `src/auth/**/*.py` | [auth-system.instructions.md](.github/instructions/auth-system.instructions.md) | 认证系统指令 |
-| `src/core/**/*.py` | [core-modules.instructions.md](.github/instructions/core-modules.instructions.md) | 核心模块指令 |
-| `src/gui/**/*.py` | [gui-development.instructions.md](.github/instructions/gui-development.instructions.md) | GUI开发指令 |
-| `src/platforms/**/*.py` | [platform-automation.instructions.md](.github/instructions/platform-automation.instructions.md) | 平台自动化指令 |
-| `scripts/**/*.py` | [build-scripts.instructions.md](.github/instructions/build-scripts.instructions.md) | 构建脚本指令 |
+| 模块/路径模式                      | 指令文件                                                                                        | 描述                  |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------- |
+| `server-backend/src/**/*.rs`       | [server-backend.instructions.md](.github/instructions/server-backend.instructions.md)           | Rust 后端开发指令     |
+| `server-frontend/**/*.{vue,ts,js}` | [server-frontend.instructions.md](.github/instructions/server-frontend.instructions.md)         | Vue.js 前端开发指令   |
+| `employee-client/**/*.py`          | [employee-client.instructions.md](.github/instructions/employee-client.instructions.md)         | Python 客户端开发指令 |
+| `src/auth/**/*.py`                 | [auth-system.instructions.md](.github/instructions/auth-system.instructions.md)                 | 认证系统指令          |
+| `src/core/**/*.py`                 | [core-modules.instructions.md](.github/instructions/core-modules.instructions.md)               | 核心模块指令          |
+| `src/gui/**/*.py`                  | [gui-development.instructions.md](.github/instructions/gui-development.instructions.md)         | GUI 开发指令          |
+| `src/platforms/**/*.py`            | [platform-automation.instructions.md](.github/instructions/platform-automation.instructions.md) | 平台自动化指令        |
+| `scripts/**/*.py`                  | [build-scripts.instructions.md](.github/instructions/build-scripts.instructions.md)             | 构建脚本指令          |
 
 ## 三角色系统架构指导
 
 ### 系统管理员（一级管理员，服务器端）
+
 - 开通用户管理员权限
 - 查看所有员工工作信息和统计数据
 - 设置收费规则和计费标准
 - 系统配置和监控
 
 ### 用户管理员（二级管理员，服务器端）
-- 开通员工权限（最多10个用户）
+
+- 开通员工权限（最多 10 个用户）
 - 查看本公司员工工作信息
 - 查看结算界面，调整关注数量
 - 扣费计划管理
 
 ### 员工（脚本用户，桌面客户端）
+
 - 多设备自动化控制
 - 抖音、小红书关注引流操作
 - 工作数据上传和同步
@@ -135,26 +147,31 @@ python src/main.py --gui --debug
 ## 开发工作流
 
 ### 1. 代码生成和修改
+
 当需要生成或修改代码时：
+
 - 首先阅读相应的模块指令文件
 - 确保理解该模块的特定要求和约定
 - 生成的代码必须符合项目的架构模式和编码规范
 - 包含适当的错误处理和日志记录
 
-### 2. API开发
-- 遵循RESTful API设计原则
-- 使用OpenAPI 3.0规范生成文档
+### 2. API 开发
+
+- 遵循 RESTful API 设计原则
+- 使用 OpenAPI 3.0 规范生成文档
 - 实现适当的认证和授权
 - 包含输入验证和错误响应
 
 ### 3. 数据库设计
-- 使用SQLx进行类型安全的数据库操作
+
+- 使用 SQLx 进行类型安全的数据库操作
 - 实现适当的索引和查询优化
 - 遵循数据库规范化原则
 - 包含迁移脚本
 
 ### 4. 前端开发
-- 使用Vue 3组合式API
+
+- 使用 Vue 3 组合式 API
 - 实现响应式设计
 - 遵循组件化开发模式
 - 包含类型定义和错误处理
@@ -162,43 +179,50 @@ python src/main.py --gui --debug
 ## 安全和性能指导
 
 ### 安全要求
-- 所有API端点必须实现适当的认证和授权
+
+- 所有 API 端点必须实现适当的认证和授权
 - 敏感数据必须加密存储
 - 输入数据必须验证和清理
 - 实现适当的审计日志
 
 ### 性能要求
+
 - 数据库查询必须优化
 - 实现适当的缓存策略
-- 异步操作使用Tokio
+- 异步操作使用 Tokio
 - 前端实现懒加载和代码分割
 
 ## 测试策略
 
 ### 单元测试
+
 - Rust: 使用内置的测试框架
-- 前端: 使用Vitest进行单元测试
-- Python: 使用pytest框架
+- 前端: 使用 Vitest 进行单元测试
+- Python: 使用 pytest 框架
 - 目标覆盖率: 80%+
 
 ### 集成测试
-- API端点测试
+
+- API 端点测试
 - 数据库集成测试
 - 前后端集成测试
 
 ### 性能测试
+
 - 负载测试
 - 并发测试
 - 内存泄漏检测
 
-## 部署和DevOps
+## 部署和 DevOps
 
 ### 构建流程
+
 - Rust: `cargo build --release`
 - 前端: `npm run build`
-- Python: PyInstaller打包
+- Python: PyInstaller 打包
 
 ### 监控和日志
+
 - 使用结构化日志
 - 实现健康检查端点
 - 监控系统性能指标
@@ -213,18 +237,20 @@ python src/main.py --gui --debug
 
 ## 获取更多帮助
 
-在使用Copilot时，可以使用以下提示：
+在使用 Copilot 时，可以使用以下提示：
+
 - `@workspace` 或 `#codebase` 来引用整个代码库
 - `#<filename>` 来引用特定文件
 - 明确指定你要修改的模块和功能
 - 参考相应的指令文件获取模块特定的指导
 
-当创建pull request时，请在描述的第一行添加：
+当创建 pull request 时，请在描述的第一行添加：
 _This pull request was created as a result of the following prompt in Copilot Chat._
 
 ## 项目架构 (ProjectLayout)
 
 ### 目录结构详解
+
 ```
 Flow_Farm/                          # 项目根目录
 ├── .github/                        # GitHub配置和CI/CD
@@ -282,98 +308,103 @@ Flow_Farm/                          # 项目根目录
 ```
 
 ### 架构模式说明
+
 - **微服务架构**: server-backend 和 server-frontend 分离
-- **C/S架构**: 服务器端Web应用 + 桌面客户端
+- **C/S 架构**: 服务器端 Web 应用 + 桌面客户端
 - **分层架构**: core(业务逻辑) → gui(表示层) → platforms(平台层)
-- **MVP模式**: Model(数据) + View(GUI) + Presenter(控制器)
+- **MVP 模式**: Model(数据) + View(GUI) + Presenter(控制器)
 - **模块化设计**: 每个功能模块独立，便于维护和扩展
-- **插件化平台**: 新平台可通过继承base_platform轻松添加
+- **插件化平台**: 新平台可通过继承 base_platform 轻松添加
 
 ### 关键配置文件
-- `server-backend/app/main.py`: FastAPI应用入口，包含API路由
-- `server-frontend/src/main.ts`: Vue.js应用入口
+
+- `server-backend/app/main.py`: FastAPI 应用入口，包含 API 路由
+- `server-frontend/src/main.ts`: Vue.js 应用入口
 - `employee-client/src/main.py`: 员工客户端入口
 - `config/app_config.json`: 主要配置文件，包含所有系统设置
-- `Flow_Farm.code-workspace`: VS Code工作区配置
+- `Flow_Farm.code-workspace`: VS Code 工作区配置
 
 ### 数据流向
-1. **管理员操作** → Web前端 → API → 数据库 → 权限验证
+
+1. **管理员操作** → Web 前端 → API → 数据库 → 权限验证
 2. **员工操作** → 桌面客户端 → API → 数据库 → 任务分发
 3. **设备操作** → 平台模块 → 自动化引擎 → ADB → 数据上报
 
 ### 开发时文件位置规则
-- 新增API接口: `server-backend/app/api/`
-- 新增Web页面: `server-frontend/src/views/`
+
+- 新增 API 接口: `server-backend/app/api/`
+- 新增 Web 页面: `server-frontend/src/views/`
 - 新增设备管理功能: `employee-client/src/core/device_manager.py`
-- 新增GUI组件: `employee-client/src/gui/components/`
+- 新增 GUI 组件: `employee-client/src/gui/components/`
 - 新增平台支持: `employee-client/src/platforms/新平台名/`
 - 新增权限功能: `employee-client/src/auth/`
-│   │   ├── windows/               # 独立窗口
-│   │   │   ├── admin_panel.py     # 管理员控制面板
-│   │   │   ├── user_panel.py      # 用户操作面板
-│   │   │   └── settings_window.py # 设置窗口
-│   │   └── dialogs/               # 对话框
-│   │       ├── login_dialog.py    # 登录对话框
-│   │       └── device_dialog.py   # 设备配置对话框
-│   ├── platforms/                 # 平台特定自动化模块
-│   │   ├── __init__.py
-│   │   ├── base_platform.py       # 平台基类 (抽象接口)
-│   │   ├── xiaohongshu/           # 小红书自动化
-│   │   │   ├── __init__.py
-│   │   │   ├── automation.py      # 小红书自动化逻辑
-│   │   │   ├── ui_elements.py     # UI元素定义
-│   │   │   └── strategies.py      # 操作策略
-│   │   └── douyin/                # 抖音自动化
-│   │       ├── __init__.py
-│   │       ├── automation.py      # 抖音自动化逻辑
-│   │       ├── ui_elements.py     # UI元素定义
-│   │       └── strategies.py      # 操作策略
-│   ├── auth/                      # 权限认证系统
-│   │   ├── __init__.py
-│   │   ├── user_manager.py        # 用户管理 (CRUD操作)
-│   │   ├── permission.py          # 权限控制 (RBAC实现)
-│   │   ├── session.py             # 会话管理
-│   │   └── crypto.py              # 加密工具
-│   └── utils/                     # 工具类和帮助函数
-│       ├── __init__.py
-│       ├── logger.py              # 日志配置
-│       ├── adb_helper.py          # ADB命令封装
-│       ├── ui_parser.py           # UI XML解析
-│       └── validator.py           # 数据验证
-├── config/                        # 配置文件目录
-│   ├── app_config.json           # 应用程序配置
-│   ├── device_config.json        # 设备配置模板
-│   ├── platform_config.json      # 平台特定配置
-│   └── logging.conf              # 日志配置
-├── data/                         # 数据文件目录
-│   ├── database.db               # SQLite数据库
-│   ├── cache/                    # 缓存文件
-│   └── exports/                  # 导出数据
-├── logs/                         # 日志文件目录
-│   ├── app.log                   # 应用程序日志
-│   ├── device.log                # 设备操作日志
-│   └── error.log                 # 错误日志
-├── tests/                        # 测试文件目录
-│   ├── __init__.py
-│   ├── unit/                     # 单元测试
-│   ├── integration/              # 集成测试
-│   └── gui/                      # GUI测试
-├── scripts/                      # 构建和部署脚本
-│   ├── build.py                  # 构建脚本 (PyInstaller配置)
-│   ├── encrypt.py                # 加密脚本
-│   ├── package.py                # 打包脚本
-│   └── validate_build.py         # 构建验证
-├── docs/                         # 项目文档
-│   ├── README.md                 # 项目说明
-│   ├── API.md                    # API文档
-│   ├── USER_GUIDE.md            # 用户指南
-│   └── DEVELOPER.md             # 开发者文档
-├── requirements.txt              # Python依赖列表
-├── requirements-dev.txt          # 开发依赖列表
-├── .gitignore                    # Git忽略文件
-├── .env.example                  # 环境变量模板
-└── Flow_Farm.code-workspace      # VS Code工作区配置
-```
+  │ │ ├── windows/ # 独立窗口
+  │ │ │ ├── admin_panel.py # 管理员控制面板
+  │ │ │ ├── user_panel.py # 用户操作面板
+  │ │ │ └── settings_window.py # 设置窗口
+  │ │ └── dialogs/ # 对话框
+  │ │ ├── login_dialog.py # 登录对话框
+  │ │ └── device_dialog.py # 设备配置对话框
+  │ ├── platforms/ # 平台特定自动化模块
+  │ │ ├── **init**.py
+  │ │ ├── base_platform.py # 平台基类 (抽象接口)
+  │ │ ├── xiaohongshu/ # 小红书自动化
+  │ │ │ ├── **init**.py
+  │ │ │ ├── automation.py # 小红书自动化逻辑
+  │ │ │ ├── ui_elements.py # UI 元素定义
+  │ │ │ └── strategies.py # 操作策略
+  │ │ └── douyin/ # 抖音自动化
+  │ │ ├── **init**.py
+  │ │ ├── automation.py # 抖音自动化逻辑
+  │ │ ├── ui_elements.py # UI 元素定义
+  │ │ └── strategies.py # 操作策略
+  │ ├── auth/ # 权限认证系统
+  │ │ ├── **init**.py
+  │ │ ├── user_manager.py # 用户管理 (CRUD 操作)
+  │ │ ├── permission.py # 权限控制 (RBAC 实现)
+  │ │ ├── session.py # 会话管理
+  │ │ └── crypto.py # 加密工具
+  │ └── utils/ # 工具类和帮助函数
+  │ ├── **init**.py
+  │ ├── logger.py # 日志配置
+  │ ├── adb_helper.py # ADB 命令封装
+  │ ├── ui_parser.py # UI XML 解析
+  │ └── validator.py # 数据验证
+  ├── config/ # 配置文件目录
+  │ ├── app_config.json # 应用程序配置
+  │ ├── device_config.json # 设备配置模板
+  │ ├── platform_config.json # 平台特定配置
+  │ └── logging.conf # 日志配置
+  ├── data/ # 数据文件目录
+  │ ├── database.db # SQLite 数据库
+  │ ├── cache/ # 缓存文件
+  │ └── exports/ # 导出数据
+  ├── logs/ # 日志文件目录
+  │ ├── app.log # 应用程序日志
+  │ ├── device.log # 设备操作日志
+  │ └── error.log # 错误日志
+  ├── tests/ # 测试文件目录
+  │ ├── **init**.py
+  │ ├── unit/ # 单元测试
+  │ ├── integration/ # 集成测试
+  │ └── gui/ # GUI 测试
+  ├── scripts/ # 构建和部署脚本
+  │ ├── build.py # 构建脚本 (PyInstaller 配置)
+  │ ├── encrypt.py # 加密脚本
+  │ ├── package.py # 打包脚本
+  │ └── validate_build.py # 构建验证
+  ├── docs/ # 项目文档
+  │ ├── README.md # 项目说明
+  │ ├── API.md # API 文档
+  │ ├── USER_GUIDE.md # 用户指南
+  │ └── DEVELOPER.md # 开发者文档
+  ├── requirements.txt # Python 依赖列表
+  ├── requirements-dev.txt # 开发依赖列表
+  ├── .gitignore # Git 忽略文件
+  ├── .env.example # 环境变量模板
+  └── Flow_Farm.code-workspace # VS Code 工作区配置
+
+````
 
 ### 架构模式说明
 - **分层架构**: core(业务逻辑) → gui(表示层) → platforms(平台层)
@@ -436,9 +467,10 @@ pip install -r requirements.txt
 
 # 初始化数据库
 python -c "from app.init_db import create_tables; create_tables()"
-```
+````
 
 #### 服务器前端环境
+
 ```bash
 # 进入服务器前端目录
 cd server-frontend
@@ -451,6 +483,7 @@ npm run type-check
 ```
 
 #### 员工客户端环境
+
 ```bash
 # 进入员工客户端目录
 cd employee-client
@@ -474,6 +507,7 @@ adb devices
 ### 开发环境启动
 
 #### 启动服务器后端
+
 ```bash
 cd server-backend
 venv\Scripts\activate
@@ -482,6 +516,7 @@ python -m uvicorn app.main:app --reload --port 8000
 ```
 
 #### 启动服务器前端
+
 ```bash
 cd server-frontend
 npm run dev
@@ -489,6 +524,7 @@ npm run dev
 ```
 
 #### 启动员工客户端
+
 ```bash
 cd employee-client
 venv\Scripts\activate
@@ -498,6 +534,7 @@ python src/main.py --gui --debug
 ### 构建和打包
 
 #### 构建服务器后端
+
 ```bash
 cd server-backend
 venv\Scripts\activate
@@ -510,6 +547,7 @@ docker build -t flow-farm-backend:latest .
 ```
 
 #### 构建服务器前端
+
 ```bash
 cd server-frontend
 
@@ -523,6 +561,7 @@ npm run build
 ```
 
 #### 构建员工客户端
+
 ```bash
 cd employee-client
 venv\Scripts\activate
@@ -541,6 +580,7 @@ python scripts/validate_build.py
 ```
 
 ### 完整项目构建
+
 ```bash
 # 在项目根目录执行
 python scripts/build_all.py --mode production
@@ -552,6 +592,7 @@ python scripts/build_all.py --mode production
 ```
 
 ### 测试验证 (必须步骤)
+
 ```bash
 # 运行完整测试套件 (构建前必须通过)
 python -m pytest tests/ -v --cov=src --cov-report=html
@@ -567,36 +608,42 @@ python tests/performance/test_multi_device.py
 ```
 
 ### 已验证的构建流程
+
 1. **总是在虚拟环境中工作** - 避免依赖冲突
 2. **构建前运行完整测试** - 确保代码质量
-3. **验证ADB连接** - 构建前确保设备管理正常
+3. **验证 ADB 连接** - 构建前确保设备管理正常
 4. **分阶段构建** - 先开发版本，测试通过后再生产版本
-5. **构建时间**: 开发版本约2-3分钟，生产版本约5-8分钟
+5. **构建时间**: 开发版本约 2-3 分钟，生产版本约 5-8 分钟
 
 ### 常见构建问题和解决方案
-- **PyInstaller导入错误**: 添加 `--hidden-import` 参数
-- **ADB路径问题**: 配置 `config/adb_path.json`
+
+- **PyInstaller 导入错误**: 添加 `--hidden-import` 参数
+- **ADB 路径问题**: 配置 `config/adb_path.json`
 - **权限错误**: 以管理员身份运行构建脚本
 - **内存不足**: 构建时关闭其他应用程序
 
 ## 核心功能模块
 
 ### 设备管理模块 (src/core/device_manager.py)
-- 自动发现和连接Android设备
+
+- 自动发现和连接 Android 设备
 - 设备状态监控和健康检查
 - 多设备并发控制
 
 ### 自动化引擎 (src/core/automation_engine.py)
-- 基于Appium的UI自动化
-- 图像识别和OCR功能
+
+- 基于 Appium 的 UI 自动化
+- 图像识别和 OCR 功能
 - 智能等待和重试机制
 
 ### 任务调度器 (src/core/task_scheduler.py)
+
 - 任务队列管理
 - 定时任务执行
 - 任务状态跟踪
 
 ### 权限系统 (src/auth/)
+
 - 基于角色的访问控制（RBAC）
 - 用户认证和会话管理
 - 操作日志记录
@@ -604,12 +651,14 @@ python tests/performance/test_multi_device.py
 ## 平台特定操作
 
 ### 抖音自动化 (src/platforms/douyin/)
+
 - 自动关注用户
 - 视频点赞和评论
 - 直播间互动
 - 数据收集和分析
 
 ### 小红书自动化 (src/platforms/xiaohongshu/)
+
 - 笔记点赞和收藏
 - 用户关注操作
 - 评论互动
@@ -618,23 +667,27 @@ python tests/performance/test_multi_device.py
 ## 错误处理和日志
 
 ### 日志配置
-- 使用Python logging模块
+
+- 使用 Python logging 模块
 - 日志级别：DEBUG, INFO, WARNING, ERROR, CRITICAL
 - 日志文件按日期轮转
 
 ### 异常处理
+
 - 网络连接异常重试机制
 - 设备离线自动重连
-- UI元素查找失败的降级处理
+- UI 元素查找失败的降级处理
 
 ## 性能优化
 
 ### 并发控制
+
 - 使用线程池管理设备操作
 - 避免过度并发导致设备负载过高
 - 智能任务分配算法
 
 ### 资源管理
+
 - 及时释放设备连接
 - 内存使用监控
 - 临时文件清理
@@ -642,11 +695,13 @@ python tests/performance/test_multi_device.py
 ## 安全和加密
 
 ### 代码保护
-- 使用PyInstaller打包
+
+- 使用 PyInstaller 打包
 - 添加自定义加密层
 - 防逆向工程措施
 
 ### 数据安全
+
 - 用户数据加密存储
 - 设备标识信息脱敏
 - 操作日志安全存储
@@ -654,16 +709,19 @@ python tests/performance/test_multi_device.py
 ## 测试策略
 
 ### 单元测试
-- 核心功能模块100%覆盖
-- 使用pytest框架
-- Mock外部依赖
+
+- 核心功能模块 100%覆盖
+- 使用 pytest 框架
+- Mock 外部依赖
 
 ### 集成测试
+
 - 设备连接测试
 - 平台操作测试
 - 权限系统测试
 
 ### 性能测试
+
 - 多设备并发测试
 - 长时间运行稳定性测试
 - 内存泄漏检测
@@ -671,11 +729,13 @@ python tests/performance/test_multi_device.py
 ## 部署说明
 
 ### 客户端部署
+
 - 提供一键安装包
-- 自动检测和配置ADB环境
+- 自动检测和配置 ADB 环境
 - 设备驱动自动安装
 
 ### 权限配置
+
 - 管理员初始化系统
 - 用户权限分配
 - 操作审计日志
@@ -693,7 +753,7 @@ python tests/performance/test_multi_device.py
 1. 设备管理和连接模块
 2. 基础自动化引擎
 3. 权限认证系统
-4. GUI界面开发
+4. GUI 界面开发
 5. 平台特定操作实现
 6. 加密和安全功能
 7. 测试和优化
@@ -704,26 +764,31 @@ python tests/performance/test_multi_device.py
 ## 开发工作流
 
 ### 1. 代码生成和修改
+
 当需要生成或修改代码时：
+
 - 首先阅读相应的模块指令文件
 - 确保理解该模块的特定要求和约定
 - 生成的代码必须符合项目的架构模式和编码规范
 - 包含适当的错误处理和日志记录
 
-### 2. API开发
-- 遵循RESTful API设计原则
-- 使用OpenAPI 3.0规范生成文档
+### 2. API 开发
+
+- 遵循 RESTful API 设计原则
+- 使用 OpenAPI 3.0 规范生成文档
 - 实现适当的认证和授权
 - 包含输入验证和错误响应
 
 ### 3. 数据库设计
-- 使用SQLx进行类型安全的数据库操作
+
+- 使用 SQLx 进行类型安全的数据库操作
 - 实现适当的索引和查询优化
 - 遵循数据库规范化原则
 - 包含迁移脚本
 
 ### 4. 前端开发
-- 使用React 18组合式API
+
+- 使用 React 18 组合式 API
 - 实现响应式设计
 - 遵循组件化开发模式
 - 包含类型定义和错误处理
@@ -731,54 +796,62 @@ python tests/performance/test_multi_device.py
 ## 安全和性能指导
 
 ### 安全要求
-- 所有API端点必须实现适当的认证和授权
+
+- 所有 API 端点必须实现适当的认证和授权
 - 敏感数据必须加密存储
 - 输入数据必须验证和清理
 - 实现适当的审计日志
 
 ### 性能要求
+
 - 数据库查询必须优化
 - 实现适当的缓存策略
-- 异步操作使用Tokio
+- 异步操作使用 Tokio
 - 前端实现懒加载和代码分割
 
 ## 测试策略
 
 ### 单元测试
+
 - Rust: 使用内置的测试框架
-- 前端: 使用Jest/Vitest进行单元测试
-- Python: 使用pytest框架
+- 前端: 使用 Jest/Vitest 进行单元测试
+- Python: 使用 pytest 框架
 - 目标覆盖率: 80%+
 
 ### 集成测试
-- API端点测试
+
+- API 端点测试
 - 数据库集成测试
 - 前后端集成测试
 
 ### 性能测试
+
 - 负载测试
 - 并发测试
 - 内存泄漏检测
 
-## 部署和DevOps
+## 部署和 DevOps
 
 ### 构建流程
+
 - Rust: `cargo build --release`
 - 前端: `npm run build`
-- Python: PyInstaller打包
+- Python: PyInstaller 打包
 
 ### 监控和日志
+
 - 使用结构化日志
 - 实现健康检查端点
 - 监控系统性能指标
 
 ## 获取更多帮助
 
-在使用Copilot时，可以使用以下提示：
+在使用 Copilot 时，可以使用以下提示：
+
 - `@workspace` 或 `#codebase` 来引用整个代码库
 - `#<filename>` 来引用特定文件
 - 明确指定你要修改的模块和功能
 - 参考相应的指令文件获取模块特定的指导
 
-当创建pull request时，请在描述的第一行添加：
+当创建 pull request 时，请在描述的第一行添加：
 _This pull request was created as a result of the following prompt in Copilot Chat._

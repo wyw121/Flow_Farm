@@ -1,24 +1,27 @@
 # Rust 后端开发指令
 
 ## 适用范围
+
 ---
-applyTo: "server-backend/**/*.rs"
----
+
+## applyTo: "server-backend/\*_/_.rs"
 
 # Flow Farm 服务器后端 (Rust) 开发指令
 
 ## 技术栈和依赖
 
 ### 核心框架
-- **Web框架**: Axum 0.7 - 高性能异步Web框架
+
+- **Web 框架**: Axum 0.7 - 高性能异步 Web 框架
 - **数据库**: SQLx + SQLite - 类型安全的数据库访问
 - **认证**: JWT + bcrypt - 安全的身份认证
-- **序列化**: Serde - 高效的JSON处理
+- **序列化**: Serde - 高效的 JSON 处理
 - **异步运行时**: Tokio - 高性能异步运行时
 - **日志**: Tracing - 结构化日志
 - **错误处理**: Anyhow + Thiserror - 优雅的错误处理
 
 ### 项目结构
+
 ```
 server-backend/
 ├── src/
@@ -66,15 +69,17 @@ server-backend/
 ## 技术栈
 
 ### 核心框架和库
-- **Web框架**: Axum 0.7 - 高性能异步Web框架
+
+- **Web 框架**: Axum 0.7 - 高性能异步 Web 框架
 - **数据库**: SQLx + SQLite - 类型安全的数据库访问
 - **认证**: JWT + bcrypt - 安全的身份认证
-- **序列化**: Serde - 高效的JSON处理
+- **序列化**: Serde - 高效的 JSON 处理
 - **异步运行时**: Tokio - 高性能异步运行时
 - **日志**: Tracing - 结构化日志
 - **错误处理**: Anyhow + Thiserror - 优雅的错误处理
 
 ### 项目结构
+
 ```
 server-backend/src/
 ├── main.rs              # 应用程序入口
@@ -115,6 +120,7 @@ server-backend/src/
 ## 编码规范
 
 ### 1. Rust 代码风格
+
 - 使用 `rustfmt` 格式化代码（项目中已配置）
 - 使用 `clippy` 进行代码检查，必须通过所有检查
 - 函数和变量使用 `snake_case` 命名
@@ -123,7 +129,8 @@ server-backend/src/
 - 模块名使用 `snake_case` 命名
 
 ### 2. 文档注释
-```rust
+
+````rust
 /// 用户登录接口
 ///
 /// # 参数
@@ -146,9 +153,10 @@ pub async fn login(
 ) -> Result<Json<ApiResponse<LoginResponse>>, AppError> {
     // 实现逻辑
 }
-```
+````
 
 ### 3. 错误处理
+
 - 使用 `Result<T, E>` 类型进行错误处理
 - 使用 `?` 操作符传播错误
 - 自定义错误类型继承 `thiserror::Error`
@@ -174,7 +182,8 @@ pub enum AppError {
 ```
 
 ### 4. 异步编程
-- 所有I/O操作必须使用异步函数
+
+- 所有 I/O 操作必须使用异步函数
 - 使用 `tokio::spawn` 处理并发任务
 - 避免在异步上下文中使用阻塞操作
 
@@ -198,9 +207,10 @@ pub async fn create_user(
 }
 ```
 
-## API设计规范
+## API 设计规范
 
 ### 1. 统一响应格式
+
 ```rust
 #[derive(Serialize)]
 pub struct ApiResponse<T> {
@@ -230,6 +240,7 @@ impl<T> ApiResponse<T> {
 ```
 
 ### 2. 路由结构
+
 ```rust
 pub fn create_routes() -> Router<AppState> {
     Router::new()
@@ -252,6 +263,7 @@ pub fn create_routes() -> Router<AppState> {
 ```
 
 ### 3. 数据验证
+
 ```rust
 use validator::Validate;
 
@@ -282,6 +294,7 @@ pub struct CreateUserRequest {
 ## 三角色权限系统
 
 ### 1. 用户角色定义
+
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(type_name = "TEXT")]
@@ -308,6 +321,7 @@ impl UserRole {
 ```
 
 ### 2. 权限中间件
+
 ```rust
 pub async fn auth_middleware(
     State(state): State<AppState>,
@@ -349,6 +363,7 @@ pub fn require_role(required_role: UserRole) -> impl Clone + Fn(Request, Next) -
 ## 数据库操作
 
 ### 1. 数据模型定义
+
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct User {
@@ -389,6 +404,7 @@ pub enum WorkStatus {
 ```
 
 ### 2. 数据库查询
+
 ```rust
 // 查询单个用户
 pub async fn get_user_by_id(
@@ -452,6 +468,7 @@ pub async fn get_work_records_with_stats(
 ```
 
 ### 3. 事务处理
+
 ```rust
 pub async fn create_user_with_company(
     db: &SqlitePool,
@@ -491,9 +508,10 @@ pub async fn create_user_with_company(
 }
 ```
 
-## 认证和JWT处理
+## 认证和 JWT 处理
 
-### 1. JWT工具实现
+### 1. JWT 工具实现
+
 ```rust
 use jsonwebtoken::{encode, decode, Header, Validation, EncodingKey, DecodingKey};
 use chrono::{Utc, Duration};
@@ -541,6 +559,7 @@ pub fn verify_token(token: &str, secret_key: &str) -> Result<Claims, AppError> {
 ```
 
 ### 2. 密码处理
+
 ```rust
 use bcrypt::{hash, verify, DEFAULT_COST};
 
@@ -558,6 +577,7 @@ pub fn verify_password(password: &str, hash: &str) -> Result<bool, AppError> {
 ## 性能优化
 
 ### 1. 数据库连接池配置
+
 ```rust
 pub async fn create_database_pool(database_url: &str) -> Result<SqlitePool, sqlx::Error> {
     SqlitePoolOptions::new()
@@ -573,6 +593,7 @@ pub async fn create_database_pool(database_url: &str) -> Result<SqlitePool, sqlx
 ```
 
 ### 2. 缓存策略
+
 ```rust
 use moka::future::Cache;
 use std::sync::Arc;
@@ -614,6 +635,7 @@ impl CacheService {
 ## 日志和监控
 
 ### 1. 结构化日志配置
+
 ```rust
 use tracing::{info, warn, error, debug, instrument};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -659,6 +681,7 @@ pub async fn login_user(
 ```
 
 ### 2. 健康检查和监控
+
 ```rust
 #[derive(Serialize)]
 pub struct HealthResponse {
@@ -707,6 +730,7 @@ pub async fn metrics(State(state): State<AppState>) -> Json<MetricsResponse> {
 ## 测试规范
 
 ### 1. 单元测试
+
 ```rust
 #[cfg(test)]
 mod tests {
@@ -763,6 +787,7 @@ mod tests {
 ```
 
 ### 2. 集成测试
+
 ```rust
 // tests/integration_test.rs
 use axum::http::StatusCode;
@@ -818,6 +843,7 @@ async fn test_protected_endpoint_requires_auth() {
 ## 部署和配置
 
 ### 1. 环境配置
+
 ```rust
 use std::env;
 
@@ -856,6 +882,7 @@ impl Config {
 ```
 
 ### 2. 生产环境配置
+
 ```rust
 use tower::ServiceBuilder;
 use tower_http::{
@@ -887,24 +914,28 @@ pub fn create_production_app(state: AppState) -> Router {
 ## 重要注意事项
 
 1. **安全性**:
+
    - 所有用户输入必须验证
-   - 密码必须使用bcrypt加密
-   - JWT密钥必须安全保存
-   - 实施SQL注入防护
+   - 密码必须使用 bcrypt 加密
+   - JWT 密钥必须安全保存
+   - 实施 SQL 注入防护
 
 2. **性能**:
+
    - 使用数据库连接池
    - 实施适当的缓存策略
    - 优化数据库查询
-   - 避免N+1查询问题
+   - 避免 N+1 查询问题
 
 3. **错误处理**:
+
    - 所有错误必须适当处理
-   - 不能panic，使用Result类型
+   - 不能 panic，使用 Result 类型
    - 提供有用的错误信息
    - 记录详细的错误日志
 
 4. **日志**:
+
    - 使用结构化日志
    - 记录关键操作
    - 不记录敏感信息
@@ -912,10 +943,11 @@ pub fn create_production_app(state: AppState) -> Router {
 
 5. **测试**:
    - 所有公共函数必须有测试
-   - 测试覆盖率应达到80%以上
+   - 测试覆盖率应达到 80%以上
    - 包含单元测试和集成测试
    - 使用测试数据库
-```
+
+````
 
 ### 错误处理
 - 使用 FastAPI 的 HTTPException
@@ -947,9 +979,10 @@ async def create_user(
 ):
     # 实现用户创建逻辑
     pass
-```
+````
 
 ### 权限验证示例
+
 ```python
 from functools import wraps
 from fastapi import HTTPException, status
@@ -970,6 +1003,7 @@ def require_permission(required_role: str):
 ```
 
 ## 重要提醒
+
 - 始终验证用户权限
 - 记录所有重要操作
 - 使用事务确保数据一致性

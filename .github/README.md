@@ -41,7 +41,7 @@
 
 1. 打开Copilot Chat
 2. 点击附件图标 📎
-3. 选择 "Prompt..." 
+3. 选择 "Prompt..."
 4. 选择相应的prompt文件
 
 ### 3. 常用命令
@@ -50,7 +50,7 @@
 # 查看所有指令文件
 find .github/instructions -name "*.instructions.md"
 
-# 查看所有prompt文件  
+# 查看所有prompt文件
 find .github/prompts -name "*.prompt.md"
 
 # 验证配置文件语法

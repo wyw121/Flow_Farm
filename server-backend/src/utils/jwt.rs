@@ -3,8 +3,6 @@ use chrono::{Utc, Duration};
 use jsonwebtoken::{encode, decode, Header, Validation, EncodingKey, DecodingKey};
 use serde::{Deserialize, Serialize};
 
-use crate::models::UserRole;
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
     pub sub: String, // 用户ID
@@ -15,7 +13,7 @@ pub struct Claims {
 
 pub fn create_jwt_token(
     user_id: &str,
-    role: &UserRole,
+    role: &str,  // 改为String引用
     secret: &str,
     expires_in: i64,
 ) -> Result<String> {
@@ -24,7 +22,7 @@ pub fn create_jwt_token(
 
     let claims = Claims {
         sub: user_id.to_string(),
-        role: role.to_string(),
+        role: role.to_string(),  // 直接转换为String
         exp: exp.timestamp(),
         iat: now.timestamp(),
     };

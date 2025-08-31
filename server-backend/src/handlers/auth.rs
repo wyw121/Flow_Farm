@@ -68,7 +68,7 @@ pub async fn refresh_token(
 ) -> Result<ResponseJson<ApiResponse<String>>, StatusCode> {
     let auth_service = AuthService::new(database, config);
 
-    match auth_service.refresh_token(&auth_context.user.id).await {
+    match auth_service.refresh_token(&auth_context.user.id.to_string()).await {
         Ok(token) => Ok(ResponseJson(ApiResponse::success(token))),
         Err(e) => {
             tracing::error!("刷新token失败: {}", e);

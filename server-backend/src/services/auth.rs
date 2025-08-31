@@ -1,11 +1,10 @@
 use anyhow::{Result, anyhow};
-use uuid::Uuid;
 use chrono::Utc;
 
 use crate::{
     Database,
     Config,
-    models::{CreateUserRequest, LoginResponse, UserInfo, User, UserRole},
+    models::{CreateUserRequest, LoginResponse, UserInfo, User},
     utils::jwt::create_jwt_token,
 };
 
@@ -22,7 +21,7 @@ impl AuthService {
     pub async fn login(&self, username: &str, password: &str) -> Result<LoginResponse> {
         // 查找用户
         let user = sqlx::query_as::<_, User>(
-            "SELECT * FROM users WHERE username = ? AND is_active = true"
+            "SELECT * FROM users WHERE username = ? AND (is_active IS NULL OR is_active = 1)"
         )
         .bind(username)
         .fetch_optional(&self.database.pool)
@@ -30,12 +29,12 @@ impl AuthService {
         .ok_or_else(|| anyhow!("用户不存在或已被禁用"))?;
 
         // 验证密码
-        if !bcrypt::verify(password, &user.password_hash)? {
+        if !bcrypt::verify(password, &user.hashed_password)? {
             return Err(anyhow!("密码错误"));
         }
 
         // 生成JWT token
-        let token = create_jwt_token(&user.id, &user.role, &self.config.jwt_secret, self.config.jwt_expires_in)?;
+        let token = create_jwt_token(&user.id.to_string(), &user.role, &self.config.jwt_secret, self.config.jwt_expires_in)?;
 
         Ok(LoginResponse {
             token,
@@ -56,53 +55,59 @@ impl AuthService {
         }
 
         // 生成密码哈希
-        let password_hash = bcrypt::hash(&request.password, self.config.bcrypt_rounds)?;
-        let user_id = Uuid::new_v4().to_string();
+        let hashed_password = bcrypt::hash(&request.password, self.config.bcrypt_rounds)?;
         let now = Utc::now();
 
-        // 插入新用户
-        sqlx::query(
+        // 插入新用户 - 使用数据库的实际字段
+        let result = sqlx::query(
             r#"
-            INSERT INTO users (id, username, email, password_hash, role, company_id, is_active, max_employees, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO users (username, email, hashed_password, role, is_active, max_employees, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             "#
         )
-        .bind(&user_id)
         .bind(&request.username)
         .bind(&request.email)
-        .bind(&password_hash)
+        .bind(&hashed_password)
         .bind(request.role.to_string())
-        .bind(request.company_id.as_deref())
         .bind(true)
-        .bind(request.max_employees)
-        .bind(now)
+        .bind(request.max_employees.unwrap_or(10))
         .bind(now)
         .execute(&self.database.pool)
         .await?;
+
+        let user_id = result.last_insert_rowid() as i32;
 
         // 返回用户信息
         Ok(UserInfo {
             id: user_id,
             username: request.username,
-            email: request.email,
-            role: request.role,
-            company_id: request.company_id,
+            email: Some(request.email),
+            full_name: None,
+            phone: None,
+            company: request.company_id,  // 映射company_id到company字段
+            role: request.role.to_string(),
             is_active: true,
-            max_employees: request.max_employees,
+            is_verified: false,
+            current_employees: 0,
+            max_employees: request.max_employees.unwrap_or(10),
+            parent_id: None,
+            created_at: now.format("%Y-%m-%d %H:%M:%S").to_string(),
+            last_login: None,
         })
     }
 
     pub async fn refresh_token(&self, user_id: &str) -> Result<String> {
         // 查找用户
+        let user_id_int: i32 = user_id.parse()?;
         let user = sqlx::query_as::<_, User>(
-            "SELECT * FROM users WHERE id = ? AND is_active = true"
+            "SELECT * FROM users WHERE id = ? AND (is_active IS NULL OR is_active = 1)"
         )
-        .bind(user_id)
+        .bind(user_id_int)
         .fetch_optional(&self.database.pool)
         .await?
         .ok_or_else(|| anyhow!("用户不存在或已被禁用"))?;
 
         // 生成新的JWT token
-        create_jwt_token(&user.id, &user.role, &self.config.jwt_secret, self.config.jwt_expires_in)
+        create_jwt_token(&user.id.to_string(), &user.role, &self.config.jwt_secret, self.config.jwt_expires_in)
     }
 }

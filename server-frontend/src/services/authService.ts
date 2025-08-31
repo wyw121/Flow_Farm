@@ -1,10 +1,16 @@
-import { LoginRequest, LoginResponse, User } from '../types'
+import { LoginRequest, LoginResponse, User, ApiResponse } from '../types'
 import { apiClient } from './api'
 
 export const authService = {
   async login(loginData: LoginRequest): Promise<LoginResponse> {
-    const response = await apiClient.post('/api/v1/auth/login', loginData)
-    return response.data
+    const response = await apiClient.post<ApiResponse<LoginResponse>>('/api/v1/auth/login', loginData)
+
+    // 处理后端的ApiResponse格式
+    if (response.data.success && response.data.data) {
+      return response.data.data
+    } else {
+      throw new Error(response.data.message || '登录失败')
+    }
   },
 
   async logout(): Promise<void> {
@@ -12,8 +18,14 @@ export const authService = {
   },
 
   async getCurrentUser(): Promise<User> {
-    const response = await apiClient.get('/api/v1/auth/me')
-    return response.data
+    const response = await apiClient.get<ApiResponse<User>>('/api/v1/auth/me')
+
+    // 处理后端的ApiResponse格式
+    if (response.data.success && response.data.data) {
+      return response.data.data
+    } else {
+      throw new Error(response.data.message || '获取用户信息失败')
+    }
   },
 
   async changePassword(oldPassword: string, newPassword: string): Promise<void> {

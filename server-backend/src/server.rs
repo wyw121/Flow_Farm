@@ -1,14 +1,11 @@
 use axum::{
-    routing::{get, post, put, delete},
-    Router,
     middleware,
+    routing::{delete, get, post, put},
+    Router,
 };
-use tower_http::{
-    cors::CorsLayer,
-    trace::TraceLayer,
-};
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
-use crate::{Database, Config, handlers};
+use crate::{handlers, Config, Database};
 
 pub async fn create_app(database: Database, config: Config) -> Router {
     // 创建CORS中间件
@@ -41,37 +38,55 @@ pub async fn create_app(database: Database, config: Config) -> Router {
     let protected_routes = Router::new()
         .route("/api/v1/auth/me", get(handlers::auth::get_current_user))
         .route("/api/v1/auth/refresh", post(handlers::auth::refresh_token))
-
         // 用户管理
         .route("/api/v1/users", get(handlers::users::list_users))
         .route("/api/v1/users", post(handlers::users::create_user))
         .route("/api/v1/users/:id", get(handlers::users::get_user))
         .route("/api/v1/users/:id", put(handlers::users::update_user))
         .route("/api/v1/users/:id", delete(handlers::users::delete_user))
-
+        .route(
+            "/api/v1/users/companies/statistics",
+            get(handlers::users::get_company_statistics),
+        )
         // 工作记录
-        .route("/api/v1/work-records", get(handlers::work_records::list_work_records))
-        .route("/api/v1/work-records", post(handlers::work_records::create_work_record))
-        .route("/api/v1/work-records/:id", get(handlers::work_records::get_work_record))
-
+        .route(
+            "/api/v1/work-records",
+            get(handlers::work_records::list_work_records),
+        )
+        .route(
+            "/api/v1/work-records",
+            post(handlers::work_records::create_work_record),
+        )
+        .route(
+            "/api/v1/work-records/:id",
+            get(handlers::work_records::get_work_record),
+        )
         // 设备管理
         .route("/api/v1/devices", get(handlers::devices::list_devices))
         .route("/api/v1/devices", post(handlers::devices::create_device))
         .route("/api/v1/devices/:id", get(handlers::devices::get_device))
         .route("/api/v1/devices/:id", put(handlers::devices::update_device))
-        .route("/api/v1/devices/:id", delete(handlers::devices::delete_device))
-
+        .route(
+            "/api/v1/devices/:id",
+            delete(handlers::devices::delete_device),
+        )
         // KPI统计
         .route("/api/v1/kpi/stats", get(handlers::kpi::get_kpi_stats))
         .route("/api/v1/kpi/user-stats", get(handlers::kpi::get_user_stats))
-
         // 计费
-        .route("/api/v1/billing/records", get(handlers::billing::list_billing_records))
-        .route("/api/v1/billing/records", post(handlers::billing::create_billing_record))
-
+        .route(
+            "/api/v1/billing/records",
+            get(handlers::billing::list_billing_records),
+        )
+        .route(
+            "/api/v1/billing/records",
+            post(handlers::billing::create_billing_record),
+        )
         // 报告
-        .route("/api/v1/reports/export", get(handlers::reports::export_data))
-
+        .route(
+            "/api/v1/reports/export",
+            get(handlers::reports::export_data),
+        )
         .layer(middleware::from_fn_with_state(
             (database.clone(), config.clone()),
             crate::middleware::auth::AuthLayer::middleware,

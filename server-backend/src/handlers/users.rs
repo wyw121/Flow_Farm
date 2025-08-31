@@ -8,7 +8,7 @@ use serde::Deserialize;
 
 use crate::{
     Database, Config,
-    models::{ApiResponse, User, CreateUserRequest, UserInfo},
+    models::{ApiResponse, User, CreateUserRequest, UserInfo, CompanyStatistics},
     services::user::UserService,
     middleware::auth::AuthContext,
 };
@@ -104,6 +104,21 @@ pub async fn delete_user(
         Err(e) => {
             tracing::error!("删除用户失败: {}", e);
             Ok(ResponseJson(ApiResponse::error(format!("删除用户失败: {}", e))))
+        }
+    }
+}
+
+pub async fn get_company_statistics(
+    State((database, _config)): State<AppState>,
+    auth_context: AuthContext,
+) -> Result<ResponseJson<ApiResponse<Vec<CompanyStatistics>>>, StatusCode> {
+    let user_service = UserService::new(database);
+
+    match user_service.get_company_statistics(&auth_context.user).await {
+        Ok(statistics) => Ok(ResponseJson(ApiResponse::success(statistics))),
+        Err(e) => {
+            tracing::error!("获取公司统计信息失败: {}", e);
+            Ok(ResponseJson(ApiResponse::error(format!("获取公司统计信息失败: {}", e))))
         }
     }
 }

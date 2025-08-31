@@ -5,16 +5,22 @@ use validator::Validate;
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct User {
-    pub id: String,
+    pub id: i32, // 匹配数据库的INTEGER类型
     pub username: String,
-    pub email: String,
-    pub password_hash: String,
-    pub role: UserRole,
-    pub company_id: Option<String>,
-    pub is_active: bool,
+    pub email: Option<String>,     // 数据库中可能为空
+    pub hashed_password: String,   // 匹配数据库字段名
+    pub role: String,              // 暂时用String，因为数据库中是VARCHAR
+    pub is_active: Option<bool>,   // 数据库中可能为空
+    pub is_verified: Option<bool>, // 数据库字段
+    pub parent_id: Option<i32>,    // 数据库字段
+    pub full_name: Option<String>, // 数据库字段
+    pub phone: Option<String>,     // 数据库字段
+    pub company: Option<String>,   // 数据库字段，重命名自company_id
     pub max_employees: Option<i32>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub current_employees: Option<i32>,    // 数据库字段
+    pub created_at: Option<DateTime<Utc>>, // 数据库中可能为空
+    pub updated_at: Option<DateTime<Utc>>, // 数据库中可能为空
+    pub last_login: Option<DateTime<Utc>>, // 数据库字段
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
@@ -45,7 +51,7 @@ pub struct CreateUserRequest {
     #[validate(length(min = 6))]
     pub password: String,
     pub role: UserRole,
-    pub company_id: Option<String>,
+    pub company_id: Option<String>, // 这个会映射到company字段
     pub max_employees: Option<i32>,
 }
 
@@ -65,13 +71,20 @@ pub struct LoginResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserInfo {
-    pub id: String,
+    pub id: i32, // 匹配数据库类型
     pub username: String,
-    pub email: String,
-    pub role: UserRole,
-    pub company_id: Option<String>,
-    pub is_active: bool,
-    pub max_employees: Option<i32>,
+    pub email: Option<String>, // 可能为空
+    pub full_name: Option<String>,
+    pub phone: Option<String>,
+    pub company: Option<String>,
+    pub role: String,           // 暂时用String
+    pub is_active: bool,        // 转换为非空布尔值
+    pub is_verified: bool,      // 转换为非空布尔值
+    pub current_employees: i32, // 默认值
+    pub max_employees: i32,     // 默认值
+    pub parent_id: Option<i32>,
+    pub created_at: String,         // 转换为字符串
+    pub last_login: Option<String>, // 转换为字符串
 }
 
 impl From<User> for UserInfo {
@@ -80,10 +93,22 @@ impl From<User> for UserInfo {
             id: user.id,
             username: user.username,
             email: user.email,
+            full_name: user.full_name,
+            phone: user.phone,
+            company: user.company,
             role: user.role,
-            company_id: user.company_id,
-            is_active: user.is_active,
-            max_employees: user.max_employees,
+            is_active: user.is_active.unwrap_or(true),
+            is_verified: user.is_verified.unwrap_or(false),
+            current_employees: user.current_employees.unwrap_or(0),
+            max_employees: user.max_employees.unwrap_or(10),
+            parent_id: user.parent_id,
+            created_at: user
+                .created_at
+                .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string())
+                .unwrap_or_else(|| "".to_string()),
+            last_login: user
+                .last_login
+                .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string()),
         }
     }
 }
@@ -169,6 +194,18 @@ pub struct UserStats {
     pub successful_actions: i64,
     pub success_rate: f64,
     pub last_activity: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+pub struct CompanyStatistics {
+    pub company_name: String,
+    pub user_admin_id: i32,
+    pub user_admin_name: String,
+    pub total_employees: i32,
+    pub total_follows: i64,
+    pub today_follows: i64,
+    pub total_billing_amount: f64,
+    pub unpaid_amount: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

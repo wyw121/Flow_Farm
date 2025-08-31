@@ -4,7 +4,7 @@ export interface User {
   email?: string
   full_name?: string
   phone?: string
-  company?: string
+  company?: string  // 重命名自company_id，匹配后端
   role: 'system_admin' | 'user_admin' | 'employee'
   is_active: boolean
   is_verified: boolean
@@ -29,6 +29,13 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string
   user: User
+}
+
+// 后端API响应格式
+export interface ApiResponse<T> {
+  success: boolean
+  message: string
+  data?: T
 }
 
 export interface WorkRecord {

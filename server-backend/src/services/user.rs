@@ -1,5 +1,8 @@
-use anyhow::{Result, anyhow};
-use crate::{Database, models::{UserInfo, CreateUserRequest, User, UserRole}};
+use crate::{
+    models::{CompanyStatistics, CreateUserRequest, User, UserInfo},
+    Database,
+};
+use anyhow::{anyhow, Result};
 
 pub struct UserService {
     database: Database,
@@ -18,15 +21,18 @@ impl UserService {
         role_filter: Option<&str>,
     ) -> Result<Vec<UserInfo>> {
         // 权限检查
-        match current_user.role {
-            UserRole::SystemAdmin => {
+        match current_user.role.as_str() {
+            "system_admin" => {
                 // 系统管理员可以查看所有用户
             }
-            UserRole::UserAdmin => {
+            "user_admin" => {
                 // 用户管理员只能查看自己公司的用户
             }
-            UserRole::Employee => {
+            "employee" => {
                 return Err(anyhow!("权限不足"));
+            }
+            _ => {
+                return Err(anyhow!("未知角色"));
             }
         }
 
@@ -35,9 +41,9 @@ impl UserService {
         let mut bind_values = Vec::new();
 
         // 根据当前用户角色添加过滤条件
-        if matches!(current_user.role, UserRole::UserAdmin) {
-            query.push_str(" AND company_id = ?");
-            bind_values.push(current_user.company_id.as_deref().unwrap_or("").to_string());
+        if current_user.role == "user_admin" {
+            query.push_str(" AND company = ?");
+            bind_values.push(current_user.company.as_deref().unwrap_or("").to_string());
         }
 
         if let Some(role) = role_filter {
@@ -68,18 +74,21 @@ impl UserService {
         request: CreateUserRequest,
     ) -> Result<UserInfo> {
         // 权限检查
-        match current_user.role {
-            UserRole::SystemAdmin => {
+        match current_user.role.as_str() {
+            "system_admin" => {
                 // 系统管理员可以创建任何角色的用户
             }
-            UserRole::UserAdmin => {
+            "user_admin" => {
                 // 用户管理员只能创建员工
-                if !matches!(request.role, UserRole::Employee) {
+                if request.role.to_string() != "employee" {
                     return Err(anyhow!("权限不足：只能创建员工账户"));
                 }
             }
-            UserRole::Employee => {
+            "employee" => {
                 return Err(anyhow!("权限不足"));
+            }
+            _ => {
+                return Err(anyhow!("未知角色"));
             }
         }
 
@@ -105,5 +114,37 @@ impl UserService {
     pub async fn delete_user(&self, current_user: &UserInfo, user_id: &str) -> Result<()> {
         // TODO: 实现删除用户逻辑
         Err(anyhow!("功能待实现"))
+    }
+
+    pub async fn get_company_statistics(
+        &self,
+        current_user: &UserInfo,
+    ) -> Result<Vec<CompanyStatistics>> {
+        // 权限检查：只有系统管理员可以查看公司统计信息
+        if current_user.role != "system_admin" {
+            return Err(anyhow!("权限不足：只有系统管理员可以查看公司统计信息"));
+        }
+
+        // 查询所有用户管理员的公司统计信息
+        let query = r#"
+            SELECT
+                COALESCE(u.company, '未命名公司') as company_name,
+                u.id as user_admin_id,
+                u.username as user_admin_name,
+                COALESCE(u.current_employees, 0) as total_employees,
+                0 as total_follows,
+                0 as today_follows,
+                0.0 as total_billing_amount,
+                0.0 as unpaid_amount
+            FROM users u
+            WHERE u.role = 'user_admin'
+            ORDER BY u.company, u.username
+        "#;
+
+        let statistics = sqlx::query_as::<_, CompanyStatistics>(query)
+            .fetch_all(&self.database.pool)
+            .await?;
+
+        Ok(statistics)
     }
 }
