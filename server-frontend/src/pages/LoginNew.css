@@ -1,0 +1,233 @@
+/**
+ * 新登录页面的样式文件
+ * 现代化、响应式的登录界面设计
+ */
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login-title {
+  margin-bottom: 8px !important;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.login-roles {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.role-item {
+  margin-bottom: 8px;
+}
+
+.role-item:last-child {
+  margin-bottom: 0;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* 表单样式增强 */
+.ant-form-item-label {
+  font-weight: 500;
+}
+
+.ant-input-affix-wrapper {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.ant-input-affix-wrapper:hover,
+.ant-input-affix-wrapper:focus,
+.ant-input-affix-wrapper-focused {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  height: 48px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+}
+
+.ant-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* 进度条样式 */
+.ant-progress-bg {
+  transition: all 0.3s ease;
+}
+
+/* 警告框样式 */
+.ant-alert {
+  border-radius: 8px;
+  border: none;
+}
+
+.ant-alert-warning {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left: 4px solid #f59e0b;
+}
+
+.ant-alert-error {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-left: 4px solid #ef4444;
+}
+
+/* 复选框样式 */
+.ant-checkbox-wrapper {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+/* 响应式设计 */
+@media (max-width: 576px) {
+  .login-container {
+    padding: 16px;
+  }
+
+  .login-card {
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .login-title {
+    font-size: 24px !important;
+  }
+
+  .login-roles {
+    padding: 12px;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-card.animated {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* 表单项动画 */
+.ant-form-item {
+  animation: fadeInUp 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.ant-form-item:nth-child(1) { animation-delay: 0.1s; }
+.ant-form-item:nth-child(2) { animation-delay: 0.2s; }
+.ant-form-item:nth-child(3) { animation-delay: 0.3s; }
+.ant-form-item:nth-child(4) { animation-delay: 0.4s; }
+.ant-form-item:nth-child(5) { animation-delay: 0.5s; }
+
+/* 聚焦状态增强 */
+.ant-input:focus,
+.ant-input-focused {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+/* 禁用状态样式 */
+.ant-form-item.ant-form-item-with-help.ant-form-item-has-error .ant-input,
+.ant-form-item.ant-form-item-with-help.ant-form-item-has-error .ant-input-affix-wrapper {
+  border-color: #ef4444;
+}
+
+.ant-form-item.ant-form-item-with-help.ant-form-item-has-error .ant-input:focus,
+.ant-form-item.ant-form-item-with-help.ant-form-item-has-error .ant-input-affix-wrapper:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+/* 密码强度指示器样式 */
+.ant-progress-line {
+  margin-bottom: 0;
+}
+
+.ant-progress-bg.strength-indicator {
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+/* 深色主题兼容 */
+@media (prefers-color-scheme: dark) {
+  .login-container {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  }
+
+  .login-card {
+    background: rgba(30, 27, 75, 0.95);
+    color: #f9fafb;
+  }
+
+  .login-title {
+    color: #f9fafb;
+  }
+
+  .login-subtitle {
+    color: #d1d5db;
+  }
+
+  .login-roles {
+    background: rgba(55, 48, 163, 0.3);
+  }
+
+  .login-footer {
+    border-top-color: #4c1d95;
+  }
+}

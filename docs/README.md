@@ -99,7 +99,7 @@ adb devices  # 验证设备连接
 cd employee-client
 python src/main.py --debug
 
-# 生产模式  
+# 生产模式
 cd employee-client
 python src/main.py
 ```

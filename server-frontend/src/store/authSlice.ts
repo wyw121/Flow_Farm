@@ -14,7 +14,7 @@ const initialState: AuthState = {
   user: null,
   token: localStorage.getItem('token'),
   isAuthenticated: false, // 初始为false，需要验证token有效性
-  loading: false,
+  loading: !!localStorage.getItem('token'), // 如果有token，开始时就要显示加载状态
   error: null,
 }
 

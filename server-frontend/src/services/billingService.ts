@@ -1,5 +1,6 @@
 import { BillingRecord, PaginatedResponse, PricingRule } from '../types'
 import { apiClient } from './api'
+import { callApiWithFallback, callPaginatedApiWithFallback } from './apiAdapter'
 
 export const billingService = {
   // 获取计费记录
@@ -10,36 +11,61 @@ export const billingService = {
   ): Promise<PaginatedResponse<BillingRecord>> {
     const params = new URLSearchParams({
       page: page.toString(),
-      size: size.toString(),
+      limit: size.toString(),  // 适配Rust后端
     })
 
     if (userId) params.append('user_id', userId.toString())
 
-    const response = await apiClient.get(`/api/v1/billing/billing-records/?${params}`)
-    return response.data
+    return callPaginatedApiWithFallback<BillingRecord>(
+      () => apiClient.get(`/api/v1/billing/records?${params}`),
+      page,
+      size,
+      () => {
+        // 备用Python API调用
+        const params2 = new URLSearchParams({
+          page: page.toString(),
+          size: size.toString(),
+        })
+        if (userId) params2.append('user_id', userId.toString())
+        return apiClient.get(`/api/v1/billing/billing-records/?${params2}`)
+      }
+    )
   },
 
   // 获取价格规则
   async getPricingRules(): Promise<PricingRule[]> {
-    const response = await apiClient.get('/api/v1/billing/pricing-rules/')
-    return response.data
+    return callApiWithFallback<PricingRule[]>(
+      () => apiClient.get('/api/v1/billing/pricing-rules'),
+      () => apiClient.get('/api/v1/billing/pricing-rules/')
+    )
   },
 
   // 创建价格规则
   async createPricingRule(ruleData: Omit<PricingRule, 'id' | 'created_at' | 'updated_at'>): Promise<PricingRule> {
-    const response = await apiClient.post('/api/v1/billing/pricing-rules/', ruleData)
-    return response.data
+    const response = await apiClient.post('/api/v1/billing/pricing-rules', ruleData)
+    if (response.data.success) {
+      return response.data.data
+    } else {
+      throw new Error(response.data.message || '创建价格规则失败')
+    }
   },
 
   // 更新价格规则
   async updatePricingRule(ruleId: number, ruleData: Partial<PricingRule>): Promise<PricingRule> {
     const response = await apiClient.put(`/api/v1/billing/pricing-rules/${ruleId}`, ruleData)
-    return response.data
+    if (response.data.success) {
+      return response.data.data
+    } else {
+      throw new Error(response.data.message || '更新价格规则失败')
+    }
   },
 
   // 删除价格规则
   async deletePricingRule(ruleId: number): Promise<void> {
-    await apiClient.delete(`/api/v1/billing/pricing-rules/${ruleId}`)
+    const response = await apiClient.delete(`/api/v1/billing/pricing-rules/${ruleId}`)
+    if (!response.data.success) {
+      throw new Error(response.data.message || '删除价格规则失败')
+    }
   },
 
   // 计算费用预览

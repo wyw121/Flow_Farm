@@ -29,24 +29,24 @@ const UserAdminLayout: React.FC = () => {
 
   const menuItems = [
     {
-      key: '/user-admin',
+      key: 'dashboard',
       icon: <DashboardOutlined />,
       label: '控制台',
     },
     {
-      key: '/user-admin/employees',
+      key: 'employees',
       icon: <TeamOutlined />,
       label: '员工管理',
     },
     {
-      key: '/user-admin/billing',
+      key: 'billing',
       icon: <BankOutlined />,
       label: '费用结算',
     },
   ]
 
   const handleMenuClick = ({ key }: { key: string }) => {
-    navigate(key)
+    navigate(`/user-admin/${key}`)
   }
 
   const handleLogout = () => {
@@ -73,6 +73,9 @@ const UserAdminLayout: React.FC = () => {
   }
 
   const currentPath = location.pathname
+  // 从完整路径中提取相对路径
+  const relativePath = currentPath.replace('/user-admin/', '')
+  const selectedKey = relativePath === 'dashboard' || relativePath === '' ? 'dashboard' : relativePath
 
   return (
     <Layout className="dashboard-layout">
@@ -88,7 +91,7 @@ const UserAdminLayout: React.FC = () => {
         <Menu
           theme="dark"
           mode="inline"
-          selectedKeys={[currentPath]}
+          selectedKeys={[selectedKey]}
           items={menuItems}
           onClick={handleMenuClick}
         />
@@ -114,8 +117,11 @@ const UserAdminLayout: React.FC = () => {
         <Content className="dashboard-content">
           <Routes>
             <Route path="/" element={<UserAdminDashboard />} />
+            <Route path="/dashboard" element={<UserAdminDashboard />} />
             <Route path="/employees" element={<EmployeeManagement />} />
             <Route path="/billing" element={<BillingManagement />} />
+            {/* 默认重定向到dashboard */}
+            <Route path="*" element={<UserAdminDashboard />} />
           </Routes>
         </Content>
       </Layout>

@@ -1,6 +1,8 @@
 # Flow Farm 员工客户端依赖
 # GUI框架
-tkinter  # Python内置，无需安装
+PySide6==6.6.1  # 现代化Qt6 GUI框架
+PySide6-Addons==6.6.1  # Qt6 附加组件
+qtawesome==1.3.1  # 图标库
 
 # 网络通信
 requests==2.31.0

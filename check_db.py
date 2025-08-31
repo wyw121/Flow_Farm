@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import sqlite3
 import os
+import sqlite3
 
 db_path = "server-backend/data/flow_farm.db"
 
@@ -9,9 +9,7 @@ if os.path.exists(db_path):
     cursor = conn.cursor()
 
     # 检查表结构
-    cursor.execute(
-        "SELECT sql FROM sqlite_master WHERE type='table' AND name='users'"
-    )
+    cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'")
     result = cursor.fetchone()
     if result:
         print("用户表结构:")

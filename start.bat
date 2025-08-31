@@ -54,7 +54,7 @@ echo.
 set /p choice="请输入选择 (1-3): "
 
 if "%choice%"=="1" goto gui_mode
-if "%choice%"=="2" goto console_mode  
+if "%choice%"=="2" goto console_mode
 if "%choice%"=="3" goto debug_mode
 if "%choice%"=="0" goto exit
 goto invalid_choice

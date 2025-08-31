@@ -82,6 +82,22 @@ pub async fn create_app(database: Database, config: Config) -> Router {
             "/api/v1/billing/records",
             post(handlers::billing::create_billing_record),
         )
+        .route(
+            "/api/v1/billing/pricing-rules",
+            get(handlers::billing::list_pricing_rules),
+        )
+        .route(
+            "/api/v1/billing/pricing-rules",
+            post(handlers::billing::create_pricing_rule),
+        )
+        .route(
+            "/api/v1/billing/pricing-rules/:id",
+            put(handlers::billing::update_pricing_rule),
+        )
+        .route(
+            "/api/v1/billing/pricing-rules/:id",
+            delete(handlers::billing::delete_pricing_rule),
+        )
         // 报告
         .route(
             "/api/v1/reports/export",

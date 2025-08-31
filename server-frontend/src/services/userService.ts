@@ -1,5 +1,6 @@
 import { CompanyStatistics, PaginatedResponse, User, UserCreate, UserUpdate, UserWithStats } from '../types'
 import { apiClient } from './api'
+import { callApiWithFallback, callPaginatedApiWithFallback } from './apiAdapter'
 
 export interface AdminUserUpdateRequest {
   username?: string
@@ -16,8 +17,10 @@ export interface AdminUserUpdateRequest {
 export const userService = {
   // 创建用户
   async createUser(userData: UserCreate): Promise<User> {
-    const response = await apiClient.post('/api/v1/users/', userData)
-    return response.data
+    return callApiWithFallback<User>(
+      () => apiClient.post('/api/v1/users', userData),
+      () => apiClient.post('/api/v1/users/', userData)
+    )
   },
 
   // 系统管理员更新用户信息（包括密码）
@@ -30,19 +33,35 @@ export const userService = {
   async getUsers(page: number = 1, size: number = 10, role?: string): Promise<PaginatedResponse<UserWithStats>> {
     const params = new URLSearchParams({
       page: page.toString(),
-      size: size.toString(),
+      limit: size.toString(),  // 使用limit参数（适配Rust后端）
     })
     if (role) {
       params.append('role', role)
     }
-    const response = await apiClient.get(`/api/v1/users/?${params}`)
-    return response.data
+
+    return callPaginatedApiWithFallback<UserWithStats>(
+      () => apiClient.get(`/api/v1/users?${params}`),
+      page,
+      size,
+      () => {
+        // 备用Python API调用
+        const params2 = new URLSearchParams({
+          page: page.toString(),
+          size: size.toString(),  // Python后端使用size
+        })
+        if (role) {
+          params2.append('role', role)
+        }
+        return apiClient.get(`/api/v1/users/?${params2}`)
+      }
+    )
   },
 
   // 获取用户详情
   async getUser(userId: number): Promise<UserWithStats> {
-    const response = await apiClient.get(`/api/v1/users/${userId}`)
-    return response.data
+    return callApiWithFallback<UserWithStats>(
+      () => apiClient.get(`/api/v1/users/${userId}`)
+    )
   },
 
   // 更新用户
@@ -58,8 +77,9 @@ export const userService = {
 
   // 获取公司统计信息（系统管理员使用）
   async getCompanyStatistics(): Promise<CompanyStatistics[]> {
-    const response = await apiClient.get('/api/v1/users/companies/statistics')
-    return response.data
+    return callApiWithFallback<CompanyStatistics[]>(
+      () => apiClient.get('/api/v1/users/companies/statistics')
+    )
   },
 
   // 切换用户状态

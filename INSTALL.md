@@ -4,12 +4,12 @@
 
 Flow Farm 是一个企业级三角色权限管理系统，包含：
 
-- **服务器后端**: Rust + Axum + SQLx + SQLite  
+- **服务器后端**: Rust + Axum + SQLx + SQLite
 - **服务器前端**: React.js + TypeScript + Vite
 - **员工客户端**: Python + tkinter + ADB
 
 ### 服务器端要求
-- **Rust**: 1.75+ 
+- **Rust**: 1.75+
 - **Node.js**: 18+
 - **SQLite**: 3.0+
 
@@ -37,7 +37,7 @@ cd Flow_Farm
 python -m venv venv
 venv\Scripts\activate
 
-# macOS/Linux  
+# macOS/Linux
 python -m venv venv
 source venv/bin/activate
 ```

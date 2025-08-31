@@ -1,16 +1,19 @@
 use axum::{
-    extract::{State, Query},
-    response::Json as ResponseJson,
+    extract::{Path, Query, State},
     http::StatusCode,
+    response::Json as ResponseJson,
     Json,
 };
 use serde::Deserialize;
 
 use crate::{
-    Database, Config,
-    models::{ApiResponse, BillingRecord, CreateBillingRecordRequest},
-    services::billing::BillingService,
     middleware::auth::AuthContext,
+    models::{
+        ApiResponse, BillingRecord, CreateBillingRecordRequest, CreatePricingRuleRequest,
+        PricingRule,
+    },
+    services::billing::BillingService,
+    Config, Database,
 };
 
 type AppState = (Database, Config);
@@ -29,16 +32,21 @@ pub async fn list_billing_records(
 ) -> Result<ResponseJson<ApiResponse<Vec<BillingRecord>>>, StatusCode> {
     let service = BillingService::new(database);
 
-    match service.list_billing_records(
-        &auth_context.user,
-        query.page.unwrap_or(1),
-        query.limit.unwrap_or(20),
-        query.user_id.as_deref(),
-    ).await {
+    match service
+        .list_billing_records(
+            &auth_context.user,
+            query.page.unwrap_or(1),
+            query.limit.unwrap_or(20),
+            query.user_id.as_deref(),
+        )
+        .await
+    {
         Ok(records) => Ok(ResponseJson(ApiResponse::success(records))),
         Err(e) => {
             tracing::error!("获取计费记录失败: {}", e);
-            Ok(ResponseJson(ApiResponse::error("获取计费记录失败".to_string())))
+            Ok(ResponseJson(ApiResponse::error(
+                "获取计费记录失败".to_string(),
+            )))
         }
     }
 }
@@ -50,11 +58,105 @@ pub async fn create_billing_record(
 ) -> Result<ResponseJson<ApiResponse<BillingRecord>>, StatusCode> {
     let service = BillingService::new(database);
 
-    match service.create_billing_record(&auth_context.user, request).await {
+    match service
+        .create_billing_record(&auth_context.user, request)
+        .await
+    {
         Ok(record) => Ok(ResponseJson(ApiResponse::success(record))),
         Err(e) => {
             tracing::error!("创建计费记录失败: {}", e);
-            Ok(ResponseJson(ApiResponse::error(format!("创建计费记录失败: {}", e))))
+            Ok(ResponseJson(ApiResponse::error(format!(
+                "创建计费记录失败: {}",
+                e
+            ))))
+        }
+    }
+}
+
+// 获取价格规则列表
+pub async fn list_pricing_rules(
+    State((database, config)): State<AppState>,
+    auth_context: AuthContext,
+) -> Result<ResponseJson<ApiResponse<Vec<PricingRule>>>, StatusCode> {
+    let service = BillingService::new(database);
+
+    match service.list_pricing_rules(&auth_context.user).await {
+        Ok(rules) => Ok(ResponseJson(ApiResponse::success(rules))),
+        Err(e) => {
+            tracing::error!("获取价格规则失败: {}", e);
+            Ok(ResponseJson(ApiResponse::error(
+                "获取价格规则失败".to_string(),
+            )))
+        }
+    }
+}
+
+// 创建价格规则
+pub async fn create_pricing_rule(
+    State((database, config)): State<AppState>,
+    auth_context: AuthContext,
+    Json(request): Json<CreatePricingRuleRequest>,
+) -> Result<ResponseJson<ApiResponse<PricingRule>>, StatusCode> {
+    let service = BillingService::new(database);
+
+    match service
+        .create_pricing_rule(&auth_context.user, request)
+        .await
+    {
+        Ok(rule) => Ok(ResponseJson(ApiResponse::success(rule))),
+        Err(e) => {
+            tracing::error!("创建价格规则失败: {}", e);
+            Ok(ResponseJson(ApiResponse::error(format!(
+                "创建价格规则失败: {}",
+                e
+            ))))
+        }
+    }
+}
+
+// 更新价格规则
+pub async fn update_pricing_rule(
+    State((database, config)): State<AppState>,
+    auth_context: AuthContext,
+    Path(rule_id): Path<i32>,
+    Json(request): Json<CreatePricingRuleRequest>,
+) -> Result<ResponseJson<ApiResponse<PricingRule>>, StatusCode> {
+    let service = BillingService::new(database);
+
+    match service
+        .update_pricing_rule(&auth_context.user, rule_id, request)
+        .await
+    {
+        Ok(rule) => Ok(ResponseJson(ApiResponse::success(rule))),
+        Err(e) => {
+            tracing::error!("更新价格规则失败: {}", e);
+            Ok(ResponseJson(ApiResponse::error(format!(
+                "更新价格规则失败: {}",
+                e
+            ))))
+        }
+    }
+}
+
+// 删除价格规则
+pub async fn delete_pricing_rule(
+    State((database, config)): State<AppState>,
+    auth_context: AuthContext,
+    Path(rule_id): Path<i32>,
+) -> Result<ResponseJson<ApiResponse<()>>, StatusCode> {
+    let service = BillingService::new(database);
+
+    match service
+        .delete_pricing_rule(&auth_context.user, rule_id)
+        .await
+    {
+        Ok(_) => Ok(ResponseJson(ApiResponse::success(()))),
+        Err(e) => {
+            tracing::error!("删除价格规则失败: {}", e);
+            Ok(ResponseJson(ApiResponse::error(format!(
+                "删除价格规则失败: {}",
+                e
+            ))))
         }
     }
 }

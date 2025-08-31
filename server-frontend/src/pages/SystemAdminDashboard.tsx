@@ -14,6 +14,7 @@ import { AppDispatch, RootState } from '../store'
 import { logout } from '../store/authSlice'
 
 // 页面组件导入（稍后创建）
+import ApiTestPage from './SystemAdmin/ApiTestPage'
 import CompanyStatistics from './SystemAdmin/CompanyStatistics'
 import SystemDashboard from './SystemAdmin/Dashboard'
 import PricingSettings from './SystemAdmin/PricingSettings'
@@ -30,29 +31,35 @@ const SystemAdminDashboard: React.FC = () => {
 
   const menuItems = [
     {
-      key: '/system-admin',
+      key: 'dashboard',
       icon: <DashboardOutlined />,
       label: '控制台',
     },
     {
-      key: '/system-admin/users',
+      key: 'users',
       icon: <TeamOutlined />,
       label: '用户管理员管理',
     },
     {
-      key: '/system-admin/companies',
+      key: 'companies',
       icon: <UserOutlined />,
       label: '公司统计',
     },
     {
-      key: '/system-admin/pricing',
+      key: 'pricing',
       icon: <SettingOutlined />,
       label: '收费设置',
+    },
+    {
+      key: 'api-test',
+      icon: <SettingOutlined />,
+      label: 'API测试',
     },
   ]
 
   const handleMenuClick = ({ key }: { key: string }) => {
-    navigate(key)
+    // 使用相对路径导航
+    navigate(`/system-admin/${key}`)
   }
 
   const handleLogout = () => {
@@ -79,6 +86,9 @@ const SystemAdminDashboard: React.FC = () => {
   }
 
   const currentPath = location.pathname
+  // 从完整路径中提取相对路径
+  const relativePath = currentPath.replace('/system-admin/', '')
+  const selectedKey = relativePath === 'dashboard' || relativePath === '' ? 'dashboard' : relativePath
 
   return (
     <Layout className="dashboard-layout">
@@ -94,7 +104,7 @@ const SystemAdminDashboard: React.FC = () => {
         <Menu
           theme="dark"
           mode="inline"
-          selectedKeys={[currentPath]}
+          selectedKeys={[selectedKey]}
           items={menuItems}
           onClick={handleMenuClick}
         />
@@ -120,9 +130,13 @@ const SystemAdminDashboard: React.FC = () => {
         <Content className="dashboard-content">
           <Routes>
             <Route path="/" element={<SystemDashboard />} />
+            <Route path="/dashboard" element={<SystemDashboard />} />
             <Route path="/users" element={<UserManagement />} />
             <Route path="/companies" element={<CompanyStatistics />} />
             <Route path="/pricing" element={<PricingSettings />} />
+            <Route path="/api-test" element={<ApiTestPage />} />
+            {/* 默认重定向到dashboard */}
+            <Route path="*" element={<SystemDashboard />} />
           </Routes>
         </Content>
       </Layout>
