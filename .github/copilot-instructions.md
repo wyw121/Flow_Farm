@@ -1,53 +1,101 @@
-# Flow Farm - 计费自动化流量农场系统 Copilot 指令
+# Flow Farm - 计费自动化流量农场系统
 
 ## 项目概述
 
-Flow Farm 是一个企业级计费自动化流量农场系统，专为多角色权限管理和社交媒体自动化操作而设计。系统采用三角色架构（系统管理员、用户管理员、员工），通过Rust实现高性能的服务器端，支持抖音、小红书等主流平台的智能引流操作。
+Flow Farm 是一个企业级计费自动化流量农场系统，专为多角色权限管理和社交媒体自动化操作而设计。
 
-## 技术栈和架构
+### 核心特性
+- **三角色架构**: 系统管理员、用户管理员、员工
+- **多平台支持**: 抖音、小红书等主流社交媒体平台
+- **自动化引流**: 智能设备控制和任务调度
+- **计费管理**: 精确的使用统计和费用计算
 
-### 服务器端技术栈
-- **后端框架**: Axum 0.7 - 高性能异步Web框架
-- **数据库**: SQLx + SQLite - 类型安全的数据库访问
-- **认证**: JWT + bcrypt - 安全的身份认证
-- **序列化**: Serde - 高效的JSON处理
-- **异步运行时**: Tokio - 高性能异步运行时
-- **日志**: Tracing - 结构化日志
-- **错误处理**: Anyhow + Thiserror - 优雅的错误处理
+### 技术架构
+- **服务器后端**: Rust + Axum + SQLx + SQLite
+- **服务器前端**: React.js + TypeScript + Vite
+- **员工客户端**: Python + tkinter + ADB
 
-### 前端技术栈
-- **前端框架**: Vue.js 3 + TypeScript + Vite
-- **UI组件库**: Ant Design Vue
-- **状态管理**: Pinia
-- **路由管理**: Vue Router
-- **HTTP客户端**: Axios
+## 构建指令 (BuildInstructions)
 
-### 员工客户端技术栈
-- **GUI框架**: tkinter (主要) / PyQt5 (备选)
-- **自动化引擎**: ADB + uiautomator2 + Appium
-- **设备通信**: Android Debug Bridge (ADB)
-- **数据存储**: SQLite (本地缓存) + REST API
+### 环境要求
+- **Rust**: 1.75+ (server-backend)
+- **Node.js**: 18+ (server-frontend)
+- **Python**: 3.8+ (employee-client)
+- **Android SDK**: Platform Tools (ADB)
 
-## 编程规范和约定
+### 快速启动 (推荐顺序)
 
-### 代码规范
-- **Rust代码**: 遵循 Rust 官方编码规范，使用 `rustfmt` 格式化，`clippy` 检查
-- **前端代码**: 遵循 Vue.js 3 和 TypeScript 最佳实践
-- **Python代码**: 遵循 PEP 8 编码规范
-- **函数命名**: snake_case (Rust/Python), camelCase (TypeScript)
-- **类型命名**: PascalCase
-- **常量命名**: UPPER_CASE
+#### 1. 服务器后端 (Rust)
+```bash
+cd server-backend
+cargo build --release
+cargo run --release
+# API访问: http://localhost:8000
+# API文档: http://localhost:8000/docs
+```
 
-### 注释和文档
-- 所有公共API和主要功能必须包含详细的文档注释
-- 中文注释，便于国内团队理解
-- 关键业务逻辑必须添加详细注释
-- 使用Rust的 `///` 文档注释格式
+#### 2. 服务器前端 (React)
+```bash
+cd server-frontend
+npm install
+npm run dev
+# Web界面: http://localhost:3000
+```
 
-### 错误处理
-- Rust: 使用 `Result<T, E>` 和 `?` 操作符
-- 前端: 统一的错误处理机制
-- 敏感信息加密存储，用户权限验证在每个关键操作前进行
+#### 3. 员工客户端 (Python)
+```bash
+cd employee-client
+python -m venv venv
+venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+python src/main.py --gui --debug
+```
+
+## 项目结构和模块化指令
+
+本项目使用模块化的指令系统，每个模块都有专门的指令文件：
+
+| 模块/路径模式 | 指令文件 | 描述 |
+|--------------|----------|------|
+| `server-backend/src/**/*.rs` | [server-backend.instructions.md](.github/instructions/server-backend.instructions.md) | Rust后端开发指令 |
+| `server-frontend/**/*.{tsx,ts,jsx,js}` | [server-frontend.instructions.md](.github/instructions/server-frontend.instructions.md) | React.js前端开发指令 |
+| `employee-client/**/*.py` | [employee-client.instructions.md](.github/instructions/employee-client.instructions.md) | Python客户端开发指令 |
+| `src/auth/**/*.py` | [auth-system.instructions.md](.github/instructions/auth-system.instructions.md) | 认证系统指令 |
+| `src/core/**/*.py` | [core-modules.instructions.md](.github/instructions/core-modules.instructions.md) | 核心模块指令 |
+| `src/gui/**/*.py` | [gui-development.instructions.md](.github/instructions/gui-development.instructions.md) | GUI开发指令 |
+| `src/platforms/**/*.py` | [platform-automation.instructions.md](.github/instructions/platform-automation.instructions.md) | 平台自动化指令 |
+| `scripts/**/*.py` | [build-scripts.instructions.md](.github/instructions/build-scripts.instructions.md) | 构建脚本指令 |
+
+## 专用Prompt文件
+
+项目还提供了专门的prompt文件，用于特定的开发任务：
+
+| Prompt文件 | 用途 | 使用方法 |
+|-----------|------|----------|
+| [server-optimization.prompt.md](.github/prompts/server-optimization.prompt.md) | 服务器端重构和优化 | 在Copilot Chat中附加此prompt |
+| [api-development.prompt.md](.github/prompts/api-development.prompt.md) | API开发和文档生成 | 用于设计和实现REST API |
+| [rbac-system.prompt.md](.github/prompts/rbac-system.prompt.md) | 权限系统开发 | 实现三角色权限控制 |
+| [device-automation.prompt.md](.github/prompts/device-automation.prompt.md) | 设备自动化开发 | 员工客户端自动化功能 |
+
+## 三角色系统架构指导
+
+### 系统管理员（一级管理员，服务器端）
+- 开通用户管理员权限
+- 查看所有员工工作信息和统计数据
+- 设置收费规则和计费标准
+- 系统配置和监控
+
+### 用户管理员（二级管理员，服务器端）
+- 开通员工权限（最多10个用户）
+- 查看本公司员工工作信息
+- 查看结算界面，调整关注数量
+- 扣费计划管理
+
+### 员工（脚本用户，桌面客户端）
+- 多设备自动化控制
+- 抖音、小红书关注引流操作
+- 工作数据上传和同步
+- 任务执行和状态汇报
 
 ## 项目结构和模块化指令
 
@@ -652,3 +700,85 @@ python tests/performance/test_multi_device.py
 8. 部署和分发
 
 当实现新功能时，请优先考虑代码的可维护性、安全性和用户体验。所有涉及设备操作的代码都应该包含适当的错误处理和日志记录。
+
+## 开发工作流
+
+### 1. 代码生成和修改
+当需要生成或修改代码时：
+- 首先阅读相应的模块指令文件
+- 确保理解该模块的特定要求和约定
+- 生成的代码必须符合项目的架构模式和编码规范
+- 包含适当的错误处理和日志记录
+
+### 2. API开发
+- 遵循RESTful API设计原则
+- 使用OpenAPI 3.0规范生成文档
+- 实现适当的认证和授权
+- 包含输入验证和错误响应
+
+### 3. 数据库设计
+- 使用SQLx进行类型安全的数据库操作
+- 实现适当的索引和查询优化
+- 遵循数据库规范化原则
+- 包含迁移脚本
+
+### 4. 前端开发
+- 使用React 18组合式API
+- 实现响应式设计
+- 遵循组件化开发模式
+- 包含类型定义和错误处理
+
+## 安全和性能指导
+
+### 安全要求
+- 所有API端点必须实现适当的认证和授权
+- 敏感数据必须加密存储
+- 输入数据必须验证和清理
+- 实现适当的审计日志
+
+### 性能要求
+- 数据库查询必须优化
+- 实现适当的缓存策略
+- 异步操作使用Tokio
+- 前端实现懒加载和代码分割
+
+## 测试策略
+
+### 单元测试
+- Rust: 使用内置的测试框架
+- 前端: 使用Jest/Vitest进行单元测试
+- Python: 使用pytest框架
+- 目标覆盖率: 80%+
+
+### 集成测试
+- API端点测试
+- 数据库集成测试
+- 前后端集成测试
+
+### 性能测试
+- 负载测试
+- 并发测试
+- 内存泄漏检测
+
+## 部署和DevOps
+
+### 构建流程
+- Rust: `cargo build --release`
+- 前端: `npm run build`
+- Python: PyInstaller打包
+
+### 监控和日志
+- 使用结构化日志
+- 实现健康检查端点
+- 监控系统性能指标
+
+## 获取更多帮助
+
+在使用Copilot时，可以使用以下提示：
+- `@workspace` 或 `#codebase` 来引用整个代码库
+- `#<filename>` 来引用特定文件
+- 明确指定你要修改的模块和功能
+- 参考相应的指令文件获取模块特定的指导
+
+当创建pull request时，请在描述的第一行添加：
+_This pull request was created as a result of the following prompt in Copilot Chat._

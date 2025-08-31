@@ -1,7 +1,67 @@
 # Rust 后端开发指令
 
 ## 适用范围
-这些指令适用于 `server-backend/src/**/*.rs` 路径下的所有 Rust 代码文件。
+---
+applyTo: "server-backend/**/*.rs"
+---
+
+# Flow Farm 服务器后端 (Rust) 开发指令
+
+## 技术栈和依赖
+
+### 核心框架
+- **Web框架**: Axum 0.7 - 高性能异步Web框架
+- **数据库**: SQLx + SQLite - 类型安全的数据库访问
+- **认证**: JWT + bcrypt - 安全的身份认证
+- **序列化**: Serde - 高效的JSON处理
+- **异步运行时**: Tokio - 高性能异步运行时
+- **日志**: Tracing - 结构化日志
+- **错误处理**: Anyhow + Thiserror - 优雅的错误处理
+
+### 项目结构
+```
+server-backend/
+├── src/
+│   ├── main.rs           # 应用入口点
+│   ├── lib.rs            # 库文件
+│   ├── config.rs         # 配置管理
+│   ├── database.rs       # 数据库连接和迁移
+│   ├── errors.rs         # 错误定义
+│   ├── models.rs         # 数据模型
+│   ├── server.rs         # 服务器启动逻辑
+│   ├── handlers/         # API处理器
+│   │   ├── mod.rs
+│   │   ├── auth.rs       # 认证相关API
+│   │   ├── users.rs      # 用户管理API
+│   │   ├── billing.rs    # 计费管理API
+│   │   ├── devices.rs    # 设备管理API
+│   │   ├── work_records.rs # 工作记录API
+│   │   ├── kpi.rs        # KPI统计API
+│   │   ├── reports.rs    # 报表API
+│   │   ├── health.rs     # 健康检查API
+│   │   └── docs.rs       # API文档
+│   ├── middleware/       # 中间件
+│   │   ├── mod.rs
+│   │   └── auth.rs       # 认证中间件
+│   ├── services/         # 业务逻辑服务
+│   │   ├── mod.rs
+│   │   ├── auth.rs       # 认证服务
+│   │   ├── user.rs       # 用户服务
+│   │   ├── billing.rs    # 计费服务
+│   │   ├── device.rs     # 设备服务
+│   │   ├── work_record.rs # 工作记录服务
+│   │   ├── kpi.rs        # KPI服务
+│   │   └── report.rs     # 报表服务
+│   └── utils/            # 工具函数
+│       ├── mod.rs
+│       ├── jwt.rs        # JWT工具
+│       ├── hash.rs       # 密码哈希
+│       ├── validation.rs # 数据验证
+│       └── time.rs       # 时间处理
+├── Cargo.toml           # 依赖配置
+└── data/                # 数据文件目录
+    └── flow_farm.db     # SQLite数据库
+```
 
 ## 技术栈
 

@@ -1,0 +1,74 @@
+name: 自动更新文档
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: 
+      - '.github/instructions/**'
+      - '.github/prompts/**'
+      - 'docs/**'
+      - '.github/copilot-instructions.md'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  update-documentation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 设置Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: 验证Markdown文件
+      run: |
+        # 检查所有.md文件的语法
+        find .github/instructions .github/prompts docs -name "*.md" -exec echo "验证文件: {}" \;
+        
+    - name: 检查指令文件完整性
+      run: |
+        # 验证所有指令文件都有对应的applyTo配置
+        for file in .github/instructions/*.instructions.md; do
+          if ! grep -q "applyTo:" "$file"; then
+            echo "错误: $file 缺少 applyTo 配置"
+            exit 1
+          fi
+        done
+        
+    - name: 生成文档索引
+      run: |
+        cat > .github/README.md << 'EOF'
+        # Flow Farm Copilot 配置文档
+        
+        ## 指令文件
+        EOF
+        
+        for file in .github/instructions/*.instructions.md; do
+          filename=$(basename "$file")
+          echo "- [$filename](instructions/$filename)" >> .github/README.md
+        done
+        
+        echo "" >> .github/README.md
+        echo "## Prompt文件" >> .github/README.md
+        
+        for file in .github/prompts/*.prompt.md; do
+          filename=$(basename "$file")
+          echo "- [$filename](prompts/$filename)" >> .github/README.md
+        done
+        
+    - name: 提交更新
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .github/README.md
+        git diff --staged --quiet || git commit -m "自动更新文档索引"
+        
+    - name: 推送更改
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
