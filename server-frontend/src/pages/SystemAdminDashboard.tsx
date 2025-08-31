@@ -1,10 +1,10 @@
 import {
-    DashboardOutlined,
-    DownOutlined,
-    LogoutOutlined,
-    SettingOutlined,
-    TeamOutlined,
-    UserOutlined,
+  DashboardOutlined,
+  DownOutlined,
+  LogoutOutlined,
+  SettingOutlined,
+  TeamOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import { Avatar, Button, Dropdown, Layout, Menu, Space } from 'antd'
 import React, { useState } from 'react'
@@ -63,7 +63,11 @@ const SystemAdminDashboard: React.FC = () => {
   }
 
   const handleLogout = () => {
-    dispatch(logout())
+    dispatch(logout()).then(() => {
+      // 登出成功后重定向到登录页面
+      console.log('系统管理员登出成功，重定向到登录页面')
+      navigate('/login', { replace: true })
+    })
   }
 
   const userDropdownMenu = {

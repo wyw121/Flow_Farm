@@ -10,7 +10,7 @@ import Login from './pages/Login'
 import SystemAdminDashboard from './pages/SystemAdminDashboard'
 import UserAdminDashboard from './pages/UserAdminDashboard'
 import { RootState } from './store'
-import { getCurrentUser } from './store/authSlice'
+import { clearAuthState, getCurrentUser } from './store/authSlice'
 
 const App: React.FC = () => {
   const dispatch = useDispatch()
@@ -21,9 +21,13 @@ const App: React.FC = () => {
     const token = localStorage.getItem('token')
     if (token) {
       console.log('应用启动：验证现有token...')
-      dispatch(getCurrentUser() as any)
+      dispatch(getCurrentUser() as any).catch((error: any) => {
+        console.log('token验证失败，清理认证状态:', error)
+        dispatch(clearAuthState() as any)
+      })
     } else {
-      console.log('应用启动：无token，跳过验证')
+      console.log('应用启动：无token，确保状态已清理')
+      dispatch(clearAuthState() as any)
     }
   }, [dispatch])
 
@@ -60,7 +64,9 @@ const App: React.FC = () => {
     console.log('App：用户未认证，显示登录页面')
     return (
       <Routes>
-        <Route path="*" element={<Login />} />
+        {/* 重定向所有路径到登录页 */}
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )
   }

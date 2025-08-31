@@ -1,15 +1,23 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { RootState } from '../store'
+import { clearAuthState } from '../store/authSlice'
 
 interface AuthDebuggerProps {
   show?: boolean
 }
 
 const AuthDebugger: React.FC<AuthDebuggerProps> = ({ show = false }) => {
+  const dispatch = useDispatch()
   const { isAuthenticated, user, loading, error } = useSelector((state: RootState) => state.auth)
   const location = useLocation()
+
+  const handleClearState = () => {
+    console.log('手动清理认证状态')
+    localStorage.removeItem('token')
+    dispatch(clearAuthState())
+  }
 
   if (!show) return null
 
@@ -43,6 +51,21 @@ const AuthDebugger: React.FC<AuthDebuggerProps> = ({ show = false }) => {
             {JSON.stringify(user, null, 2)}
           </pre>
         </details>
+        <button
+          onClick={handleClearState}
+          style={{
+            marginTop: '10px',
+            padding: '5px 10px',
+            backgroundColor: '#ff4d4f',
+            color: 'white',
+            border: 'none',
+            borderRadius: '3px',
+            cursor: 'pointer',
+            fontSize: '10px'
+          }}
+        >
+          清理认证状态
+        </button>
       </div>
     </div>
   )

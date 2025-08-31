@@ -3,7 +3,7 @@ import { Alert, Button, Card, Form, Input, Spin, Typography } from 'antd'
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../store'
-import { clearError, login } from '../store/authSlice'
+import { clearAuthState, clearError, login } from '../store/authSlice'
 import { LoginRequest } from '../types'
 
 const { Title } = Typography
@@ -13,11 +13,14 @@ const Login: React.FC = () => {
   const { loading, error } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
-    // 清除之前的错误
+    // 进入登录页面时，清除之前的所有认证状态和错误
+    console.log('进入登录页面：清理所有认证状态')
+    dispatch(clearAuthState())
     dispatch(clearError())
   }, [dispatch])
 
   const onFinish = (values: LoginRequest) => {
+    console.log('提交登录表单:', { username: values.username })
     dispatch(login(values))
   }
 

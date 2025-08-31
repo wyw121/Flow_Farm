@@ -50,7 +50,11 @@ const UserAdminLayout: React.FC = () => {
   }
 
   const handleLogout = () => {
-    dispatch(logout())
+    dispatch(logout()).then(() => {
+      // 登出成功后重定向到登录页面
+      console.log('用户管理员登出成功，重定向到登录页面')
+      navigate('/login', { replace: true })
+    })
   }
 
   const userDropdownMenu = {
