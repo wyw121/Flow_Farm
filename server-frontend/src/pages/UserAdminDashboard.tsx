@@ -15,8 +15,8 @@ import { logout } from '../store/authSlice'
 
 // 页面组件导入
 import BillingManagement from './UserAdmin/BillingManagement'
-import UserAdminDashboard from './UserAdmin/Dashboard'
 import EmployeeManagement from './UserAdmin/EmployeeManagement'
+import TestDashboard from './UserAdmin/TestDashboard'
 
 const { Header, Sider, Content } = Layout
 
@@ -116,12 +116,12 @@ const UserAdminLayout: React.FC = () => {
 
         <Content className="dashboard-content">
           <Routes>
-            <Route path="/" element={<UserAdminDashboard />} />
-            <Route path="/dashboard" element={<UserAdminDashboard />} />
+            <Route path="/" element={<TestDashboard />} />
+            <Route path="/dashboard" element={<TestDashboard />} />
             <Route path="/employees" element={<EmployeeManagement />} />
             <Route path="/billing" element={<BillingManagement />} />
             {/* 默认重定向到dashboard */}
-            <Route path="*" element={<UserAdminDashboard />} />
+            <Route path="*" element={<TestDashboard />} />
           </Routes>
         </Content>
       </Layout>

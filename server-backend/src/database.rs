@@ -1,6 +1,6 @@
-use sqlx::{SqlitePool, Row};
-use anyhow::Result;
 use crate::models::*;
+use anyhow::Result;
+use sqlx::{Row, SqlitePool};
 
 #[derive(Debug, Clone)]
 pub struct Database {
@@ -20,16 +20,23 @@ impl Database {
         sqlx::query(
             r#"
             CREATE TABLE IF NOT EXISTS users (
-                id TEXT PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
+                email TEXT UNIQUE,
+                hashed_password TEXT NOT NULL,
                 role TEXT NOT NULL CHECK (role IN ('system_admin', 'user_admin', 'employee')),
                 company_id TEXT,
-                is_active BOOLEAN NOT NULL DEFAULT TRUE,
+                is_active BOOLEAN DEFAULT TRUE,
+                is_verified BOOLEAN DEFAULT FALSE,
+                parent_id INTEGER,
+                full_name TEXT,
+                phone TEXT,
+                company TEXT,
                 max_employees INTEGER DEFAULT 10,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                current_employees INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                last_login DATETIME
             )
             "#,
         )
@@ -108,22 +115,22 @@ impl Database {
         .await?;
 
         // 插入默认系统管理员（如果不存在）
-        let admin_exists = sqlx::query("SELECT COUNT(*) as count FROM users WHERE role = 'system_admin'")
-            .fetch_one(&self.pool)
-            .await?
-            .get::<i64, _>("count") > 0;
+        let admin_exists =
+            sqlx::query("SELECT COUNT(*) as count FROM users WHERE role = 'system_admin'")
+                .fetch_one(&self.pool)
+                .await?
+                .get::<i64, _>("count")
+                > 0;
 
         if !admin_exists {
-            let admin_id = uuid::Uuid::new_v4().to_string();
             let password_hash = bcrypt::hash("admin123", 12)?;
 
             sqlx::query(
                 r#"
-                INSERT INTO users (id, username, email, password_hash, role, is_active)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO users (username, email, hashed_password, role, is_active)
+                VALUES (?, ?, ?, ?, ?)
                 "#,
             )
-            .bind(&admin_id)
             .bind("admin")
             .bind("admin@flowfarm.com")
             .bind(&password_hash)
@@ -135,7 +142,93 @@ impl Database {
             tracing::info!("✅ 默认管理员账户已创建 - 用户名: admin, 密码: admin123");
         }
 
+        // 创建测试用户（仅在开发环境）
+        self.create_test_users().await?;
+
         tracing::info!("✅ 数据库迁移完成");
+        Ok(())
+    }
+
+    async fn create_test_users(&self) -> Result<()> {
+        tracing::info!("🔄 创建测试用户数据");
+
+        let password_hash = bcrypt::hash("admin123", 12)?;
+
+        // 检查是否已存在company_admin_1用户
+        let company_admin_exists =
+            sqlx::query("SELECT COUNT(*) as count FROM users WHERE username = 'company_admin_1'")
+                .fetch_one(&self.pool)
+                .await?
+                .get::<i64, _>("count")
+                > 0;
+
+        if !company_admin_exists {
+            // 创建公司管理员1
+            sqlx::query(
+                r#"
+                INSERT INTO users (username, email, hashed_password, role, company, is_active, max_employees)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                "#,
+            )
+            .bind("company_admin_1")
+            .bind("company_admin_1@example.com")
+            .bind(&password_hash)
+            .bind("user_admin")
+            .bind("company_001")
+            .bind(true)
+            .bind(50)
+            .execute(&self.pool)
+            .await?;
+
+            // 创建公司管理员2
+            sqlx::query(
+                r#"
+                INSERT INTO users (username, email, hashed_password, role, company, is_active, max_employees)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                "#,
+            )
+            .bind("company_admin_2")
+            .bind("company_admin_2@example.com")
+            .bind(&password_hash)
+            .bind("user_admin")
+            .bind("company_002")
+            .bind(true)
+            .bind(30)
+            .execute(&self.pool)
+            .await?;
+
+            // 创建测试员工
+            let employees = vec![
+                ("employee_1", "employee_1@company_001.com", "company_001"),
+                ("employee_2", "employee_2@company_001.com", "company_001"),
+                ("employee_3", "employee_3@company_002.com", "company_002"),
+            ];
+
+            for (username, email, company) in employees {
+                sqlx::query(
+                    r#"
+                    INSERT INTO users (username, email, hashed_password, role, company, is_active)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    "#,
+                )
+                .bind(username)
+                .bind(email)
+                .bind(&password_hash)
+                .bind("employee")
+                .bind(company)
+                .bind(true)
+                .execute(&self.pool)
+                .await?;
+            }
+
+            tracing::info!("✅ 测试用户创建完成");
+            tracing::info!("   - company_admin_1 (密码: admin123)");
+            tracing::info!("   - company_admin_2 (密码: admin123)");
+            tracing::info!("   - employee_1, employee_2, employee_3 (密码: admin123)");
+        } else {
+            tracing::info!("ℹ️  测试用户已存在，跳过创建");
+        }
+
         Ok(())
     }
 }
