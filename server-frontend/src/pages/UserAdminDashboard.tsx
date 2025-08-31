@@ -15,8 +15,8 @@ import { logout } from '../store/authSlice'
 
 // 页面组件导入
 import BillingManagement from './UserAdmin/BillingManagement'
+import Dashboard from './UserAdmin/Dashboard'
 import EmployeeManagement from './UserAdmin/EmployeeManagement'
-import TestDashboard from './UserAdmin/TestDashboard'
 
 const { Header, Sider, Content } = Layout
 
@@ -52,7 +52,6 @@ const UserAdminLayout: React.FC = () => {
   const handleLogout = () => {
     dispatch(logout()).then(() => {
       // 登出成功后重定向到登录页面
-      console.log('用户管理员登出成功，重定向到登录页面')
       navigate('/login', { replace: true })
     })
   }
@@ -120,12 +119,12 @@ const UserAdminLayout: React.FC = () => {
 
         <Content className="dashboard-content">
           <Routes>
-            <Route path="/" element={<TestDashboard />} />
-            <Route path="/dashboard" element={<TestDashboard />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/employees" element={<EmployeeManagement />} />
             <Route path="/billing" element={<BillingManagement />} />
             {/* 默认重定向到dashboard */}
-            <Route path="*" element={<TestDashboard />} />
+            <Route path="*" element={<Dashboard />} />
           </Routes>
         </Content>
       </Layout>

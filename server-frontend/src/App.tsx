@@ -2,8 +2,6 @@ import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
-import AuthDebugger from './components/AuthDebugger'
-import DebugAuth from './components/DebugAuth'
 import RootRedirect from './components/RootRedirect'
 import UnauthorizedPage from './components/UnauthorizedPage'
 import Login from './pages/Login'
@@ -20,32 +18,16 @@ const App: React.FC = () => {
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (token) {
-      console.log('应用启动：验证现有token...')
-      dispatch(getCurrentUser() as any).catch((error: any) => {
-        console.log('token验证失败，清理认证状态:', error)
+      dispatch(getCurrentUser() as any).catch(() => {
         dispatch(clearAuthState() as any)
       })
     } else {
-      console.log('应用启动：无token，确保状态已清理')
       dispatch(clearAuthState() as any)
     }
   }, [dispatch])
 
-  // 调试信息
-  useEffect(() => {
-    console.log('App状态更新:', {
-      isAuthenticated,
-      userRole: user?.role,
-      userId: user?.id,
-      username: user?.username,
-      loading,
-      timestamp: new Date().toISOString()
-    })
-  }, [isAuthenticated, user, loading])
-
   // 全局加载状态
   if (loading) {
-    console.log('App：显示全局加载状态')
     return (
       <div style={{
         display: 'flex',
@@ -61,7 +43,6 @@ const App: React.FC = () => {
 
   // 未认证时显示登录页面
   if (!isAuthenticated) {
-    console.log('App：用户未认证，显示登录页面')
     return (
       <Routes>
         {/* 重定向所有路径到登录页 */}
@@ -73,7 +54,6 @@ const App: React.FC = () => {
 
   // 已认证但用户信息为空的异常情况
   if (!user) {
-    console.log('App：异常状态 - 已认证但用户为空')
     return (
       <div style={{
         display: 'flex',
@@ -95,12 +75,8 @@ const App: React.FC = () => {
   }
 
   // 已认证时的主要路由
-  console.log('App：用户已认证，渲染主要路由', { userRole: user.role })
   return (
-    <>
-      <AuthDebugger show={true} />
-      <DebugAuth />
-      <Routes>
+    <Routes>
         {/* 登录页面重定向 */}
         <Route path="/login" element={<RootRedirect />} />
 
@@ -154,7 +130,6 @@ const App: React.FC = () => {
         {/* 404页面 - 重定向到根路径 */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </>
   )
 }
 

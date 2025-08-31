@@ -24,21 +24,14 @@ export const login = createAsyncThunk(
   async (loginData: LoginRequest, { rejectWithValue, dispatch }) => {
     try {
       // 登录前先完全清理之前的状态
-      console.log('登录开始：清理之前的认证状态...')
       localStorage.removeItem('token')
       dispatch(clearAuthState())
 
       const response = await authService.login(loginData)
-      console.log('登录成功，设置新的token和用户信息', {
-        username: response.user.username,
-        role: response.user.role,
-        userId: response.user.id
-      })
       localStorage.setItem('token', response.token)
       return response
     } catch (error: any) {
       // 登录失败时也要清理状态
-      console.log('登录失败，清理所有认证状态')
       localStorage.removeItem('token')
 
       // 处理不同类型的错误
@@ -77,11 +70,10 @@ export const logout = createAsyncThunk(
     try {
       await authService.logout()
     } catch (error) {
-      console.log('后端登出失败，但继续清理前端状态:', error)
+      // 后端登出失败时继续清理前端状态
     }
 
     // 无论后端登出是否成功，都要清理前端状态
-    console.log('登出：清理所有认证状态')
     localStorage.removeItem('token')
     return null
   }
@@ -116,7 +108,6 @@ const authSlice = createSlice({
       state.error = null
     },
     clearAuthState: (state) => {
-      console.log('清理认证状态：重置所有状态到初始值')
       state.user = null
       state.token = null
       state.isAuthenticated = false
@@ -137,12 +128,6 @@ const authSlice = createSlice({
         state.error = null
       })
       .addCase(login.fulfilled, (state, action) => {
-        console.log('登录成功，设置新的认证状态:', {
-          username: action.payload.user.username,
-          role: action.payload.user.role,
-          userId: action.payload.user.id
-        })
-
         // 确保完全清理之前的状态后再设置新状态
         state.loading = false
         state.error = null
@@ -159,7 +144,6 @@ const authSlice = createSlice({
       })
       // Logout
       .addCase(logout.fulfilled, (state) => {
-        console.log('登出完成，清理所有认证状态')
         state.isAuthenticated = false
         state.user = null
         state.token = null

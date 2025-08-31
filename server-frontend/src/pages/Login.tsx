@@ -14,13 +14,11 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     // 进入登录页面时，清除之前的所有认证状态和错误
-    console.log('进入登录页面：清理所有认证状态')
     dispatch(clearAuthState())
     dispatch(clearError())
   }, [dispatch])
 
   const onFinish = (values: LoginRequest) => {
-    console.log('提交登录表单:', { username: values.username })
     dispatch(login(values))
   }
 

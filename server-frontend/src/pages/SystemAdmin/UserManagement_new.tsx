@@ -101,7 +101,6 @@ const UserManagement: React.FC = () => {
             ]
             setUsers(mockUsers)
         } catch (error) {
-            console.error('获取用户列表失败:', error)
             message.error('获取用户列表失败')
         } finally {
             setLoading(false)
@@ -168,7 +167,6 @@ const UserManagement: React.FC = () => {
                     message.success('删除成功')
                     fetchUsers()
                 } catch (error) {
-                    console.error('删除失败:', error)
                     message.error('删除失败')
                 }
             }
@@ -185,7 +183,6 @@ const UserManagement: React.FC = () => {
             setEditModalVisible(false)
             fetchUsers()
         } catch (error) {
-            console.error('保存失败:', error)
             message.error('保存失败')
         }
     }

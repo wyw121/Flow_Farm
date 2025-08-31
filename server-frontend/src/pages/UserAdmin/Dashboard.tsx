@@ -58,7 +58,6 @@ const Dashboard: React.FC = () => {
         unpaidAmount: companyStats.unpaid_amount || 0,
       })
     } catch (err: any) {
-      console.error('加载仪表板数据失败:', err)
       setError(err.message || '加载数据失败')
     } finally {
       setLoading(false)

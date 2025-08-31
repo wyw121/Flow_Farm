@@ -50,11 +50,6 @@ const SystemAdminDashboard: React.FC = () => {
       icon: <SettingOutlined />,
       label: '收费设置',
     },
-    {
-      key: 'api-test',
-      icon: <SettingOutlined />,
-      label: 'API测试',
-    },
   ]
 
   const handleMenuClick = ({ key }: { key: string }) => {
@@ -65,7 +60,6 @@ const SystemAdminDashboard: React.FC = () => {
   const handleLogout = () => {
     dispatch(logout()).then(() => {
       // 登出成功后重定向到登录页面
-      console.log('系统管理员登出成功，重定向到登录页面')
       navigate('/login', { replace: true })
     })
   }

@@ -3,10 +3,9 @@ import { Navigate } from 'react-router-dom'
 import { useAuthGuard } from '../hooks/useAuthGuard'
 
 const RootRedirect: React.FC = () => {
-  const { getDefaultRoute, loading, user, isAuthenticated } = useAuthGuard()
+  const { getDefaultRoute, loading, isAuthenticated } = useAuthGuard()
 
   if (loading) {
-    console.log('根路由：认证加载中')
     return (
       <div style={{
         display: 'flex',
@@ -25,12 +24,10 @@ const RootRedirect: React.FC = () => {
   }
 
   if (!isAuthenticated) {
-    console.log('根路由：用户未认证，跳转到登录页')
     return <Navigate to="/login" replace />
   }
 
   const defaultRoute = getDefaultRoute()
-  console.log(`根路由：用户已认证 [${user?.role}]，重定向到: ${defaultRoute}`)
 
   return <Navigate to={defaultRoute} replace />
 }

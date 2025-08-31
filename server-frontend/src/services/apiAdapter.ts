@@ -78,7 +78,7 @@ export async function callApiWithFallback<T>(
     return adaptApiResponse<T>(response)
   } catch (error) {
     if (fallbackCall) {
-      console.warn('Primary API call failed, trying fallback:', error)
+      // 主要API调用失败，尝试备用方案
       const response = await fallbackCall()
       return adaptApiResponse<T>(response)
     }
@@ -97,7 +97,7 @@ export async function callPaginatedApiWithFallback<T>(
     return adaptPaginatedResponse<T>(response, page, size)
   } catch (error) {
     if (fallbackCall) {
-      console.warn('Primary API call failed, trying fallback:', error)
+      // 主要API调用失败，尝试备用方案
       const response = await fallbackCall()
       return adaptPaginatedResponse<T>(response, page, size)
     }

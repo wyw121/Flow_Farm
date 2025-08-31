@@ -10,7 +10,6 @@ const UnauthorizedPage: React.FC = () => {
 
   const handleGoHome = () => {
     const defaultRoute = getDefaultRoute()
-    console.log(`从无权限页面跳转到: ${defaultRoute}`)
     navigate(defaultRoute)
   }
 
