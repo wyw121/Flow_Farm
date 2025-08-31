@@ -24,7 +24,7 @@ fi
 echo "[信息] Python环境检测通过"
 
 # 检查是否在正确目录
-if [ ! -f "src/main.py" ]; then
+if [ ! -f "employee-client/src/main.py" ]; then
     echo "[错误] 未找到主程序文件"
     echo "请确保在Flow_Farm项目根目录运行此脚本"
     exit 1
@@ -59,17 +59,17 @@ case $choice in
     1)
         echo ""
         echo "[启动] GUI模式启动中..."
-        $PYTHON_CMD main.py --gui
+        cd employee-client && $PYTHON_CMD src/main.py --gui
         ;;
     2)
         echo ""
         echo "[启动] 控制台模式启动中..."
-        $PYTHON_CMD main.py --console
+        cd employee-client && $PYTHON_CMD src/main.py --console
         ;;
     3)
         echo ""
         echo "[启动] 调试模式启动中..."
-        $PYTHON_CMD main.py --debug --gui
+        cd employee-client && $PYTHON_CMD src/main.py --debug --gui
         ;;
     0)
         echo ""

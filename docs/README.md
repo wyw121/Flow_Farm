@@ -96,9 +96,11 @@ adb devices  # 验证设备连接
 4. **启动应用**
 ```bash
 # 开发模式
+cd employee-client
 python src/main.py --debug
 
 # 生产模式  
+cd employee-client
 python src/main.py
 ```
 

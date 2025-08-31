@@ -51,6 +51,9 @@ cd d:\repositories\Flow_Farm\employee-client
 # 创建虚拟环境（仅首次需要）
 python -m venv venv
 
+# 切换到员工客户端目录
+cd employee-client
+
 # 激活虚拟环境
 .\venv\Scripts\Activate.ps1
 

@@ -9,7 +9,9 @@ if os.path.exists(db_path):
     cursor = conn.cursor()
 
     # 检查表结构
-    cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'")
+    cursor.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='users'"
+    )
     result = cursor.fetchone()
     if result:
         print("用户表结构:")
@@ -21,7 +23,10 @@ if os.path.exists(db_path):
         users = cursor.fetchall()
         print("用户数据示例:")
         for user in users:
-            print(f"ID: {user[0]} (类型: {type(user[0])}), 用户名: {user[1]}, 角色: {user[2]}")
+            print(
+                f"ID: {user[0]} (类型: {type(user[0])}), "
+                f"用户名: {user[1]}, 角色: {user[2]}"
+            )
     else:
         print("用户表不存在")
 

@@ -115,23 +115,23 @@
 				"name": "Flow Farm - Debug Mode",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder}/src/main.py",
+				"program": "${workspaceFolder}/employee-client/src/main.py",
 				"args": ["--debug", "--log-level", "DEBUG"],
 				"console": "integratedTerminal",
-				"envFile": "${workspaceFolder}/.env",
-				"cwd": "${workspaceFolder}",
-				"python": "${workspaceFolder}/venv/Scripts/python.exe"
+				"envFile": "${workspaceFolder}/employee-client/.env",
+				"cwd": "${workspaceFolder}/employee-client",
+				"python": "${workspaceFolder}/employee-client/venv/Scripts/python.exe"
 			},
 			{
 				"name": "Flow Farm - GUI Mode",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder}/src/main.py",
+				"program": "${workspaceFolder}/employee-client/src/main.py",
 				"args": ["--gui"],
 				"console": "integratedTerminal",
-				"envFile": "${workspaceFolder}/.env",
-				"cwd": "${workspaceFolder}",
-				"python": "${workspaceFolder}/venv/Scripts/python.exe"
+				"envFile": "${workspaceFolder}/employee-client/.env",
+				"cwd": "${workspaceFolder}/employee-client",
+				"python": "${workspaceFolder}/employee-client/venv/Scripts/python.exe"
 			},
 			{
 				"name": "Run Tests",

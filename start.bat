@@ -21,7 +21,7 @@ if %errorlevel% neq 0 (
 echo [信息] Python环境检测通过
 
 REM 检查是否在正确目录
-if not exist "src\main.py" (
+if not exist "employee-client\src\main.py" (
     echo [错误] 未找到主程序文件
     echo 请确保在Flow_Farm项目根目录运行此脚本
     pause
@@ -62,19 +62,19 @@ goto invalid_choice
 :gui_mode
 echo.
 echo [启动] GUI模式启动中...
-python main.py --gui
+cd employee-client && python src\main.py --gui
 goto end
 
 :console_mode
 echo.
 echo [启动] 控制台模式启动中...
-python main.py --console
+cd employee-client && python src\main.py --console
 goto end
 
 :debug_mode
 echo.
 echo [启动] 调试模式启动中...
-python main.py --debug --gui
+cd employee-client && python src\main.py --debug --gui
 goto end
 
 :invalid_choice

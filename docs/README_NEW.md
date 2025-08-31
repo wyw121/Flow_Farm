@@ -100,6 +100,7 @@ npm run dev
 
 # 启动员工客户端 (终端3)
 cd employee-client
+cd employee-client
 python src/main.py --gui --debug
 ```
 

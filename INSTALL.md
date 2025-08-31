@@ -2,14 +2,20 @@
 
 ## 系统要求
 
-### 操作系统
-- Windows 10/11 (推荐)
-- macOS 10.14+ 
-- Ubuntu 18.04+
+Flow Farm 是一个企业级三角色权限管理系统，包含：
 
-### Python 环境
-- Python 3.8+ (推荐 Python 3.9-3.11)
-- pip 包管理器
+- **服务器后端**: Rust + Axum + SQLx + SQLite  
+- **服务器前端**: React.js + TypeScript + Vite
+- **员工客户端**: Python + tkinter + ADB
+
+### 服务器端要求
+- **Rust**: 1.75+ 
+- **Node.js**: 18+
+- **SQLite**: 3.0+
+
+### 员工客户端要求
+- **Python**: 3.8+ (推荐 Python 3.9-3.11)
+- **Android SDK**: Platform Tools (ADB)
 
 ### 硬件要求
 - CPU: 双核 2.0GHz 以上
