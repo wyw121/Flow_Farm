@@ -16,6 +16,7 @@ import {
     Row,
     Select,
     Space,
+    Statistic,
     Table,
     Tag,
     Typography,
@@ -182,7 +183,7 @@ const UserManagement: React.FC = () => {
 
             setEditModalVisible(false)
             fetchUsers()
-        } catch (error) {
+        } catch (error: any) {
             console.error('保存失败:', error)
             console.error('错误详情:', {
                 message: error?.message,
@@ -204,32 +205,32 @@ const UserManagement: React.FC = () => {
     // 表格列定义
     const columns = [
         {
-            title: '用户名',
+            title: '用户信息',
             dataIndex: 'username',
             key: 'username',
+            render: (username: string, record: UserAdmin) => (
+                <div>
+                    <div style={{ fontWeight: 'bold' }}>{username}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>
+                        {record.email}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>
+                        {record.phone}
+                    </div>
+                </div>
+            ),
         },
         {
-            title: '邮箱',
-            dataIndex: 'email',
-            key: 'email',
-        },
-        {
-            title: '手机号',
-            dataIndex: 'phone',
-            key: 'phone',
-        },
-        {
-            title: '公司名称',
+            title: '公司信息',
             dataIndex: 'company_name',
             key: 'company_name',
-        },
-        {
-            title: '员工数量',
-            key: 'employees',
-            render: (_: any, record: UserAdmin) => (
-                <span>
-                    {record.current_employees} / {record.max_employees}
-                </span>
+            render: (company: string, record: UserAdmin) => (
+                <div>
+                    <div style={{ fontWeight: 'bold' }}>{company}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>
+                        员工数量：{record.current_employees} / {record.max_employees}
+                    </div>
+                </div>
             ),
         },
         {
@@ -237,9 +238,15 @@ const UserManagement: React.FC = () => {
             dataIndex: 'balance',
             key: 'balance',
             render: (balance: number) => (
-                <span style={{ color: balance > 0 ? '#52c41a' : '#ff4d4f' }}>
-                    ¥{balance.toFixed(2)}
-                </span>
+                <Statistic
+                    value={balance}
+                    precision={2}
+                    prefix="¥"
+                    valueStyle={{
+                        fontSize: '14px',
+                        color: balance > 0 ? '#52c41a' : '#ff4d4f'
+                    }}
+                />
             ),
         },
         {
@@ -253,14 +260,19 @@ const UserManagement: React.FC = () => {
             ),
         },
         {
-            title: '创建时间',
+            title: '时间信息',
             dataIndex: 'created_at',
             key: 'created_at',
-        },
-        {
-            title: '最后登录',
-            dataIndex: 'last_login',
-            key: 'last_login',
+            render: (created: string, record: UserAdmin) => (
+                <div>
+                    <div style={{ fontSize: '12px' }}>
+                        创建：{created}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>
+                        登录：{record.last_login || '未登录'}
+                    </div>
+                </div>
+            ),
         },
         {
             title: '操作',
@@ -296,21 +308,21 @@ const UserManagement: React.FC = () => {
 
     return (
         <div>
-            <Title level={2}>用户管理员管理</Title>
-
-            <Card>
-                <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
+            <div className="page-header">
+                <Row justify="space-between" align="middle">
                     <Col>
-                        <Input
-                            placeholder="搜索用户名、邮箱、手机号或公司名称"
-                            style={{ width: 300 }}
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            prefix={<SearchOutlined />}
-                        />
+                        <Title level={2}>用户管理员管理</Title>
+                        <p>管理系统中的用户管理员账户</p>
                     </Col>
                     <Col>
                         <Space>
+                            <Input
+                                placeholder="搜索用户名、邮箱、手机号或公司名称"
+                                style={{ width: 300 }}
+                                value={searchText}
+                                onChange={(e) => setSearchText(e.target.value)}
+                                prefix={<SearchOutlined />}
+                            />
                             <Button
                                 icon={<ReloadOutlined />}
                                 onClick={fetchUsers}
@@ -332,15 +344,16 @@ const UserManagement: React.FC = () => {
                         </Space>
                     </Col>
                 </Row>
+            </div>
 
+            {/* 用户列表 */}
+            <Card title="用户管理员列表">
                 <Table
                     columns={columns}
                     dataSource={filteredUsers}
                     rowKey="id"
                     loading={loading}
                     pagination={{
-                        total: filteredUsers.length,
-                        pageSize: 10,
                         showSizeChanger: true,
                         showQuickJumper: true,
                         showTotal: (total) => `共 ${total} 条记录`,
