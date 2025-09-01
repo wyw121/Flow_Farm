@@ -96,32 +96,20 @@ class MainWindow(BaseWindow):
         file_menu = menubar.addMenu("文件(&F)")
 
         # 导入数据
-        import_action = QAction("导入通讯录(&I)", self)
-        try:
-            import_action.setIcon(qta.icon("fa5s.file-import"))
-        except Exception:
-            pass
+        import_action = QAction(qta.icon("fa5s.file-import"), "导入通讯录(&I)", self)
         import_action.setShortcut(QKeySequence.Open)
         import_action.triggered.connect(self.import_contacts)
         file_menu.addAction(import_action)
 
         # 导出数据
-        export_action = QAction("导出数据(&E)", self)
-        try:
-            export_action.setIcon(qta.icon("fa5s.file-export"))
-        except Exception:
-            pass
+        export_action = QAction(qta.icon("fa5s.file-export"), "导出数据(&E)", self)
         export_action.triggered.connect(self.export_data)
         file_menu.addAction(export_action)
 
         file_menu.addSeparator()
 
         # 退出
-        exit_action = QAction("退出(&Q)", self)
-        try:
-            exit_action.setIcon(qta.icon("fa5s.sign-out-alt"))
-        except Exception:
-            pass
+        exit_action = QAction(qta.icon("fa5s.sign-out-alt"), "退出(&Q)", self)
         exit_action.setShortcut(QKeySequence.Quit)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
@@ -130,30 +118,20 @@ class MainWindow(BaseWindow):
         device_menu = menubar.addMenu("设备(&D)")
 
         # 刷新设备
-        refresh_action = QAction("刷新设备(&R)", self)
-        try:
-            refresh_action.setIcon(qta.icon("fa5s.sync"))
-        except Exception:
-            pass
+        refresh_action = QAction(qta.icon("fa5s.sync"), "刷新设备(&R)", self)
         refresh_action.setShortcut(QKeySequence.Refresh)
         refresh_action.triggered.connect(self.refresh_devices)
         device_menu.addAction(refresh_action)
 
         # 连接所有设备
-        connect_all_action = QAction("连接所有设备(&C)", self)
-        try:
-            connect_all_action.setIcon(qta.icon("fa5s.link"))
-        except Exception:
-            pass
+        connect_all_action = QAction(qta.icon("fa5s.link"), "连接所有设备(&C)", self)
         connect_all_action.triggered.connect(self.connect_all_devices)
         device_menu.addAction(connect_all_action)
 
         # 断开所有设备
-        disconnect_all_action = QAction("断开所有设备(&D)", self)
-        try:
-            disconnect_all_action.setIcon(qta.icon("fa5s.unlink"))
-        except Exception:
-            pass
+        disconnect_all_action = QAction(
+            qta.icon("fa5s.unlink"), "断开所有设备(&D)", self
+        )
         disconnect_all_action.triggered.connect(self.disconnect_all_devices)
         device_menu.addAction(disconnect_all_action)
 
@@ -161,20 +139,12 @@ class MainWindow(BaseWindow):
         tools_menu = menubar.addMenu("工具(&T)")
 
         # 设置
-        settings_action = QAction("设置(&S)", self)
-        try:
-            settings_action.setIcon(qta.icon("fa5s.cog"))
-        except Exception:
-            pass
+        settings_action = QAction(qta.icon("fa5s.cog"), "设置(&S)", self)
         settings_action.triggered.connect(self.show_settings)
         tools_menu.addAction(settings_action)
 
         # 日志查看器
-        logs_action = QAction("查看日志(&L)", self)
-        try:
-            logs_action.setIcon(qta.icon("fa5s.file-alt"))
-        except Exception:
-            pass
+        logs_action = QAction(qta.icon("fa5s.file-alt"), "查看日志(&L)", self)
         logs_action.triggered.connect(self.show_logs)
         tools_menu.addAction(logs_action)
 
@@ -182,20 +152,12 @@ class MainWindow(BaseWindow):
         help_menu = menubar.addMenu("帮助(&H)")
 
         # 用户手册
-        manual_action = QAction("用户手册(&M)", self)
-        try:
-            manual_action.setIcon(qta.icon("fa5s.book"))
-        except Exception:
-            pass
+        manual_action = QAction(qta.icon("fa5s.book"), "用户手册(&M)", self)
         manual_action.triggered.connect(self.show_manual)
         help_menu.addAction(manual_action)
 
         # 关于
-        about_action = QAction("关于(&A)", self)
-        try:
-            about_action.setIcon(qta.icon("fa5s.info-circle"))
-        except Exception:
-            pass
+        about_action = QAction(qta.icon("fa5s.info-circle"), "关于(&A)", self)
         about_action.triggered.connect(self.show_about)
         help_menu.addAction(about_action)
 

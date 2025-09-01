@@ -1,6 +1,6 @@
 """
-Flow Farm 员工客户端 - 主程序入口
-员工使用的工作程序，连接服务器进行认证和数据同步
+Flow Farm 员工客户端 - OneDragon风格现代化GUI
+基于OneDragon架构重构的现代化界面
 """
 
 import argparse
@@ -13,16 +13,17 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from auth.login import LoginManager
 from config.settings import ClientSettings
-from gui.compatible_main_window import MainWindow
-from sync.kpi_uploader import KPIUploader
+
+# 导入 OneDragon GUI 主程序
+from main_onedragon_optimized import FlowFarmApp
+from main_onedragon_optimized import main as onedragon_main
 from utils.logger import setup_logging
 
 
 def parse_arguments():
     """解析命令行参数"""
-    parser = argparse.ArgumentParser(description="Flow Farm 员工客户端")
+    parser = argparse.ArgumentParser(description="Flow Farm 员工客户端 - OneDragon风格")
     parser.add_argument(
         "--mode",
         choices=["gui", "console"],
@@ -59,30 +60,19 @@ def parse_arguments():
 def check_dependencies():
     """检查必要的依赖"""
     try:
-        # 检查基础依赖
-        import subprocess
+        # 检查GUI依赖
+        import PySide6  # noqa: F401
 
+        # 检查基础依赖
         import requests  # noqa: F401
 
-        # 检查ADB是否可用（开发模式下可选）
-        try:
-            result = subprocess.run(
-                ["adb", "version"], capture_output=True, text=True, timeout=5
-            )
-            if result.returncode == 0:
-                print("✅ ADB工具检查通过")
-            else:
-                print("⚠️ ADB工具不可用，某些设备功能将无法使用")
-        except FileNotFoundError:
-            print("⚠️ ADB工具未安装，某些设备功能将无法使用")
-        except subprocess.TimeoutExpired:
-            print("⚠️ ADB检查超时，某些设备功能可能无法使用")
-
+        print("✅ OneDragon GUI 依赖检查通过")
         print("✅ 基础依赖检查通过")
         return True
 
     except ImportError as e:
         print(f"❌ 缺少必要依赖: {e}")
+        print("请运行: pip install -r requirements.txt")
         return False
     except Exception as e:
         print(f"❌ 依赖检查错误: {e}")
@@ -98,7 +88,7 @@ def main():
     setup_logging(log_level=log_level)
     logger = logging.getLogger(__name__)
 
-    logger.info("🚀 Flow Farm 员工客户端启动中...")
+    logger.info("🚀 Flow Farm 员工客户端启动中 (OneDragon风格)")
 
     # 检查依赖
     if not check_dependencies():
@@ -119,13 +109,9 @@ def main():
 
     try:
         if args.mode == "gui":
-            logger.info("🖥️ 启动图形界面模式")
-            from PySide6.QtWidgets import QApplication
-
-            app = QApplication(sys.argv)
-            window = MainWindow()
-            window.show()
-            sys.exit(app.exec())
+            logger.info("🖥️ 启动 OneDragon 风格图形界面")
+            # 直接调用 OneDragon GUI 主程序
+            return onedragon_main()
         else:
             logger.info("💻 启动控制台模式")
             print("控制台模式暂未实现，请使用GUI模式")

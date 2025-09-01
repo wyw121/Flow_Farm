@@ -637,12 +637,7 @@ class BaseWindow(QMainWindow):
         self.setMinimumSize(800, 600)
 
         # 设置窗口图标
-        try:
-            icon = qta.icon("fa5s.leaf", color=self.theme.COLORS["primary"])
-            self.setWindowIcon(icon)
-        except Exception as e:
-            # 如果图标设置失败，使用默认图标
-            self.logger.warning(f"设置窗口图标失败: {e}")
+        self.setWindowIcon(qta.icon("fa5s.leaf", color=self.theme.COLORS["primary"]))
 
         # 应用样式表
         self.setStyleSheet(self.theme.get_stylesheet())
