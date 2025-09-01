@@ -83,10 +83,15 @@ impl Database {
         .execute(&self.pool)
         .await?;
 
+        // 删除旧的计费记录表（如果存在）并重新创建
+        sqlx::query("DROP TABLE IF EXISTS billing_records")
+            .execute(&self.pool)
+            .await?;
+
         // 创建计费记录表
         sqlx::query(
             r#"
-            CREATE TABLE IF NOT EXISTS billing_records (
+            CREATE TABLE billing_records (
                 id TEXT PRIMARY KEY,
                 user_id TEXT NOT NULL,
                 amount REAL NOT NULL,

@@ -47,11 +47,13 @@ pub struct CreateUserRequest {
     #[validate(length(min = 3, max = 50))]
     pub username: String,
     #[validate(email)]
-    pub email: String,
+    pub email: Option<String>,
     #[validate(length(min = 6))]
     pub password: String,
-    pub role: UserRole,
-    pub company_id: Option<String>,
+    pub role: String,
+    pub phone: Option<String>,
+    pub full_name: Option<String>,
+    pub company: Option<String>,
     pub max_employees: Option<i32>,
 }
 
@@ -194,7 +196,7 @@ pub struct CreatePricingRuleRequest {
     pub unit_price: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct KpiStats {
     pub total_actions: i64,
     pub successful_actions: i64,

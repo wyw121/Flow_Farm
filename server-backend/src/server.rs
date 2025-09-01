@@ -82,12 +82,30 @@ pub async fn create_app(database: Database, config: Config) -> Router {
             "/api/v1/billing/records",
             post(handlers::billing::create_billing_record),
         )
+        // 前端兼容性路由 (Python API fallback)
+        .route(
+            "/api/v1/billing/billing-records/",
+            get(handlers::billing::list_billing_records),
+        )
+        .route(
+            "/api/v1/billing/billing-records/",
+            post(handlers::billing::create_billing_record),
+        )
         .route(
             "/api/v1/billing/pricing-rules",
             get(handlers::billing::list_pricing_rules),
         )
         .route(
             "/api/v1/billing/pricing-rules",
+            post(handlers::billing::create_pricing_rule),
+        )
+        // 前端兼容性路由 (Python API fallback)
+        .route(
+            "/api/v1/billing/pricing-rules/",
+            get(handlers::billing::list_pricing_rules),
+        )
+        .route(
+            "/api/v1/billing/pricing-rules/",
             post(handlers::billing::create_pricing_rule),
         )
         .route(
@@ -99,6 +117,10 @@ pub async fn create_app(database: Database, config: Config) -> Router {
             delete(handlers::billing::delete_pricing_rule),
         )
         // 报告
+        .route(
+            "/api/v1/reports/dashboard",
+            get(handlers::reports::get_dashboard_data),
+        )
         .route(
             "/api/v1/reports/export",
             get(handlers::reports::export_data),

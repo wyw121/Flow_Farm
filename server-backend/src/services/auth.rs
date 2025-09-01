@@ -1,11 +1,10 @@
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use chrono::Utc;
 
 use crate::{
-    Database,
-    Config,
-    models::{CreateUserRequest, LoginResponse, UserInfo, User},
+    models::{CreateUserRequest, LoginResponse, User, UserInfo},
     utils::jwt::create_jwt_token,
+    Config, Database,
 };
 
 pub struct AuthService {
@@ -21,7 +20,7 @@ impl AuthService {
     pub async fn login(&self, username: &str, password: &str) -> Result<LoginResponse> {
         // 查找用户
         let user = sqlx::query_as::<_, User>(
-            "SELECT * FROM users WHERE username = ? AND (is_active IS NULL OR is_active = 1)"
+            "SELECT * FROM users WHERE username = ? AND (is_active IS NULL OR is_active = 1)",
         )
         .bind(username)
         .fetch_optional(&self.database.pool)
@@ -34,7 +33,12 @@ impl AuthService {
         }
 
         // 生成JWT token
-        let token = create_jwt_token(&user.id.to_string(), &user.role, &self.config.jwt_secret, self.config.jwt_expires_in)?;
+        let token = create_jwt_token(
+            &user.id.to_string(),
+            &user.role,
+            &self.config.jwt_secret,
+            self.config.jwt_expires_in,
+        )?;
 
         Ok(LoginResponse {
             token,
@@ -46,7 +50,7 @@ impl AuthService {
         // 检查用户名是否已存在
         let existing_user = sqlx::query("SELECT id FROM users WHERE username = ? OR email = ?")
             .bind(&request.username)
-            .bind(&request.email)
+            .bind(&request.email.as_deref().unwrap_or(""))
             .fetch_optional(&self.database.pool)
             .await?;
 
@@ -68,7 +72,7 @@ impl AuthService {
         .bind(&request.username)
         .bind(&request.email)
         .bind(&hashed_password)
-        .bind(request.role.to_string())
+        .bind(&request.role)
         .bind(true)
         .bind(request.max_employees.unwrap_or(10))
         .bind(now)
@@ -81,10 +85,10 @@ impl AuthService {
         Ok(UserInfo {
             id: user_id,
             username: request.username,
-            email: Some(request.email),
+            email: request.email,
             full_name: None,
             phone: None,
-            company: request.company_id,  // 映射company_id到company字段
+            company: request.company,
             role: request.role.to_string(),
             is_active: true,
             is_verified: false,
@@ -100,7 +104,7 @@ impl AuthService {
         // 查找用户
         let user_id_int: i32 = user_id.parse()?;
         let user = sqlx::query_as::<_, User>(
-            "SELECT * FROM users WHERE id = ? AND (is_active IS NULL OR is_active = 1)"
+            "SELECT * FROM users WHERE id = ? AND (is_active IS NULL OR is_active = 1)",
         )
         .bind(user_id_int)
         .fetch_optional(&self.database.pool)
@@ -108,6 +112,11 @@ impl AuthService {
         .ok_or_else(|| anyhow!("用户不存在或已被禁用"))?;
 
         // 生成新的JWT token
-        create_jwt_token(&user.id.to_string(), &user.role, &self.config.jwt_secret, self.config.jwt_expires_in)
+        create_jwt_token(
+            &user.id.to_string(),
+            &user.role,
+            &self.config.jwt_secret,
+            self.config.jwt_expires_in,
+        )
     }
 }

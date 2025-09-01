@@ -80,7 +80,7 @@ impl UserService {
             }
             "user_admin" => {
                 // 用户管理员只能创建员工
-                if request.role.to_string() != "employee" {
+                if request.role != "employee" {
                     return Err(anyhow!("权限不足：只能创建员工账户"));
                 }
             }
@@ -92,15 +92,89 @@ impl UserService {
             }
         }
 
-        // TODO: 实现用户创建逻辑
-        Err(anyhow!("功能待实现"))
+        // 检查用户名是否已存在
+        let existing_user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = ?")
+            .bind(&request.username)
+            .fetch_optional(&self.database.pool)
+            .await?;
+
+        if existing_user.is_some() {
+            return Err(anyhow!("用户名已存在"));
+        }
+
+        // 检查邮箱是否已存在（如果提供了邮箱）
+        if let Some(ref email) = request.email {
+            let existing_email = sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = ?")
+                .bind(email)
+                .fetch_optional(&self.database.pool)
+                .await?;
+
+            if existing_email.is_some() {
+                return Err(anyhow!("邮箱已存在"));
+            }
+        }
+
+        // 对密码进行哈希加密
+        let hashed_password = bcrypt::hash(&request.password, bcrypt::DEFAULT_COST)
+            .map_err(|e| anyhow!("密码加密失败: {}", e))?;
+
+        // 设置父级用户ID（如果是员工）
+        let parent_id = if request.role == "employee" && current_user.role == "user_admin" {
+            Some(current_user.id)
+        } else {
+            None
+        };
+
+        // 设置公司信息（如果是员工，继承父级用户的公司）
+        let company = if request.role == "employee" && current_user.role == "user_admin" {
+            current_user.company.clone()
+        } else {
+            request.company
+        };
+
+        // 插入新用户
+        let max_employees = request.max_employees.unwrap_or(0);
+        let user_id = sqlx::query!(
+            r#"
+            INSERT INTO users (
+                username, email, hashed_password, role, is_active, is_verified,
+                parent_id, full_name, phone, company, max_employees, current_employees,
+                created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+            "#,
+            request.username,
+            request.email,
+            hashed_password,
+            request.role,
+            true,
+            false,
+            parent_id,
+            request.full_name,
+            request.phone,
+            company,
+            max_employees,
+            0
+        )
+        .execute(&self.database.pool)
+        .await?
+        .last_insert_rowid();
+
+        // 查询并返回创建的用户信息
+        let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = ?")
+            .bind(user_id)
+            .fetch_one(&self.database.pool)
+            .await?;
+
+        Ok(user.into())
     }
 
+    #[allow(unused_variables)]
     pub async fn get_user(&self, current_user: &UserInfo, user_id: &str) -> Result<UserInfo> {
         // TODO: 实现获取用户逻辑
         Err(anyhow!("功能待实现"))
     }
 
+    #[allow(unused_variables)]
     pub async fn update_user(
         &self,
         current_user: &UserInfo,
@@ -111,6 +185,7 @@ impl UserService {
         Err(anyhow!("功能待实现"))
     }
 
+    #[allow(unused_variables)]
     pub async fn delete_user(&self, current_user: &UserInfo, user_id: &str) -> Result<()> {
         // TODO: 实现删除用户逻辑
         Err(anyhow!("功能待实现"))

@@ -22,6 +22,7 @@ type AppState = (Database, Config);
 pub struct BillingQuery {
     pub page: Option<i32>,
     pub limit: Option<i32>,
+    pub size: Option<i32>, // 兼容前端的size参数
     pub user_id: Option<String>,
 }
 
@@ -32,11 +33,14 @@ pub async fn list_billing_records(
 ) -> Result<ResponseJson<ApiResponse<Vec<BillingRecord>>>, StatusCode> {
     let service = BillingService::new(database);
 
+    // 兼容前端的size参数，优先使用limit，其次使用size
+    let limit = query.limit.or(query.size).unwrap_or(20);
+
     match service
         .list_billing_records(
             &auth_context.user,
             query.page.unwrap_or(1),
-            query.limit.unwrap_or(20),
+            limit,
             query.user_id.as_deref(),
         )
         .await
