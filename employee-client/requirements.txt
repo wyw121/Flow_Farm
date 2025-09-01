@@ -1,9 +1,9 @@
 # Flow Farm 员工客户端依赖
-# GUI框架 - 现代化升级
-PySide6>=6.6.0  # 现代化Qt6 GUI框架 (兼容Python 3.12)
-PySide6-Addons>=6.6.0  # Qt6 附加组件 (兼容Python 3.12)
-qfluentwidgets>=1.5.0  # Microsoft Fluent Design 组件库 (兼容版本)
-qtawesome>=1.3.0  # 图标库 (保留兼容)
+# GUI框架 - OneDragon 现代化架构
+PySide6==6.8.0.2  # 现代化Qt6 GUI框架 (OneDragon兼容版本)
+PySide6-Addons==6.8.0.2  # Qt6 附加组件
+qfluentwidgets==1.7.0  # Microsoft Fluent Design 组件库 (OneDragon架构)
+qtawesome==1.3.1  # 图标库 (保留兼容)
 
 # 网络通信
 requests==2.31.0
