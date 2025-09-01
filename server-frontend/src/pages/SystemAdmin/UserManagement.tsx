@@ -175,6 +175,7 @@ const UserManagement: React.FC = () => {
                     role: 'user_admin'
                 }
 
+                console.log('创建用户数据:', createData)
                 await userService.createUser(createData)
                 message.success('用户创建成功')
             }
@@ -183,7 +184,12 @@ const UserManagement: React.FC = () => {
             fetchUsers()
         } catch (error) {
             console.error('保存失败:', error)
-            message.error('保存失败')
+            console.error('错误详情:', {
+                message: error?.message,
+                response: error?.response?.data,
+                status: error?.response?.status
+            })
+            message.error(`保存失败: ${error?.response?.data?.message || error?.message || '未知错误'}`)
         }
     }
 

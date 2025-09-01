@@ -1,6 +1,6 @@
 import { CompanyStatistics, PaginatedResponse, User, UserCreate, UserUpdate, UserWithStats } from '../types'
 import { apiClient } from './api'
-import { callApiWithFallback, callPaginatedApiWithFallback } from './apiAdapter'
+import { adaptApiResponse, callApiWithFallback, callPaginatedApiWithFallback } from './apiAdapter'
 
 export interface AdminUserUpdateRequest {
   username?: string
@@ -17,10 +17,8 @@ export interface AdminUserUpdateRequest {
 export const userService = {
   // 创建用户
   async createUser(userData: UserCreate): Promise<User> {
-    return callApiWithFallback<User>(
-      () => apiClient.post('/api/v1/users', userData),
-      () => apiClient.post('/api/v1/users/', userData)
-    )
+    const response = await apiClient.post('/api/v1/users', userData)
+    return adaptApiResponse<User>(response)
   },
 
   // 系统管理员更新用户信息（包括密码）
