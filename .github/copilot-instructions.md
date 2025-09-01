@@ -15,7 +15,45 @@ Flow Farm 是一个企业级计费自动化流量农场系统，专为多角色�
 
 - **服务器后端**: Rust + Axum + SQLx + SQLite
 - **服务器前端**: React.js + TypeScript + Vite
-- **员工客户端**: Python + tkinter + ADB
+- **员工客户端**: Python + PySide6 + qfluentwidgets + ADB
+
+## GUI框架指导原则
+
+### 现代化UI框架迁移计划
+
+基于 OneDragon 项目的成功实践，员工客户端正在从原生 PySide6 迁移到 PySide6 + qfluentwidgets 架构：
+
+#### 目标框架
+- **基础框架**: PySide6 6.8.0+ (Qt6)
+- **UI组件库**: qfluentwidgets 1.7.0+ (Microsoft Fluent Design)
+- **图标系统**: FluentIcon (内置) + qtawesome (兼容)
+- **主题系统**: 自动深色/浅色主题切换
+- **布局系统**: VerticalScrollInterface + 组件化设计
+
+#### 迁移策略
+1. **渐进式重构**: 保持现有 `ComponentFactory` 和 `ModernTheme`
+2. **组件替换**: 逐步替换 QPushButton → PrimaryPushButton
+3. **界面继承**: 从 VerticalScrollInterface 继承主界面
+4. **设置卡片**: 使用 SettingCard 系列组件替换自定义设置界面
+
+#### OneDragon GUI架构借鉴
+
+```python
+# 推荐的新组件使用模式
+from qfluentwidgets import (
+    VerticalScrollInterface, PrimaryPushButton,
+    SettingCardGroup, ComboBoxSettingCard, FluentIcon,
+    InfoBar, MessageBox, Theme
+)
+
+class ModernInterface(VerticalScrollInterface):
+    def __init__(self):
+        super().__init__(
+            object_name="modern_interface",
+            nav_text_cn="现代界面",
+            nav_icon=FluentIcon.HOME
+        )
+```
 
 ## 构建指令 (BuildInstructions)
 

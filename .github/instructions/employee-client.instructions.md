@@ -1,12 +1,14 @@
-# 员工客户端开发指令
+# 员工客户端开发指令 - GUI现代化架构
 
 ## 适用范围
 这些指令适用于 `employee-client/**/*.py` 路径下的所有 Python 代码文件。
 
-## 技术栈
+## 技术栈升级要求
 
-### 核心框架和库
-- **GUI框架**: tkinter (主要) / PyQt5 (备选)
+### 核心框架和库 (现代化架构)
+- **GUI框架**: PySide6 6.8.0+ + qfluentwidgets 1.7.0+ (Microsoft Fluent Design)
+- **图标系统**: FluentIcon (主要) + qtawesome (兼容)
+- **主题系统**: 自动深色/浅色主题切换
 - **自动化引擎**: ADB + uiautomator2 + Appium
 - **设备通信**: Android Debug Bridge (ADB)
 - **数据存储**: SQLite (本地缓存) + REST API
@@ -14,6 +16,29 @@
 - **图像处理**: Pillow (PIL)
 - **任务调度**: APScheduler
 - **日志记录**: logging
+
+### GUI框架迁移要求
+```python
+# 必须升级的依赖
+pip install PySide6==6.8.0.2
+pip install qfluentwidgets==1.7.0
+
+# 新的导入模式
+from qfluentwidgets import (
+    VerticalScrollInterface, PrimaryPushButton,
+    SettingCardGroup, ComboBoxSettingCard, FluentIcon,
+    InfoBar, MessageBox, Theme
+)
+
+# 主窗口继承模式 (必须采用)
+class MainWindow(VerticalScrollInterface):
+    def __init__(self):
+        super().__init__(
+            object_name="main_window",
+            nav_text_cn="Flow Farm 工作台",
+            nav_icon=FluentIcon.HOME
+        )
+```
 
 ### 项目结构
 ```

@@ -1,6 +1,7 @@
 """
 Flow Farm 员工客户端 - 主窗口
 基于PySide6的现代化主窗口实现，包含设备管理和功能界面
+集成命令行工具和通讯录导入功能
 """
 
 import logging
@@ -14,6 +15,7 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QMessageBox,
     QProgressBar,
@@ -23,6 +25,8 @@ from PySide6.QtWidgets import (
 )
 
 from .base_window import BaseWindow, ComponentFactory
+from .components.console_widget import ConsoleWidget
+from .components.contacts_widget import ContactsAutoFollowWidget
 from .views.device_view import DeviceManagementView
 
 
@@ -264,18 +268,27 @@ class MainWindow(BaseWindow):
 
         self.tab_widget.addTab(device_widget, qta.icon("fa5s.mobile-alt"), "设备管理")
 
-        # 功能操作选项卡
-        function_widget = QWidget()
-        function_layout = QVBoxLayout(function_widget)
-        function_layout.addWidget(QLabel("功能操作模块 - 待实现"))
-        function_layout.setContentsMargins(0, 0, 0, 0)
-        self.tab_widget.addTab(self.function_view, qta.icon("fa5s.tasks"), "功能操作")
+        # 通讯录和自动关注选项卡
+        contacts_widget = ContactsAutoFollowWidget()
+        self.tab_widget.addTab(
+            contacts_widget, qta.icon("fa5s.address-book"), "通讯录关注"
+        )
+
+        # 集成控制台选项卡
+        console_widget = ConsoleWidget()
+        self.tab_widget.addTab(console_widget, qta.icon("fa5s.terminal"), "集成控制台")
+
+        # 功能操作选项卡（添加实际功能）
+        function_widget = self.create_function_view()
+        self.tab_widget.addTab(
+            function_widget, qta.icon("fa5s.info-circle"), "功能说明"
+        )
 
         # 数据统计选项卡
         stats_widget = self.create_stats_view()
         self.tab_widget.addTab(stats_widget, qta.icon("fa5s.chart-bar"), "数据统计")
 
-        # 设置默认选项卡
+        # 设置默认选项卡为设备管理
         self.tab_widget.setCurrentIndex(0)
 
     def create_stats_view(self) -> QWidget:
@@ -316,6 +329,104 @@ class MainWindow(BaseWindow):
 
         layout.addLayout(stats_grid)
         layout.addStretch()
+
+        return widget
+
+    def create_function_view(self) -> QWidget:
+        """创建功能说明视图"""
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(20, 20, 20, 20)
+
+        # 标题
+        title_label = self.components.create_label("Flow Farm 功能说明", "heading")
+        layout.addWidget(title_label)
+
+        # 功能介绍
+        intro_label = self.components.create_label(
+            "Flow Farm 是一个自动化流量农场系统，主要功能包括：", "body"
+        )
+        layout.addWidget(intro_label)
+
+        # 功能列表
+        features_layout = QVBoxLayout()
+        features = [
+            ("🖥️ 设备管理", "连接和管理多个Android设备，进行设备状态监控"),
+            ("📱 通讯录关注", "导入通讯录文件，自动执行关注任务"),
+            ("💻 集成控制台", "执行命令行工具和自动化脚本"),
+            ("📊 数据统计", "查看工作数据统计和任务完成情况"),
+            ("⚙️ 系统设置", "配置应用程序参数和偏好设置"),
+        ]
+
+        for feature_title, feature_desc in features:
+            feature_widget = self.create_feature_item(feature_title, feature_desc)
+            features_layout.addWidget(feature_widget)
+
+        layout.addLayout(features_layout)
+
+        # 快速操作按钮
+        quick_actions_label = self.components.create_label("快速操作：", "heading")
+        layout.addWidget(quick_actions_label)
+
+        buttons_layout = QHBoxLayout()
+
+        # 刷新设备按钮
+        refresh_btn = self.components.create_button(
+            "刷新设备", "primary", "fa5s.sync", "刷新设备列表", self.refresh_devices
+        )
+        buttons_layout.addWidget(refresh_btn)
+
+        # 查看日志按钮
+        logs_btn = self.components.create_button(
+            "查看日志", "default", "fa5s.file-alt", "打开日志文件", self.show_logs
+        )
+        buttons_layout.addWidget(logs_btn)
+
+        # 系统设置按钮
+        settings_btn = self.components.create_button(
+            "系统设置", "default", "fa5s.cog", "打开设置窗口", self.show_settings
+        )
+        buttons_layout.addWidget(settings_btn)
+
+        buttons_layout.addStretch()
+        layout.addLayout(buttons_layout)
+
+        layout.addStretch()
+        return widget
+
+    def create_feature_item(self, title: str, description: str) -> QWidget:
+        """创建功能项"""
+        widget = QWidget()
+        widget.setFixedHeight(60)
+        widget.setStyleSheet(
+            f"""
+            QWidget {{
+                border: 1px solid {self.theme.COLORS['border']};
+                border-radius: {self.theme.RADIUS['small']}px;
+                background-color: {self.theme.COLORS['surface']};
+                margin: 2px;
+                padding: 8px;
+            }}
+            QWidget:hover {{
+                background-color: {self.theme.COLORS['hover']};
+            }}
+        """
+        )
+
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(12, 8, 12, 8)
+
+        # 标题
+        title_label = self.components.create_label(title, "body")
+        title_style = f"font-weight: bold; color: {self.theme.COLORS['primary']};"
+        title_label.setStyleSheet(title_style)
+        layout.addWidget(title_label)
+
+        # 描述
+        desc_label = self.components.create_label(description, "caption")
+        desc_style = f"color: {self.theme.COLORS['text_secondary']};"
+        desc_label.setStyleSheet(desc_style)
+        layout.addWidget(desc_label)
 
         return widget
 
@@ -380,13 +491,14 @@ class MainWindow(BaseWindow):
         if self.is_logged_in:
             return
 
-        # 禁用功能选项卡
+        # 启用基本功能选项卡，只禁用需要服务器连接的功能
         if self.tab_widget:
-            for i in range(1, self.tab_widget.count()):
-                self.tab_widget.setTabEnabled(i, False)
+            # 所有选项卡都可以访问，但某些功能需要登录后才能使用
+            for i in range(self.tab_widget.count()):
+                self.tab_widget.setTabEnabled(i, True)
 
         # 显示登录提示
-        self.set_status("请先登录到服务器")
+        self.set_status("某些功能需要登录后使用")
 
     def show_main_interface(self):
         """显示主界面"""
@@ -411,8 +523,6 @@ class MainWindow(BaseWindow):
     def show_login_dialog(self):
         """显示登录对话框"""
         # 暂时使用简单的输入对话框，后续可以创建专门的登录对话框
-        from PySide6.QtWidgets import QInputDialog
-
         username, ok1 = QInputDialog.getText(self, "登录", "用户名:")
         if ok1 and username:
             password, ok2 = QInputDialog.getText(
@@ -572,10 +682,26 @@ class MainWindow(BaseWindow):
 
     def get_user_info(self) -> dict:
         """获取当前用户信息"""
+        username = self.current_user.get("username", "") if self.current_user else ""
         return {
-            "username": (
-                self.current_user.get("username", "") if self.current_user else ""
-            ),
+            "username": username,
             "is_logged_in": self.is_logged_in,
             "server_connected": self.server_connected,
         }
+
+    def set_status(self, message: str):
+        """设置状态栏消息"""
+        self.statusBar().showMessage(message, 5000)
+        self.logger.info(f"状态更新: {message}")
+
+    def update_status(self, message: str, message_type: str = "info"):
+        """更新状态信息 - 兼容性方法"""
+        self.set_status(message)
+
+        # 根据消息类型记录不同级别的日志
+        if message_type == "error":
+            self.logger.error(message)
+        elif message_type == "warning":
+            self.logger.warning(message)
+        else:
+            self.logger.info(message)

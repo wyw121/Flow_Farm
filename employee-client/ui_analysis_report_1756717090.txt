@@ -1,0 +1,319 @@
+UI元素分析报告
+==================================================
+
+元素统计:
+  total: 51
+  clickable: 14
+  buttons: 14
+  texts: 7
+  inputs: 0
+  images: 10
+
+详细元素列表:
+------------------------------
+1. android.widget.FrameLayout
+   文本: 
+   位置: (0, 0, 1920, 1080)
+   可点击: False
+   类型: unknown
+
+2. android.widget.LinearLayout
+   文本: 
+   位置: (0, 0, 1920, 1080)
+   可点击: False
+   类型: unknown
+
+3. android.widget.FrameLayout
+   文本: 
+   位置: (0, 0, 1920, 1080)
+   可点击: False
+   类型: unknown
+
+4. android.widget.FrameLayout
+   文本: 
+   位置: (0, 0, 1920, 1080)
+   可点击: False
+   类型: unknown
+
+5. android.widget.FrameLayout
+   文本: 
+   位置: (0, 0, 1920, 1080)
+   可点击: False
+   类型: unknown
+
+6. android.view.ViewGroup
+   文本: 
+   位置: (0, 0, 1920, 1080)
+   可点击: False
+   类型: unknown
+
+7. android.view.ViewGroup
+   文本: 
+   位置: (120, 171, 1800, 816)
+   可点击: True
+   类型: button
+
+8. android.view.View
+   文本: 
+   位置: (120, 171, 1800, 816)
+   可点击: False
+   类型: unknown
+
+9. android.view.ViewGroup
+   文本: 
+   位置: (120, 171, 1800, 816)
+   可点击: False
+   类型: unknown
+
+10. android.widget.FrameLayout
+   文本: 
+   位置: (120, 171, 400, 386)
+   可点击: True
+   类型: button
+
+11. android.widget.ImageView
+   文本: 
+   位置: (224, 226, 296, 298)
+   可点击: False
+   类型: image
+
+12. android.widget.TextView
+   文本: 系统应用
+   位置: (125, 307, 395, 386)
+   可点击: False
+   类型: text
+
+13. android.widget.TextView
+   文本: 雷电游戏中心
+   位置: (400, 171, 680, 386)
+   可点击: True
+   类型: button
+
+14. android.widget.TextView
+   文本: 新游预约
+   位置: (680, 171, 960, 386)
+   可点击: True
+   类型: button
+
+15. android.widget.TextView
+   文本: 小红书
+   位置: (960, 171, 1240, 386)
+   可点击: True
+   类型: button
+
+16. android.widget.FrameLayout
+   文本: 
+   位置: (0, 0, 1920, 154)
+   可点击: False
+   类型: unknown
+
+17. android.widget.LinearLayout
+   文本: 
+   位置: (946, 815, 974, 843)
+   可点击: False
+   类型: unknown
+
+18. android.widget.FrameLayout
+   文本: 
+   位置: (946, 815, 974, 843)
+   可点击: False
+   类型: unknown
+
+19. android.widget.ImageView
+   文本: 
+   位置: (946, 815, 974, 843)
+   可点击: False
+   类型: image
+
+20. android.widget.FrameLayout
+   文本: 
+   位置: (0, 843, 1920, 1080)
+   可点击: False
+   类型: unknown
+
+21. android.view.ViewGroup
+   文本: 
+   位置: (0, 843, 1920, 1080)
+   可点击: False
+   类型: unknown
+
+22. android.view.View
+   文本: 
+   位置: (120, 843, 1920, 1080)
+   可点击: False
+   类型: unknown
+
+23. android.view.ViewGroup
+   文本: 
+   位置: (120, 843, 1920, 1080)
+   可点击: False
+   类型: unknown
+
+24. android.widget.FrameLayout
+   文本: 
+   位置: (0, 843, 1920, 1080)
+   可点击: False
+   类型: unknown
+
+25. android.widget.RelativeLayout
+   文本: 
+   位置: (789, 843, 1130, 893)
+   可点击: False
+   类型: unknown
+
+26. android.widget.LinearLayout
+   文本: 
+   位置: (789, 843, 1130, 875)
+   可点击: False
+   类型: unknown
+
+27. android.widget.TextView
+   文本: 打怪爆茅台，登录领强力橙宠
+   位置: (815, 847, 1062, 870)
+   可点击: True
+   类型: button
+
+28. android.widget.LinearLayout
+   文本: 
+   位置: (1062, 851, 1104, 867)
+   可点击: True
+   类型: button
+
+29. android.view.View
+   文本: 
+   位置: (1076, 851, 1078, 867)
+   可点击: False
+   类型: unknown
+
+30. android.widget.ImageView
+   文本: 
+   位置: (1092, 853, 1104, 865)
+   可点击: False
+   类型: image
+
+31. android.widget.ImageView
+   文本: 
+   位置: (950, 875, 968, 893)
+   可点击: False
+   类型: image
+
+32. android.widget.LinearLayout
+   文本: 
+   位置: (336, 908, 1584, 1014)
+   可点击: False
+   类型: unknown
+
+33. android.widget.LinearLayout
+   文本: 
+   位置: (336, 908, 585, 1014)
+   可点击: True
+   类型: button
+
+34. android.widget.ImageView
+   文本: 
+   位置: (424, 908, 496, 980)
+   可点击: False
+   类型: image
+
+35. android.widget.TextView
+   文本: 雷电圈
+   位置: (336, 980, 585, 1014)
+   可点击: False
+   类型: text
+
+36. android.widget.LinearLayout
+   文本: 
+   位置: (585, 908, 834, 1014)
+   可点击: True
+   类型: button
+
+37. android.widget.ImageView
+   文本: 
+   位置: (673, 908, 745, 980)
+   可点击: False
+   类型: image
+
+38. android.widget.TextView
+   文本: 疾风之翼
+   位置: (585, 980, 834, 1014)
+   可点击: False
+   类型: text
+
+39. android.widget.LinearLayout
+   文本: 
+   位置: (834, 908, 1084, 1014)
+   可点击: True
+   类型: button
+
+40. android.widget.ImageView
+   文本: 
+   位置: (923, 908, 995, 980)
+   可点击: False
+   类型: image
+
+41. android.widget.TextView
+   文本: 热血江湖：归来
+   位置: (834, 980, 1084, 1014)
+   可点击: False
+   类型: text
+
+42. android.widget.LinearLayout
+   文本: 
+   位置: (1084, 908, 1334, 1014)
+   可点击: True
+   类型: button
+
+43. android.widget.ImageView
+   文本: 
+   位置: (1173, 908, 1245, 980)
+   可点击: False
+   类型: image
+
+44. android.widget.TextView
+   文本: 新三国志曹操传
+   位置: (1084, 980, 1334, 1014)
+   可点击: False
+   类型: text
+
+45. android.widget.LinearLayout
+   文本: 
+   位置: (1334, 908, 1584, 1014)
+   可点击: True
+   类型: button
+
+46. android.widget.ImageView
+   文本: 
+   位置: (1423, 908, 1495, 980)
+   可点击: False
+   类型: image
+
+47. android.widget.TextView
+   文本: 偃武
+   位置: (1334, 980, 1584, 1014)
+   可点击: False
+   类型: text
+
+48. android.widget.LinearLayout
+   文本: 
+   位置: (624, 84, 1296, 141)
+   可点击: True
+   类型: button
+
+49. android.widget.ImageView
+   文本: 
+   位置: (643, 97, 673, 127)
+   可点击: False
+   类型: image
+
+50. android.widget.TextView
+   文本: 偃武
+   位置: (682, 100, 1247, 125)
+   可点击: False
+   类型: text
+
+51. android.widget.ImageView
+   文本: 
+   位置: (1247, 97, 1277, 127)
+   可点击: True
+   类型: button
+

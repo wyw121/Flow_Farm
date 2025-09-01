@@ -144,19 +144,77 @@ class ModernTheme:
 
     @classmethod
     def get_stylesheet(cls) -> str:
-        """获取全局样式表"""
+        """获取全局样式表 - 修复弹出窗口显示问题"""
         return f"""
         /* 全局样式 */
         QMainWindow {{
             background-color: {cls.COLORS['background']};
             color: {cls.COLORS['text_primary']};
+            font-family: "Microsoft YaHei UI", "SimHei", "Arial";
         }}
 
         /* 通用Widget样式 */
         QWidget {{
-            background-color: transparent;
+            background-color: {cls.COLORS['surface']};
             color: {cls.COLORS['text_primary']};
-            font-family: "Microsoft YaHei UI";
+            font-family: "Microsoft YaHei UI", "SimHei", "Arial";
+        }}
+
+        /* 对话框和弹出窗口修复 */
+        QDialog {{
+            background-color: {cls.COLORS['dialog']};
+            color: {cls.COLORS['text_primary']};
+            border: 1px solid {cls.COLORS['border']};
+            border-radius: {cls.RADIUS['medium']}px;
+        }}
+
+        QMessageBox {{
+            background-color: {cls.COLORS['dialog']};
+            color: {cls.COLORS['text_primary']};
+            font-family: "Microsoft YaHei UI", "SimHei", "Arial";
+        }}
+
+        QMessageBox QLabel {{
+            color: {cls.COLORS['text_primary']};
+            background-color: transparent;
+            font-size: 12px;
+        }}
+
+        QMessageBox QPushButton {{
+            background-color: {cls.COLORS['primary']};
+            color: {cls.COLORS['text_on_primary']};
+            border: none;
+            border-radius: {cls.RADIUS['small']}px;
+            padding: 8px 16px;
+            font-weight: 600;
+            min-width: 80px;
+        }}
+
+        QMessageBox QPushButton:hover {{
+            background-color: {cls.COLORS['primary_dark']};
+        }}
+
+        /* 文件对话框修复 */
+        QFileDialog {{
+            background-color: {cls.COLORS['dialog']};
+            color: {cls.COLORS['text_primary']};
+        }}
+
+        QFileDialog QLabel {{
+            color: {cls.COLORS['text_primary']};
+            background-color: transparent;
+        }}
+
+        QFileDialog QTreeView {{
+            background-color: {cls.COLORS['surface']};
+            color: {cls.COLORS['text_primary']};
+            border: 1px solid {cls.COLORS['border']};
+        }}
+
+        QFileDialog QListView {{
+            background-color: {cls.COLORS['surface']};
+            color: {cls.COLORS['text_primary']};
+            border: 1px solid {cls.COLORS['border']};
         }}
 
         /* 按钮样式 */
@@ -167,6 +225,7 @@ class ModernTheme:
             padding: {cls.SPACING['small']}px {cls.SPACING['medium']}px;
             font-weight: 600;
             color: {cls.COLORS['text_primary']};
+            font-family: "Microsoft YaHei UI", "SimHei", "Arial";
         }}
 
         QPushButton:hover {{
@@ -223,6 +282,7 @@ class ModernTheme:
             border-radius: {cls.RADIUS['small']}px;
             padding: {cls.SPACING['small']}px;
             color: {cls.COLORS['text_primary']};
+            font-family: "Microsoft YaHei UI", "SimHei", "Arial";
         }}
 
         QLineEdit:focus, QTextEdit:focus, QComboBox:focus {{
@@ -235,22 +295,26 @@ class ModernTheme:
             font-size: 18px;
             font-weight: bold;
             color: {cls.COLORS['text_primary']};
+            font-family: "Microsoft YaHei UI", "SimHei", "Arial";
         }}
 
         QLabel.heading {{
             font-size: 14px;
             font-weight: bold;
             color: {cls.COLORS['text_primary']};
+            font-family: "Microsoft YaHei UI", "SimHei", "Arial";
         }}
 
         QLabel.body {{
             font-size: 10px;
             color: {cls.COLORS['text_primary']};
+            font-family: "Microsoft YaHei UI", "SimHei", "Arial";
         }}
 
         QLabel.caption {{
             font-size: 9px;
             color: {cls.COLORS['text_secondary']};
+            font-family: "Microsoft YaHei UI", "SimHei", "Arial";
         }}
 
         /* 分组框样式 */
@@ -261,6 +325,7 @@ class ModernTheme:
             margin-top: {cls.SPACING['medium']}px;
             padding-top: {cls.SPACING['medium']}px;
             font-weight: bold;
+            color: {cls.COLORS['text_primary']};
         }}
 
         QGroupBox::title {{
@@ -277,11 +342,13 @@ class ModernTheme:
             border: 1px solid {cls.COLORS['border']};
             border-radius: {cls.RADIUS['medium']}px;
             gridline-color: {cls.COLORS['border_light']};
+            color: {cls.COLORS['text_primary']};
         }}
 
         QTableWidget::item {{
             padding: {cls.SPACING['small']}px;
             border: none;
+            color: {cls.COLORS['text_primary']};
         }}
 
         QTableWidget::item:selected {{
@@ -294,6 +361,7 @@ class ModernTheme:
             border: none;
             border-bottom: 1px solid {cls.COLORS['border']};
             font-weight: bold;
+            color: {cls.COLORS['text_primary']};
         }}
 
         /* 选项卡样式 */
@@ -308,6 +376,7 @@ class ModernTheme:
             border: 1px solid {cls.COLORS['border']};
             padding: {cls.SPACING['small']}px {cls.SPACING['medium']}px;
             margin-right: 2px;
+            color: {cls.COLORS['text_primary']};
         }}
 
         QTabBar::tab:selected {{
@@ -325,6 +394,7 @@ class ModernTheme:
             border-radius: {cls.RADIUS['small']}px;
             text-align: center;
             background-color: {cls.COLORS['surface_variant']};
+            color: {cls.COLORS['text_primary']};
         }}
 
         QProgressBar::chunk {{
@@ -365,11 +435,13 @@ class ModernTheme:
         QMenuBar {{
             background-color: {cls.COLORS['surface']};
             border-bottom: 1px solid {cls.COLORS['border']};
+            color: {cls.COLORS['text_primary']};
         }}
 
         QMenuBar::item {{
             padding: {cls.SPACING['small']}px {cls.SPACING['medium']}px;
             background-color: transparent;
+            color: {cls.COLORS['text_primary']};
         }}
 
         QMenuBar::item:selected {{
@@ -380,13 +452,56 @@ class ModernTheme:
             background-color: {cls.COLORS['surface']};
             border: 1px solid {cls.COLORS['border']};
             border-radius: {cls.RADIUS['small']}px;
+            color: {cls.COLORS['text_primary']};
         }}
 
         QMenu::item {{
             padding: {cls.SPACING['small']}px {cls.SPACING['medium']}px;
+            color: {cls.COLORS['text_primary']};
         }}
 
         QMenu::item:selected {{
+            background-color: {cls.COLORS['hover']};
+        }}
+
+        /* 复选框样式 */
+        QCheckBox {{
+            color: {cls.COLORS['text_primary']};
+            font-family: "Microsoft YaHei UI", "SimHei", "Arial";
+        }}
+
+        QCheckBox::indicator {{
+            width: 16px;
+            height: 16px;
+            border: 1px solid {cls.COLORS['border']};
+            border-radius: 3px;
+            background-color: {cls.COLORS['surface']};
+        }}
+
+        QCheckBox::indicator:checked {{
+            background-color: {cls.COLORS['primary']};
+            border-color: {cls.COLORS['primary']};
+        }}
+
+        /* 列表框样式 */
+        QListWidget {{
+            background-color: {cls.COLORS['surface']};
+            border: 1px solid {cls.COLORS['border']};
+            border-radius: {cls.RADIUS['small']}px;
+            color: {cls.COLORS['text_primary']};
+        }}
+
+        QListWidget::item {{
+            padding: {cls.SPACING['small']}px;
+            border-bottom: 1px solid {cls.COLORS['border_light']};
+            color: {cls.COLORS['text_primary']};
+        }}
+
+        QListWidget::item:selected {{
+            background-color: {cls.COLORS['selected']};
+        }}
+
+        QListWidget::item:hover {{
             background-color: {cls.COLORS['hover']};
         }}
         """
