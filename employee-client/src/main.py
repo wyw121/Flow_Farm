@@ -15,7 +15,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from auth.login import LoginManager
 from config.settings import ClientSettings
-from gui.main_window import MainWindow
+from gui.compatible_main_window import MainWindow
 from sync.kpi_uploader import KPIUploader
 from utils.logger import setup_logging
 
