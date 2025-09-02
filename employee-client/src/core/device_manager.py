@@ -235,10 +235,17 @@ class ADBDeviceManager:
                     -1
                 ].strip()
 
-            # 获取电池电量
-            battery, _ = self.execute_adb_command(
-                "shell dumpsys battery | grep level", device_id
+            # 获取电池电量 - 修复Windows grep问题
+            # Windows下使用findstr替代grep，或者直接获取完整输出然后解析
+            battery_output, _ = self.execute_adb_command(
+                "shell dumpsys battery", device_id
             )
+            battery = ""
+            if battery_output:
+                for line in battery_output.split("\n"):
+                    if "level:" in line:
+                        battery = line.strip()
+                        break
             if battery:
                 try:
                     level = int(battery.split(":")[-1].strip())

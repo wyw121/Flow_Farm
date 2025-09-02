@@ -298,19 +298,29 @@ class HomeInterface(QWidget):
 
 
 class DeviceInterface(QWidget):
-    """设备管理界面"""
+    """设备管理界面 - 优化版本"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        # 导入设备管理器
-        from core.device_manager import ADBDeviceManager
 
-        self.device_manager = ADBDeviceManager()
+        # 导入异步设备管理器
+        from core.async_device_manager import AsyncDeviceManager
+
+        # 使用异步设备管理器避免阻塞GUI线程
+        self.async_device_manager = AsyncDeviceManager(self)
         self.devices_data = []
-        self.setup_ui()
 
-        # 初始扫描设备
-        self.refresh_devices()
+        self.setup_ui()
+        self.setup_connections()
+
+    def setup_connections(self):
+        """设置信号连接"""
+        # 连接异步设备管理器的信号
+        self.async_device_manager.devices_scanned.connect(self.on_devices_scanned)
+        self.async_device_manager.scan_progress.connect(self.log_message)
+        self.async_device_manager.error_occurred.connect(
+            lambda msg: self.log_message(msg, "error")
+        )
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
@@ -488,52 +498,54 @@ class DeviceInterface(QWidget):
         self.refresh_btn.setEnabled(False)
         self.add_btn.setText("扫描中...")
 
-        # 使用QTimer模拟异步操作，避免界面冻结
-        QTimer.singleShot(100, self._perform_scan)
+        # 调用异步设备管理器进行扫描
+        self.async_device_manager.scan_devices_async()
+
+    def on_devices_scanned(self, devices):
+        """设备扫描完成回调"""
+        self.devices_data = []
+
+        if not devices:
+            self.log_message("未发现任何设备，请检查：", "warning")
+            self.log_message("1. USB调试是否开启", "warning")
+            self.log_message("2. 设备是否正确连接", "warning")
+            self.log_message("3. ADB驱动是否安装", "warning")
+        else:
+            for device in devices:
+                device_info = {
+                    "name": device.model or f"设备-{device.device_id[:8]}",
+                    "device_id": device.device_id,
+                    "status": self._get_status_text(device.status),
+                    "last_seen": self._format_time(device.last_seen),
+                    "device_obj": device,
+                }
+                self.devices_data.append(device_info)
+                device_msg = f"发现设备: {device_info['name']} ({device.device_id})"
+                self.log_message(device_msg, "success")
+
+            self.log_message(f"扫描完成，共发现 {len(devices)} 台设备", "success")
+
+        self.update_table()
+
+        # 恢复按钮状态
+        self.add_btn.setEnabled(True)
+        self.refresh_btn.setEnabled(True)
+        self.add_btn.setText("➕ 扫描设备")
 
     def _perform_scan(self):
-        """执行实际的设备扫描"""
-        try:
-            devices = self.device_manager.scan_devices()
-            self.devices_data = []
-
-            if not devices:
-                self.log_message("未发现任何设备，请检查：", "warning")
-                self.log_message("1. USB调试是否开启", "warning")
-                self.log_message("2. 设备是否正确连接", "warning")
-                self.log_message("3. ADB驱动是否安装", "warning")
-            else:
-                for device in devices:
-                    device_info = {
-                        "name": device.model or f"设备-{device.device_id[:8]}",
-                        "device_id": device.device_id,
-                        "status": self._get_status_text(device.status),
-                        "last_seen": self._format_time(device.last_seen),
-                        "device_obj": device,
-                    }
-                    self.devices_data.append(device_info)
-                    device_msg = (
-                        f"发现设备: {device_info['name']} " f"({device.device_id})"
-                    )
-                    self.log_message(device_msg, "success")
-
-                self.log_message(f"扫描完成，共发现 {len(devices)} 台设备", "success")
-
-            self.update_table()
-
-        except Exception as e:
-            self.log_message(f"设备扫描失败: {str(e)}", "error")
-            self.log_message("请检查ADB是否正确安装", "error")
-
-        finally:
-            self.add_btn.setEnabled(True)
-            self.refresh_btn.setEnabled(True)
-            self.add_btn.setText("➕ 扫描设备")
+        """执行实际的设备扫描 - 已废弃，使用异步版本"""
+        # 这个方法已被 on_devices_scanned 替代
+        pass
 
     def refresh_devices(self):
         """刷新设备列表"""
         self.log_message("刷新设备状态...", "info")
-        self.scan_devices()
+
+        # 如果异步管理器已初始化，则重新扫描
+        if self.async_device_manager.is_initialized():
+            self.scan_devices()
+        else:
+            self.log_message("设备管理器正在初始化中，请稍后...", "warning")
 
     def _get_status_text(self, status):
         """获取状态文本"""
@@ -666,39 +678,17 @@ class DeviceInterface(QWidget):
             # 这里可以添加实际的连接逻辑
 
     def test_device(self, device_index):
-        """测试设备功能"""
+        """测试设备功能 - 异步版本"""
         if device_index >= len(self.devices_data):
             return
 
         device_info = self.devices_data[device_index]
+        device_id = device_info["device_id"]
 
-        self.log_message(f"测试设备: {device_info['name']}", "info")
+        self.log_message(f"开始测试设备: {device_info['name']}", "info")
 
-        try:
-            # 执行设备信息获取测试
-            device_obj = device_info["device_obj"]
-
-            self.log_message(f"设备型号: {device_obj.model}", "info")
-            android_msg = f"Android版本: {device_obj.android_version}"
-            self.log_message(android_msg, "info")
-            resolution_msg = f"屏幕分辨率: {device_obj.screen_resolution}"
-            self.log_message(resolution_msg, "info")
-
-            if device_obj.battery_level >= 0:
-                battery_msg = f"电池电量: {device_obj.battery_level}%"
-                self.log_message(battery_msg, "info")
-
-            if device_obj.capabilities:
-                capabilities = device_obj.capabilities
-                app_names = [app.split(".")[-1] for app in capabilities]
-                apps = ", ".join(app_names)
-                self.log_message(f"已安装应用: {apps}", "info")
-
-            complete_msg = f"设备 {device_info['name']} 测试完成"
-            self.log_message(complete_msg, "success")
-
-        except Exception as e:
-            self.log_message(f"设备测试失败: {str(e)}", "error")
+        # 调用异步设备管理器进行测试
+        self.async_device_manager.test_device_async(device_id)
 
 
 class TaskInterface(QWidget):
@@ -907,7 +897,7 @@ class FlowFarmMainWindow(QMainWindow):
 
 
 class FlowFarmApp:
-    """Flow Farm 应用程序"""
+    """Flow Farm 应用程序 - 性能优化版本"""
 
     def __init__(self):
         self.app = None
@@ -919,8 +909,30 @@ class FlowFarmApp:
         self.app.setApplicationName("Flow Farm")
         self.app.setApplicationVersion("2.0.0")
 
+        # 应用性能优化
+        self._apply_performance_optimizations()
+
         # 创建主窗口
         self.window = FlowFarmMainWindow()
+
+    def _apply_performance_optimizations(self):
+        """应用性能优化设置"""
+        try:
+            # 导入性能优化器
+            from gui.performance_optimizer import apply_performance_optimizations
+
+            # 应用优化设置
+            apply_performance_optimizations()
+
+            # 设置应用程序属性
+            self.app.setAttribute(self.app.AA_EnableHighDpiScaling, True)
+            self.app.setAttribute(self.app.AA_UseHighDpiPixmaps, True)
+
+        except ImportError:
+            # 如果性能优化器不可用，使用基本优化
+            self.app.setAttribute(self.app.AA_EnableHighDpiScaling, True)
+        except Exception as e:
+            print(f"性能优化应用失败: {e}")
 
     def run(self):
         """运行应用程序"""
