@@ -13,8 +13,8 @@ from typing import Optional
 # 添加src目录到路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor, QFont
+from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtGui import QColor, QFont, QTextCursor
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -22,14 +22,19 @@ from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QLineEdit,
     QMainWindow,
     QProgressBar,
     QPushButton,
+    QSizePolicy,
+    QSplitter,
     QStackedWidget,
     QTableWidget,
     QTableWidgetItem,
+    QTabWidget,
+    QTextEdit,
     QVBoxLayout,
     QWidget,
 )
@@ -297,24 +302,32 @@ class DeviceInterface(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        # 导入设备管理器
+        from core.device_manager import ADBDeviceManager
+
+        self.device_manager = ADBDeviceManager()
+        self.devices_data = []
         self.setup_ui()
+
+        # 初始扫描设备
+        self.refresh_devices()
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
-        layout.setSpacing(20)
+        layout.setSpacing(16)  # 减少整体间距
 
         # 标题
         title_label = QLabel("设备管理")
         title_label.setFont(QFont("Microsoft YaHei", 18, QFont.Bold))
-        title_label.setStyleSheet("color: #1a1a1a; margin-bottom: 16px;")
+        title_label.setStyleSheet("color: #1a1a1a; margin-bottom: 12px;")
         layout.addWidget(title_label)
 
         # 操作按钮栏
         button_layout = QHBoxLayout()
 
-        add_btn = QPushButton("➕ 添加设备")
-        add_btn.setStyleSheet(
+        self.add_btn = QPushButton("➕ 扫描设备")
+        self.add_btn.setStyleSheet(
             """
             QPushButton {
                 background-color: #1a73e8;
@@ -328,11 +341,15 @@ class DeviceInterface(QWidget):
             QPushButton:hover {
                 background-color: #1557b0;
             }
+            QPushButton:disabled {
+                background-color: #cccccc;
+            }
         """
         )
+        self.add_btn.clicked.connect(self.scan_devices)
 
-        refresh_btn = QPushButton("🔄 刷新")
-        refresh_btn.setStyleSheet(
+        self.refresh_btn = QPushButton("🔄 刷新")
+        self.refresh_btn.setStyleSheet(
             """
             QPushButton {
                 background-color: #f8f9fa;
@@ -345,46 +362,37 @@ class DeviceInterface(QWidget):
             QPushButton:hover {
                 background-color: #f1f3f4;
             }
+            QPushButton:disabled {
+                background-color: #eeeeee;
+            }
         """
         )
+        self.refresh_btn.clicked.connect(self.refresh_devices)
 
-        button_layout.addWidget(add_btn)
-        button_layout.addWidget(refresh_btn)
+        button_layout.addWidget(self.add_btn)
+        button_layout.addWidget(self.refresh_btn)
         button_layout.addStretch()
 
         layout.addLayout(button_layout)
 
-        # 设备列表表格
-        table = QTableWidget()
-        table.setColumnCount(5)
-        table.setHorizontalHeaderLabels(
+        # 设备列表表格 - 优化高度设置
+        self.table = QTableWidget()
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels(
             ["设备名称", "设备ID", "状态", "最后连接", "操作"]
         )
 
-        # 添加示例数据
-        devices = [
-            ("iPhone-001", "abc123", "在线", "2分钟前"),
-            ("Android-002", "def456", "离线", "1小时前"),
-            ("iPad-003", "ghi789", "在线", "刚刚"),
-        ]
+        # 设置表格合理的高度范围
+        self.table.setMaximumHeight(250)  # 减少最大高度
+        self.table.setMinimumHeight(150)  # 设置最小高度
 
-        table.setRowCount(len(devices))
-        for i, (name, device_id, status, last_seen) in enumerate(devices):
-            table.setItem(i, 0, QTableWidgetItem(name))
-            table.setItem(i, 1, QTableWidgetItem(device_id))
+        # 禁用表格的垂直扩展策略，让它保持紧凑
+        self.table.setSizePolicy(
+            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum
+        )
 
-            status_item = QTableWidgetItem(status)
-            if status == "在线":
-                status_item.setBackground(QColor("#e8f5e8"))
-            else:
-                status_item.setBackground(QColor("#fce8e6"))
-            table.setItem(i, 2, status_item)
-
-            table.setItem(i, 3, QTableWidgetItem(last_seen))
-            table.setItem(i, 4, QTableWidgetItem("管理"))
-
-        # 表格样式
-        table.setStyleSheet(
+        # 表格样式 - 增加行高以确保操作按钮完整显示
+        self.table.setStyleSheet(
             """
             QTableWidget {
                 border: 1px solid #e0e0e0;
@@ -398,19 +406,299 @@ class DeviceInterface(QWidget):
                 border: none;
                 border-bottom: 1px solid #e0e0e0;
                 font-weight: bold;
+                height: 35px;
             }
             QTableWidget::item {
-                padding: 12px;
+                padding: 8px 12px;
                 border-bottom: 1px solid #f0f0f0;
+                min-height: 40px;
             }
         """
         )
 
-        table.horizontalHeader().setStretchLastSection(True)
-        table.verticalHeader().setVisible(False)
-        table.setAlternatingRowColors(True)
+        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.verticalHeader().setVisible(False)
+        self.table.setAlternatingRowColors(True)
 
-        layout.addWidget(table)
+        # 设置行高以确保操作按钮能完整显示
+        self.table.verticalHeader().setDefaultSectionSize(45)
+
+        layout.addWidget(self.table)
+
+        # 添加日志反馈模块 - 立即跟在表格后面
+        self.create_log_widget(layout)
+
+        # 添加弹性空间，把所有内容向上推
+        layout.addStretch()
+
+    def create_log_widget(self, layout):
+        """创建日志反馈模块"""
+        # 日志区域标题 - 紧挨着表格
+        log_title = QLabel("📋 操作日志")
+        log_title.setFont(QFont("Microsoft YaHei", 14, QFont.Bold))
+        log_title.setStyleSheet("color: #1a1a1a; margin-top: 5px; margin-bottom: 5px;")
+        layout.addWidget(log_title)
+
+        # 日志文本框 - 增加高度，让内容更清晰
+        self.log_text = QTextEdit()
+        self.log_text.setMaximumHeight(180)  # 增加日志显示高度
+        self.log_text.setMinimumHeight(120)
+        self.log_text.setReadOnly(True)
+        self.log_text.setStyleSheet(
+            """
+            QTextEdit {
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                background-color: #f8f9fa;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 12px;
+                color: #333333;
+                padding: 8px;
+            }
+        """
+        )
+
+        # 添加欢迎消息
+        self.log_text.append("🚀 Flow Farm 设备管理器已启动")
+        self.log_text.append("💡 点击'扫描设备'来查找可用的Android设备")
+
+        layout.addWidget(self.log_text)
+
+    def log_message(self, message: str, level: str = "info"):
+        """添加日志消息"""
+        import datetime
+
+        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+
+        level_icons = {"info": "ℹ️", "success": "✅", "warning": "⚠️", "error": "❌"}
+
+        icon = level_icons.get(level, "ℹ️")
+        formatted_message = f"[{timestamp}] {icon} {message}"
+
+        self.log_text.append(formatted_message)
+        # 自动滚动到底部
+        cursor = self.log_text.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.log_text.setTextCursor(cursor)
+
+    def scan_devices(self):
+        """扫描并添加设备"""
+        self.log_message("开始扫描设备...", "info")
+        self.add_btn.setEnabled(False)
+        self.refresh_btn.setEnabled(False)
+        self.add_btn.setText("扫描中...")
+
+        # 使用QTimer模拟异步操作，避免界面冻结
+        QTimer.singleShot(100, self._perform_scan)
+
+    def _perform_scan(self):
+        """执行实际的设备扫描"""
+        try:
+            devices = self.device_manager.scan_devices()
+            self.devices_data = []
+
+            if not devices:
+                self.log_message("未发现任何设备，请检查：", "warning")
+                self.log_message("1. USB调试是否开启", "warning")
+                self.log_message("2. 设备是否正确连接", "warning")
+                self.log_message("3. ADB驱动是否安装", "warning")
+            else:
+                for device in devices:
+                    device_info = {
+                        "name": device.model or f"设备-{device.device_id[:8]}",
+                        "device_id": device.device_id,
+                        "status": self._get_status_text(device.status),
+                        "last_seen": self._format_time(device.last_seen),
+                        "device_obj": device,
+                    }
+                    self.devices_data.append(device_info)
+                    device_msg = (
+                        f"发现设备: {device_info['name']} " f"({device.device_id})"
+                    )
+                    self.log_message(device_msg, "success")
+
+                self.log_message(f"扫描完成，共发现 {len(devices)} 台设备", "success")
+
+            self.update_table()
+
+        except Exception as e:
+            self.log_message(f"设备扫描失败: {str(e)}", "error")
+            self.log_message("请检查ADB是否正确安装", "error")
+
+        finally:
+            self.add_btn.setEnabled(True)
+            self.refresh_btn.setEnabled(True)
+            self.add_btn.setText("➕ 扫描设备")
+
+    def refresh_devices(self):
+        """刷新设备列表"""
+        self.log_message("刷新设备状态...", "info")
+        self.scan_devices()
+
+    def _get_status_text(self, status):
+        """获取状态文本"""
+        status_map = {
+            "CONNECTED": "在线",
+            "DISCONNECTED": "离线",
+            "CONNECTING": "连接中",
+            "WORKING": "工作中",
+            "ERROR": "错误",
+            "OFFLINE": "离线",
+        }
+        return status_map.get(str(status).upper(), "未知")
+
+    def _format_time(self, timestamp):
+        """格式化时间"""
+        import datetime
+
+        try:
+            dt = datetime.datetime.fromtimestamp(timestamp)
+            now = datetime.datetime.now()
+            diff = now - dt
+
+            if diff.seconds < 60:
+                return "刚刚"
+            elif diff.seconds < 3600:
+                return f"{diff.seconds // 60}分钟前"
+            else:
+                return dt.strftime("%H:%M")
+        except Exception:
+            return "未知"
+
+    def update_table(self):
+        """更新设备表格"""
+        self.table.setRowCount(len(self.devices_data))
+
+        for i, device_info in enumerate(self.devices_data):
+            self.table.setItem(i, 0, QTableWidgetItem(device_info["name"]))
+            device_id_item = QTableWidgetItem(device_info["device_id"])
+            self.table.setItem(i, 1, device_id_item)
+
+            status_item = QTableWidgetItem(device_info["status"])
+            if device_info["status"] == "在线":
+                status_item.setBackground(QColor("#e8f5e8"))
+            elif device_info["status"] == "工作中":
+                status_item.setBackground(QColor("#e3f2fd"))
+            else:
+                status_item.setBackground(QColor("#fce8e6"))
+            self.table.setItem(i, 2, status_item)
+
+            last_seen_item = QTableWidgetItem(device_info["last_seen"])
+            self.table.setItem(i, 3, last_seen_item)
+
+            # 创建操作按钮
+            action_widget = QWidget()
+            action_layout = QHBoxLayout(action_widget)
+            action_layout.setContentsMargins(3, 3, 3, 3)  # 增加内边距
+            action_layout.setSpacing(5)  # 增加按钮之间的间距
+
+            status = device_info["status"]
+            btn_text = "连接" if status != "在线" else "断开"
+            connect_btn = QPushButton(btn_text)
+            connect_btn.setFixedSize(55, 32)  # 调整按钮大小
+            connect_btn.setStyleSheet(
+                """
+                QPushButton {
+                    background-color: #4caf50;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 11px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #45a049;
+                }
+            """
+            )
+
+            test_btn = QPushButton("测试")
+            test_btn.setFixedSize(55, 32)  # 调整按钮大小
+            test_btn.setStyleSheet(
+                """
+                QPushButton {
+                    background-color: #2196F3;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 11px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #1976D2;
+                }
+            """
+            )
+
+            # 绑定事件 - 使用正确的函数定义方式
+            def make_connect_handler(idx):
+                def handler():
+                    self.toggle_device_connection(idx)
+
+                return handler
+
+            def make_test_handler(idx):
+                def handler():
+                    self.test_device(idx)
+
+                return handler
+
+            connect_btn.clicked.connect(make_connect_handler(i))
+            test_btn.clicked.connect(make_test_handler(i))
+
+            action_layout.addWidget(connect_btn)
+            action_layout.addWidget(test_btn)
+
+            self.table.setCellWidget(i, 4, action_widget)
+
+    def toggle_device_connection(self, device_index):
+        """切换设备连接状态"""
+        if device_index >= len(self.devices_data):
+            return
+
+        device_info = self.devices_data[device_index]
+
+        if device_info["status"] == "在线":
+            self.log_message(f"断开设备: {device_info['name']}", "info")
+            # 这里可以添加实际的断开逻辑
+        else:
+            self.log_message(f"尝试连接设备: {device_info['name']}", "info")
+            # 这里可以添加实际的连接逻辑
+
+    def test_device(self, device_index):
+        """测试设备功能"""
+        if device_index >= len(self.devices_data):
+            return
+
+        device_info = self.devices_data[device_index]
+
+        self.log_message(f"测试设备: {device_info['name']}", "info")
+
+        try:
+            # 执行设备信息获取测试
+            device_obj = device_info["device_obj"]
+
+            self.log_message(f"设备型号: {device_obj.model}", "info")
+            android_msg = f"Android版本: {device_obj.android_version}"
+            self.log_message(android_msg, "info")
+            resolution_msg = f"屏幕分辨率: {device_obj.screen_resolution}"
+            self.log_message(resolution_msg, "info")
+
+            if device_obj.battery_level >= 0:
+                battery_msg = f"电池电量: {device_obj.battery_level}%"
+                self.log_message(battery_msg, "info")
+
+            if device_obj.capabilities:
+                capabilities = device_obj.capabilities
+                app_names = [app.split(".")[-1] for app in capabilities]
+                apps = ", ".join(app_names)
+                self.log_message(f"已安装应用: {apps}", "info")
+
+            complete_msg = f"设备 {device_info['name']} 测试完成"
+            self.log_message(complete_msg, "success")
+
+        except Exception as e:
+            self.log_message(f"设备测试失败: {str(e)}", "error")
 
 
 class TaskInterface(QWidget):
@@ -630,9 +918,6 @@ class FlowFarmApp:
         self.app = QApplication(sys.argv)
         self.app.setApplicationName("Flow Farm")
         self.app.setApplicationVersion("2.0.0")
-
-        # 设置应用程序图标（如果有的话）
-        # self.app.setWindowIcon(QIcon("icon.png"))
 
         # 创建主窗口
         self.window = FlowFarmMainWindow()

@@ -150,10 +150,11 @@ class ADBDeviceManager:
                 text=True,
                 timeout=timeout,
                 encoding="utf-8",
+                errors="ignore",  # 忽略编码错误
             )
 
-            stdout = result.stdout.strip()
-            stderr = result.stderr.strip()
+            stdout = result.stdout.strip() if result.stdout else ""
+            stderr = result.stderr.strip() if result.stderr else ""
 
             if result.returncode != 0 and stderr:
                 self.logger.warning(f"⚠️ ADB命令警告: {stderr}")
