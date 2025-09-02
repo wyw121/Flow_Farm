@@ -18,7 +18,6 @@ from PySide6.QtGui import QColor, QFont, QTextCursor
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
-    QFormLayout,
     QFrame,
     QGridLayout,
     QHBoxLayout,
@@ -29,6 +28,7 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QSizePolicy,
+    QSpinBox,
     QSplitter,
     QStackedWidget,
     QTableWidget,
@@ -38,6 +38,22 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+# 常量定义
+FONT_FAMILY = "Microsoft YaHei"
+DEVICE_EMULATOR_LEIDIAN = "雷电模拟器-5554"
+DEVICE_EMULATOR_YESHEN = "夜神模拟器-62001"
+
+# 平台扣费规则
+PLATFORM_PRICING = {
+    "xiaohongshu": {"name": "小红书", "price": 0.12, "icon": "📖"},
+    "douyin": {"name": "抖音", "price": 0.15, "icon": "🎵"},
+}
+
+# 任务状态常量
+TASK_STATUS_RUNNING = "运行中"
+TASK_STATUS_PENDING = "队列中"
+TASK_STATUS_COMPLETED = "已完成"
 
 
 class ModernCard(QFrame):
@@ -692,10 +708,24 @@ class DeviceInterface(QWidget):
 
 
 class TaskInterface(QWidget):
-    """任务管理界面"""
+    """任务管理界面 - 通讯录导入和同行监控"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.selected_platform = "xiaohongshu"  # 默认选择小红书
+        self.user_balance = 1250.00  # 模拟用户余额
+        self.contacts_data = []  # 通讯录数据
+        self.available_devices = []  # 可用设备列表
+
+        # 初始化通讯录服务
+        try:
+            from core.contacts_service import ContactsService
+
+            self.contacts_service = ContactsService()
+        except ImportError:
+            self.contacts_service = None
+            print("警告: 无法导入通讯录服务，使用模拟数据")
+
         self.setup_ui()
 
     def setup_ui(self):
@@ -703,90 +733,356 @@ class TaskInterface(QWidget):
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(20)
 
-        # 标题
+        # 标题和余额显示
+        header_layout = QHBoxLayout()
+
         title_label = QLabel("任务管理")
-        title_label.setFont(QFont("Microsoft YaHei", 18, QFont.Bold))
-        title_label.setStyleSheet("color: #1a1a1a; margin-bottom: 16px;")
-        layout.addWidget(title_label)
+        title_label.setFont(QFont(FONT_FAMILY, 18, QFont.Bold))
+        title_label.setStyleSheet("color: #1a1a1a;")
+        header_layout.addWidget(title_label)
 
-        # 任务创建卡片
-        create_form = QFormLayout()
+        header_layout.addStretch()
 
-        task_name = QLineEdit()
-        task_name.setPlaceholderText("输入任务名称")
-        task_name.setStyleSheet(
+        # 用户余额显示
+        balance_widget = QWidget()
+        balance_layout = QHBoxLayout(balance_widget)
+        balance_layout.setContentsMargins(16, 8, 16, 8)
+
+        balance_icon = QLabel("💰")
+        balance_icon.setFont(QFont("Microsoft YaHei", 16))
+
+        balance_text = QLabel(f"账户余额: ¥{self.user_balance:.2f}")
+        balance_text.setFont(QFont("Microsoft YaHei", 12, QFont.Bold))
+        balance_text.setStyleSheet("color: #34a853;")
+
+        balance_layout.addWidget(balance_icon)
+        balance_layout.addWidget(balance_text)
+
+        balance_widget.setStyleSheet(
             """
-            QLineEdit {
-                padding: 10px;
-                border: 1px solid #dadce0;
-                border-radius: 6px;
-                font-size: 14px;
-            }
-            QLineEdit:focus {
-                border-color: #1a73e8;
+            QWidget {
+                background-color: #e8f5e8;
+                border: 1px solid #34a853;
+                border-radius: 8px;
             }
         """
         )
 
-        task_type = QComboBox()
-        task_type.addItems(["小红书自动化", "抖音自动化", "数据采集", "其他"])
-        task_type.setStyleSheet(
+        header_layout.addWidget(balance_widget)
+        layout.addLayout(header_layout)
+
+        # 平台选择区域
+        platform_card = self.create_platform_selection()
+        layout.addWidget(platform_card)
+
+        # 主要任务区域 - 使用水平布局
+        main_tasks_layout = QHBoxLayout()
+        main_tasks_layout.setSpacing(16)
+
+        # 通讯录导入模块
+        contacts_card = self.create_contacts_import_module()
+        main_tasks_layout.addWidget(contacts_card)
+
+        # 同行监控模块（预留）
+        monitoring_card = self.create_monitoring_module()
+        main_tasks_layout.addWidget(monitoring_card)
+
+        layout.addLayout(main_tasks_layout)
+
+        # 任务执行状态区域
+        status_card = self.create_task_status_area()
+        layout.addWidget(status_card)
+
+        layout.addStretch()
+
+    def create_platform_selection(self):
+        """创建平台选择区域"""
+        platform_layout = QHBoxLayout()
+
+        # 平台选择标题
+        platform_title = QLabel("选择平台:")
+        platform_title.setFont(QFont("Microsoft YaHei", 14, QFont.Bold))
+        platform_title.setStyleSheet("color: #1a1a1a; margin-right: 16px;")
+        platform_layout.addWidget(platform_title)
+
+        # 小红书按钮
+        self.xiaohongshu_btn = QPushButton("📖 小红书")
+        self.xiaohongshu_btn.setCheckable(True)
+        self.xiaohongshu_btn.setChecked(True)
+        self.xiaohongshu_btn.clicked.connect(
+            lambda: self.select_platform("xiaohongshu")
+        )
+
+        # 抖音按钮
+        self.douyin_btn = QPushButton("🎵 抖音")
+        self.douyin_btn.setCheckable(True)
+        self.douyin_btn.clicked.connect(lambda: self.select_platform("douyin"))
+
+        # 设置按钮样式
+        for btn in [self.xiaohongshu_btn, self.douyin_btn]:
+            btn.setStyleSheet(
+                """
+                QPushButton {
+                    padding: 12px 24px;
+                    border: 2px solid #dadce0;
+                    border-radius: 8px;
+                    background-color: #ffffff;
+                    color: #5f6368;
+                    font-size: 14px;
+                    font-weight: bold;
+                    min-width: 120px;
+                }
+                QPushButton:checked {
+                    border-color: #1a73e8;
+                    background-color: #e3f2fd;
+                    color: #1a73e8;
+                }
+                QPushButton:hover {
+                    background-color: #f1f3f4;
+                }
+                QPushButton:checked:hover {
+                    background-color: #bbdefb;
+                }
             """
-            QComboBox {
-                padding: 10px;
-                border: 1px solid #dadce0;
+            )
+
+        platform_layout.addWidget(self.xiaohongshu_btn)
+        platform_layout.addWidget(self.douyin_btn)
+        platform_layout.addStretch()
+
+        # 添加扣费规则显示
+        pricing_info = QLabel("当前扣费: 小红书关注 ¥0.12/次 | 抖音关注 ¥0.15/次")
+        pricing_info.setStyleSheet(
+            "color: #666666; font-size: 12px; margin-left: 16px;"
+        )
+        platform_layout.addWidget(pricing_info)
+
+        platform_widget = QWidget()
+        platform_widget.setLayout(platform_layout)
+
+        return ModernCard("平台选择", platform_widget)
+
+    def create_contacts_import_module(self):
+        """创建通讯录导入模块"""
+        contacts_layout = QVBoxLayout()
+
+        # 导入区域
+        import_layout = QVBoxLayout()
+
+        # 文件选择
+        file_layout = QHBoxLayout()
+        self.file_path_edit = QLineEdit()
+        self.file_path_edit.setPlaceholderText("选择通讯录文件 (.csv, .xlsx, .txt)")
+        self.file_path_edit.setReadOnly(True)
+
+        browse_btn = QPushButton("📁 浏览文件")
+        browse_btn.clicked.connect(self.browse_contacts_file)
+
+        file_layout.addWidget(self.file_path_edit)
+        file_layout.addWidget(browse_btn)
+        import_layout.addLayout(file_layout)
+
+        # 导入统计信息
+        self.import_stats = QLabel("未导入文件")
+        self.import_stats.setStyleSheet("color: #666666; margin: 8px 0;")
+        import_layout.addWidget(self.import_stats)
+
+        # 导入按钮
+        import_btn = QPushButton("📤 导入通讯录")
+        import_btn.clicked.connect(self.import_contacts)
+        import_btn.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #34a853;
+                color: white;
+                border: none;
                 border-radius: 6px;
+                padding: 10px 20px;
                 font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #2e7d32;
             }
         """
         )
+        import_layout.addWidget(import_btn)
 
-        create_form.addRow("任务名称:", task_name)
-        create_form.addRow("任务类型:", task_type)
+        contacts_layout.addLayout(import_layout)
 
-        create_widget = QWidget()
-        create_widget.setLayout(create_form)
-        create_card = ModernCard("创建新任务", create_widget)
-        layout.addWidget(create_card)
+        # 分隔线
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setStyleSheet("color: #e0e0e0;")
+        contacts_layout.addWidget(separator)
+
+        # 任务配置区域
+        config_layout = QVBoxLayout()
+
+        # 设备选择
+        device_layout = QHBoxLayout()
+        device_label = QLabel("选择设备:")
+        device_label.setFont(QFont(FONT_FAMILY, 12, QFont.Bold))
+
+        self.device_combo = QComboBox()
+        # 模拟数据
+        device_options = [
+            "请先连接设备",
+            DEVICE_EMULATOR_LEIDIAN,
+            DEVICE_EMULATOR_YESHEN,
+        ]
+        self.device_combo.addItems(device_options)
+
+        device_layout.addWidget(device_label)
+        device_layout.addWidget(self.device_combo)
+        config_layout.addLayout(device_layout)
+
+        # 任务数量设置
+        quantity_layout = QHBoxLayout()
+        quantity_label = QLabel("关注数量:")
+        quantity_label.setFont(QFont("Microsoft YaHei", 12, QFont.Bold))
+
+        self.quantity_spin = QSpinBox()
+        self.quantity_spin.setRange(1, 1000)
+        self.quantity_spin.setValue(50)
+        self.quantity_spin.valueChanged.connect(self.calculate_cost)
+
+        self.cost_label = QLabel("预计费用: ¥6.00")
+        cost_style = "color: #ea4335; font-weight: bold; " "margin-left: 16px;"
+        self.cost_label.setStyleSheet(cost_style)
+
+        quantity_layout.addWidget(quantity_label)
+        quantity_layout.addWidget(self.quantity_spin)
+        quantity_layout.addWidget(self.cost_label)
+        quantity_layout.addStretch()
+        config_layout.addLayout(quantity_layout)
+
+        # 提交任务按钮
+        submit_btn = QPushButton("🚀 提交关注任务")
+        submit_btn.clicked.connect(self.submit_follow_task)
+        submit_btn.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #1a73e8;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #1557b0;
+            }
+        """
+        )
+        config_layout.addWidget(submit_btn)
+
+        contacts_layout.addLayout(config_layout)
+
+        contacts_widget = QWidget()
+        contacts_widget.setLayout(contacts_layout)
+
+        return ModernCard("📇 通讯录导入", contacts_widget)
+
+    def create_monitoring_module(self):
+        """创建同行监控模块（预留）"""
+        monitoring_layout = QVBoxLayout()
+
+        # 预留提示
+        coming_soon = QLabel("🔍 同行监控")
+        coming_soon.setFont(QFont("Microsoft YaHei", 16, QFont.Bold))
+        coming_soon.setAlignment(Qt.AlignCenter)
+        coming_soon.setStyleSheet("color: #666666; margin: 20px 0;")
+
+        description = QLabel("监控同行账号动态\n自动分析竞品策略\n智能推荐优化方案")
+        description.setAlignment(Qt.AlignCenter)
+        desc_style = "color: #999999; line-height: 1.6; " "margin: 16px 0;"
+        description.setStyleSheet(desc_style)
+
+        status_label = QLabel("🚧 功能开发中...")
+        status_label.setAlignment(Qt.AlignCenter)
+        status_label.setStyleSheet(
+            """
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 12px;
+            color: #856404;
+            font-weight: bold;
+        """
+        )
+
+        monitoring_layout.addWidget(coming_soon)
+        monitoring_layout.addWidget(description)
+        monitoring_layout.addWidget(status_label)
+        monitoring_layout.addStretch()
+
+        monitoring_widget = QWidget()
+        monitoring_widget.setLayout(monitoring_layout)
+
+        return ModernCard("🔍 同行监控", monitoring_widget)
+
+    def create_task_status_area(self):
+        """创建任务状态区域"""
+        status_layout = QVBoxLayout()
 
         # 运行中的任务
-        running_layout = QVBoxLayout()
-
         tasks = [
-            ("小红书自动点赞", "运行中", "75%"),
-            ("数据采集任务", "队列中", "0%"),
-            ("内容发布", "已完成", "100%"),
+            ("小红书关注任务_001", "运行中", 75, "雷电模拟器-5554"),
+            ("小红书关注任务_002", "队列中", 0, "夜神模拟器-62001"),
+            ("抖音关注任务_001", "已完成", 100, "雷电模拟器-5554"),
         ]
 
-        for task_name, status, progress in tasks:
-            task_item = QHBoxLayout()
+        for task_name, status, progress, device in tasks:
+            task_layout = QHBoxLayout()
 
+            # 任务信息
+            info_layout = QVBoxLayout()
             name_label = QLabel(task_name)
             name_label.setFont(QFont("Microsoft YaHei", 12, QFont.Bold))
 
-            status_label = QLabel(status)
-            if status == "运行中":
-                status_label.setStyleSheet(
-                    "color: #34a853; background-color: #e8f5e8; padding: 4px 8px; border-radius: 4px;"
-                )
-            elif status == "队列中":
-                status_label.setStyleSheet(
-                    "color: #ea4335; background-color: #fce8e6; padding: 4px 8px; border-radius: 4px;"
-                )
-            else:
-                status_label.setStyleSheet(
-                    "color: #5f6368; background-color: #f1f3f4; padding: 4px 8px; border-radius: 4px;"
-                )
+            device_label = QLabel(f"设备: {device}")
+            device_label.setStyleSheet("color: #666666; font-size: 11px;")
 
+            info_layout.addWidget(name_label)
+            info_layout.addWidget(device_label)
+
+            # 状态标签
+            status_label = QLabel(status)
+            if status == TASK_STATUS_RUNNING:
+                status_style = (
+                    "color: #34a853; background-color: #e8f5e8; "
+                    "padding: 6px 12px; border-radius: 4px; "
+                    "font-weight: bold;"
+                )
+                status_label.setStyleSheet(status_style)
+            elif status == TASK_STATUS_PENDING:
+                status_style = (
+                    "color: #ea4335; background-color: #fce8e6; "
+                    "padding: 6px 12px; border-radius: 4px; "
+                    "font-weight: bold;"
+                )
+                status_label.setStyleSheet(status_style)
+            else:
+                status_style = (
+                    "color: #5f6368; background-color: #f1f3f4; "
+                    "padding: 6px 12px; border-radius: 4px; "
+                    "font-weight: bold;"
+                )
+                status_label.setStyleSheet(status_style)
+
+            # 进度条
             progress_bar = QProgressBar()
-            progress_bar.setValue(int(progress.replace("%", "")))
+            progress_bar.setValue(progress)
             progress_bar.setStyleSheet(
                 """
                 QProgressBar {
                     border: 1px solid #dadce0;
                     border-radius: 4px;
                     background-color: #f8f9fa;
-                    height: 20px;
+                    height: 24px;
+                    text-align: center;
                 }
                 QProgressBar::chunk {
                     background-color: #1a73e8;
@@ -795,33 +1091,212 @@ class TaskInterface(QWidget):
             """
             )
 
-            task_item.addWidget(name_label)
-            task_item.addWidget(status_label)
-            task_item.addWidget(progress_bar)
-            task_item.addStretch()
+            # 操作按钮
+            if status == TASK_STATUS_RUNNING:
+                action_text = "⏸️ 暂停"
+            elif status == TASK_STATUS_PENDING:
+                action_text = "▶️ 开始"
+            else:
+                action_text = "✅ 完成"
 
+            action_btn = QPushButton(action_text)
+            action_btn.setEnabled(status != TASK_STATUS_COMPLETED)
+            action_btn.setStyleSheet(
+                """
+                QPushButton {
+                    padding: 6px 12px;
+                    border: 1px solid #dadce0;
+                    border-radius: 4px;
+                    background-color: #ffffff;
+                    font-size: 12px;
+                }
+                QPushButton:hover {
+                    background-color: #f1f3f4;
+                }
+                QPushButton:disabled {
+                    background-color: #eeeeee;
+                    color: #cccccc;
+                }
+            """
+            )
+
+            task_layout.addLayout(info_layout)
+            task_layout.addWidget(status_label)
+            task_layout.addWidget(progress_bar, 1)
+            task_layout.addWidget(action_btn)
+
+            # 任务容器
             task_widget = QWidget()
-            task_widget.setLayout(task_item)
+            task_widget.setLayout(task_layout)
             task_widget.setStyleSheet(
                 """
                 QWidget {
                     background-color: white;
                     border: 1px solid #e0e0e0;
-                    border-radius: 6px;
+                    border-radius: 8px;
                     padding: 12px;
-                    margin: 4px;
+                    margin: 4px 0;
                 }
             """
             )
 
-            running_layout.addWidget(task_widget)
+            status_layout.addWidget(task_widget)
 
-        running_widget = QWidget()
-        running_widget.setLayout(running_layout)
-        running_card = ModernCard("任务列表", running_widget)
-        layout.addWidget(running_card)
+        status_widget = QWidget()
+        status_widget.setLayout(status_layout)
 
-        layout.addStretch()
+        return ModernCard("📊 任务执行状态", status_widget)
+
+    def select_platform(self, platform):
+        """选择平台"""
+        self.selected_platform = platform
+
+        # 更新按钮状态
+        self.xiaohongshu_btn.setChecked(platform == "xiaohongshu")
+        self.douyin_btn.setChecked(platform == "douyin")
+
+        # 重新计算费用
+        self.calculate_cost()
+
+        print(f"已选择平台: {platform}")
+
+    def browse_contacts_file(self):
+        """浏览通讯录文件"""
+        from PySide6.QtWidgets import QFileDialog
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "选择通讯录文件", "", "通讯录文件 (*.csv *.xlsx *.txt);;所有文件 (*)"
+        )
+
+        if file_path:
+            self.file_path_edit.setText(file_path)
+            # 模拟文件分析
+            self.import_stats.setText("📊 检测到 1,234 条联系人数据")
+
+    def import_contacts(self):
+        """导入通讯录"""
+        if not self.file_path_edit.text():
+            self.show_message("请先选择通讯录文件", "warning")
+            return
+
+        try:
+            # 如果有通讯录服务，使用真实导入
+            if self.contacts_service:
+                file_path = self.file_path_edit.text()
+                contacts, stats = self.contacts_service.import_contacts_file(file_path)
+
+                # 转换为简单的用户名列表用于界面显示
+                self.contacts_data = [contact.username for contact in contacts]
+
+                stats_text = (
+                    f"✅ 已导入 {stats['valid_count']} 条有效数据，"
+                    f"去重 {stats['duplicates_removed']} 条，"
+                    "待分配关注任务"
+                )
+                self.import_stats.setText(stats_text)
+
+                success_msg = (
+                    f"成功导入通讯录！\n"
+                    f"有效数据: {stats['valid_count']} 条\n"
+                    f"去重数据: {stats['duplicates_removed']} 条\n"
+                    f"包含手机号: {stats['has_phone']} 条"
+                )
+                self.show_message(success_msg, "success")
+            else:
+                # 模拟导入过程
+                user_count = 1234
+                self.contacts_data = [f"user_{i:04d}" for i in range(1, user_count + 1)]
+                stats_text = (
+                    f"✅ 已导入 {len(self.contacts_data)} 条数据，" "待分配关注任务"
+                )
+                self.import_stats.setText(stats_text)
+                self.show_message(
+                    f"成功导入 {len(self.contacts_data)} 条通讯录数据", "success"
+                )
+
+        except Exception as e:
+            error_msg = f"导入通讯录失败: {str(e)}"
+            self.import_stats.setText("❌ 导入失败")
+            self.show_message(error_msg, "error")
+
+    def calculate_cost(self):
+        """计算费用"""
+        quantity = self.quantity_spin.value()
+        unit_price = 0.12 if self.selected_platform == "xiaohongshu" else 0.15
+        total_cost = quantity * unit_price
+
+        self.cost_label.setText(f"预计费用: ¥{total_cost:.2f}")
+
+        # 检查余额是否足够
+        if total_cost > self.user_balance:
+            error_style = (
+                "color: #ea4335; font-weight: bold; "
+                "background-color: #fce8e6; padding: 4px 8px; "
+                "border-radius: 4px;"
+            )
+            self.cost_label.setStyleSheet(error_style)
+        else:
+            self.cost_label.setStyleSheet("color: #34a853; font-weight: bold;")
+
+    def submit_follow_task(self):
+        """提交关注任务"""
+        if not self.contacts_data:
+            self.show_message("请先导入通讯录数据", "warning")
+            return
+
+        quantity = self.quantity_spin.value()
+        unit_price = 0.12 if self.selected_platform == "xiaohongshu" else 0.15
+        total_cost = quantity * unit_price
+
+        if total_cost > self.user_balance:
+            error_msg = (
+                f"余额不足！需要 ¥{total_cost:.2f}，"
+                f"当前余额 ¥{self.user_balance:.2f}"
+            )
+            self.show_message(error_msg, "error")
+            return
+
+        if self.device_combo.currentText() == "请先连接设备":
+            self.show_message("请先选择可用设备", "warning")
+            return
+
+        # 模拟提交任务
+        self.user_balance -= total_cost
+
+        # 更新余额显示
+        for child in self.findChildren(QLabel):
+            if "账户余额" in child.text():
+                child.setText(f"账户余额: ¥{self.user_balance:.2f}")
+                break
+
+        platform_info = PLATFORM_PRICING.get(self.selected_platform, {})
+        platform_name = platform_info.get("name", "未知平台")
+
+        success_msg = (
+            f"任务提交成功！\n平台: {platform_name}\n"
+            f"数量: {quantity}\n费用: ¥{total_cost:.2f}\n"
+            f"剩余余额: ¥{self.user_balance:.2f}"
+        )
+        self.show_message(success_msg, "success")
+
+    def show_message(self, message, msg_type="info"):
+        """显示消息"""
+        from PySide6.QtWidgets import QMessageBox
+
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle("Flow Farm")
+        msg_box.setText(message)
+
+        if msg_type == "success":
+            msg_box.setIcon(QMessageBox.Information)
+        elif msg_type == "warning":
+            msg_box.setIcon(QMessageBox.Warning)
+        elif msg_type == "error":
+            msg_box.setIcon(QMessageBox.Critical)
+        else:
+            msg_box.setIcon(QMessageBox.Information)
+
+        msg_box.exec()
 
 
 class FlowFarmMainWindow(QMainWindow):
