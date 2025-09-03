@@ -19,11 +19,17 @@ from utils.logger import setup_logging
 # 可用的界面版本配置
 AVAILABLE_INTERFACES = {
     "onedragon": {
-        "name": "OneDragon 风格界面",
-        "description": "现代化卡片式布局，Microsoft Fluent Design风格 - 主要开发目标",
+        "name": "OneDragon 任务管理界面",
+        "description": "专门针对任务管理优化的界面",
         "module": "main_onedragon_optimized",
         "main_func": "main",
-    }
+    },
+    "onedragon_full": {
+        "name": "OneDragon 完整系统",
+        "description": "完整的设备管理+任务管理+系统设置界面 - 包含所有功能模块",
+        "module": "main_onedragon",
+        "main_func": "main",
+    },
 }
 
 
