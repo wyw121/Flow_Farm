@@ -1,53 +1,62 @@
-# 员工客户端开发指令 - GUI现代化架构
+# 员工客户端开发指令 - Rust + Tauri 架构
 
 ## 适用范围
-这些指令适用于 `employee-client/**/*.py` 路径下的所有 Python 代码文件。
+这些指令适用于 `employee-client/src-tauri/**/*.rs` 路径下的所有 Rust 代码文件。
 
-## 技术栈升级要求
+## 技术栈规范
 
-### 核心框架和库 (现代化架构)
-- **GUI框架**: PySide6 6.8.0+ + qfluentwidgets 1.7.0+ (Microsoft Fluent Design)
-- **图标系统**: FluentIcon (主要) + qtawesome (兼容)
-- **主题系统**: 自动深色/浅色主题切换
-- **自动化引擎**: ADB + uiautomator2 + Appium
+### 核心框架和库
+- **GUI框架**: Tauri 2.0 (原生桌面应用)
+- **后端语言**: Rust (Edition 2021)
+- **前端技术**: HTML/CSS/JavaScript (最小化，仅用于UI渲染)
+- **构建系统**: Cargo + Tauri CLI
+- **HTTP客户端**: reqwest
+- **序列化**: serde + serde_json
+- **异步运行时**: tokio
 - **设备通信**: Android Debug Bridge (ADB)
 - **数据存储**: SQLite (本地缓存) + REST API
-- **HTTP客户端**: requests
-- **图像处理**: Pillow (PIL)
-- **任务调度**: APScheduler
-- **日志记录**: logging
+- **任务调度**: 基于tokio的异步任务管理
+- **日志记录**: log + env_logger
 
-### GUI框架迁移要求
-```python
-# 必须升级的依赖
-pip install PySide6==6.8.0.2
-pip install qfluentwidgets==1.7.0
+### Tauri架构规范
+```rust
+// Tauri命令模式
+use tauri::command;
 
-# 新的导入模式
-from qfluentwidgets import (
-    VerticalScrollInterface, PrimaryPushButton,
-    SettingCardGroup, ComboBoxSettingCard, FluentIcon,
-    InfoBar, MessageBox, Theme
-)
+#[command]
+async fn connect_device(device_id: String) -> Result<String, String> {
+    // 设备连接逻辑
+    Ok("Device connected".to_string())
+}
 
-# 主窗口继承模式 (必须采用)
-class MainWindow(VerticalScrollInterface):
-    def __init__(self):
-        super().__init__(
-            object_name="main_window",
-            nav_text_cn="Flow Farm 工作台",
-            nav_icon=FluentIcon.HOME
-        )
+// 主程序入口
+fn main() {
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![
+            connect_device,
+            // 其他命令...
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
 ```
 
 ### 项目结构
 ```
-employee-client/src/
-├── main.py                 # 应用程序入口点
-├── core/                   # 核心业务逻辑模块
-│   ├── device_manager.py   # 设备管理 (ADB连接和控制)
-│   ├── automation_engine.py # 自动化引擎 (UI操作核心)
-│   ├── task_scheduler.py   # 任务调度器 (多任务管理)
+employee-client/
+├── src-tauri/              # Rust 后端代码
+│   ├── src/
+│   │   ├── main.rs        # 应用程序入口点
+│   │   ├── api.rs         # API 通信模块
+│   │   ├── device.rs      # 设备管理 (ADB连接和控制)
+│   │   ├── models.rs      # 数据模型和类型定义
+│   │   └── utils.rs       # 工具函数和辅助模块
+│   ├── Cargo.toml         # Rust 依赖配置
+│   └── tauri.conf.json    # Tauri 应用配置
+├── src/                   # 前端资源 (HTML/CSS/JS)
+├── logs/                  # 日志文件
+└── target/                # 构建产物 (git ignore)
+```
 │   └── config_manager.py   # 配置管理器
 ├── gui/                    # GUI界面模块 (用户交互)
 │   ├── main_window.py      # 主窗口 (应用程序主界面)

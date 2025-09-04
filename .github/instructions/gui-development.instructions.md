@@ -1,37 +1,48 @@
 ---
-applyTo: "src/gui/**/*.py"
+applyTo: "employee-client/src/**/*.{html,css,js}"
 ---
 
-# GUI界面开发指令 - OneDragon架构指导
+# GUI界面开发指令 - Tauri前端界面
 
-## OneDragon GUI 架构学习指导
+## 项目核心GUI需求
 
-### 核心技术栈升级
+### 主要功能模块界面
+1. **设备管理界面**: 最多10台设备的连接状态管理
+2. **通讯录管理界面**: 文件导入和关注执行（平台区分）
+3. **精准获客界面**: 同行监控和关键词管理（平台区分）
+4. **余额管理界面**: 计费显示和余额监控
+5. **任务统计界面**: 关注数据和进度显示
 
-基于对 OneDragon ZenlessZoneZero 项目的分析，GUI 开发必须遵循以下现代化架构：
+### 平台区分要求
+- 所有主要功能必须明确区分小红书和抖音平台
+- 使用选项卡或下拉菜单切换平台
+- 每个平台独立的配置和执行逻辑
+- 未来支持快手、B站等平台的模块化扩展
 
-#### 必需依赖升级
-```bash
-# 从当前版本升级
-# PySide6==6.6.1 qtawesome==1.3.1
+## Tauri前端开发规范
 
-# 升级到目标版本
-pip install PySide6==6.8.0.2
-pip install qfluentwidgets==1.7.0
-pip install qtawesome==1.3.1  # 保留兼容
-```
+### 技术栈
+- **前端**: HTML/CSS/JavaScript (原生，无框架)
+- **通信**: Tauri API命令系统
+- **样式**: 现代CSS (Flexbox/Grid + CSS变量)
+- **图标**: 可使用Font Awesome或内嵌SVG
+- **主题**: CSS变量实现深色/浅色主题
 
-#### 核心组件导入模式
-```python
-# 基础框架
-from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
-from PySide6.QtGui import QFont, QIcon
+### 与Rust后端通信模式
+```javascript
+// 调用Rust命令
+import { invoke } from '@tauri-apps/api/tauri';
 
-# Fluent Design 组件（新增）
-from qfluentwidgets import (
-    # 基础容器
-    VerticalScrollInterface, QWidget,
+async function connectDevice(deviceId) {
+    try {
+        const result = await invoke('connect_device', {
+            deviceId: deviceId
+        });
+        console.log(result);
+    } catch (error) {
+        console.error('连接设备失败:', error);
+    }
+}
 
     # 按钮组件
     PrimaryPushButton, PushButton, ToolButton,

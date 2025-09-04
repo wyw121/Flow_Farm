@@ -1,52 +1,61 @@
-# GUI 现代化重构 Prompt
+# GUI 现代化重构 Prompt - Tauri架构迁移
 
 ## 背景
-基于 OneDragon ZenlessZoneZero 项目的成功实践，将 Flow Farm 员工客户端的 GUI 框架从原生 PySide6 升级到 PySide6 + qfluentwidgets 现代化架构。
+Flow Farm 员工客户端已从 Python + PySide6 架构迁移到 Rust + Tauri 2.0 现代化桌面应用架构。
 
-## 重构目标
+## 技术架构
 
-### 技术栈升级
-- **从**: PySide6 6.6.1 + qtawesome + 自定义样式
-- **到**: PySide6 6.8.0.2 + qfluentwidgets 1.7.0 + FluentIcon
+### 当前技术栈
+- **应用框架**: Tauri 2.0 (原生桌面应用)
+- **后端语言**: Rust (Edition 2021)
+- **前端技术**: HTML/CSS/JavaScript (轻量化UI层)
+- **构建系统**: Cargo + Tauri CLI
+- **通信机制**: Tauri命令和事件系统
 
-### 视觉效果提升
-- Microsoft Fluent Design 设计语言
-- 自动深色/浅色主题切换
-- 现代化圆角、阴影、动画效果
-- 响应式布局和平滑滚动
+### 架构优势
+- 原生性能和更小的资源占用
+- 类型安全的Rust后端业务逻辑
+- 安全的前后端通信
+- 跨平台兼容性
+- Web技术的灵活UI开发
 
-## 重构计划
+## 开发模式
 
-### 阶段一：依赖升级和基础架构
-```bash
-# 安装新依赖
-pip install qfluentwidgets==1.7.0
-pip install PySide6==6.8.0.2
+### Rust后端开发
+```rust
+// src-tauri/src/main.rs
+use tauri::command;
 
-# 保留兼容依赖
-# qtawesome 用于过渡期图标兼容
+#[command]
+async fn connect_device(device_id: String) -> Result<String, String> {
+    // 设备连接逻辑
+    Ok("Device connected".to_string())
+}
+
+fn main() {
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![connect_device])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
 ```
 
-### 阶段二：主窗口重构
-将 `src/gui/main_window.py` 的 `MainWindow` 类重构为：
+### 前端界面开发
+```javascript
+// src/main.js
+import { invoke } from '@tauri-apps/api/tauri';
 
-```python
-from qfluentwidgets import VerticalScrollInterface, FluentIcon
-
-class MainWindow(VerticalScrollInterface):
-    """现代化主窗口 - 继承 VerticalScrollInterface"""
-
-    def __init__(self, parent=None):
-        super().__init__(
-            parent=parent,
-            object_name="main_window",
-            nav_text_cn="Flow Farm 工作台",
-            nav_icon=FluentIcon.HOME
-        )
-        self.setup_modern_ui()
+async function connectDevice(deviceId) {
+    try {
+        const result = await invoke('connect_device', {
+            deviceId: deviceId
+        });
+        updateUI(result);
+    } catch (error) {
+        console.error('设备连接失败:', error);
+    }
+}
 ```
-
-### 阶段三：组件替换对照
 
 | 当前组件 | 新组件 | 替换原因 |
 |---------|--------|----------|

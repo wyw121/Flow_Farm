@@ -1,39 +1,112 @@
-# Flow Farm Copilot 配置文档
+# Flow Farm - GitHub Copilot 配置指南
 
-这个目录包含了Flow Farm项目的GitHub Copilot配置文件，采用模块化设计以提供更精确和上下文相关的AI辅助。
+本项目采用最新的GitHub Copilot和VS Code配置最佳实践（2025年版），为开发团队提供智能化的编程辅助。
 
-## 文件结构
+## 配置文件结构
 
 ```
 .github/
-├── copilot-instructions.md          # 主要配置文件
-├── instructions/                    # 模块化指令文件
-│   ├── server-backend.instructions.md      # Rust后端开发
-│   ├── server-frontend.instructions.md     # React前端开发
-│   ├── employee-client.instructions.md     # Python客户端开发
-│   ├── auth-system.instructions.md         # 认证系统
-│   ├── core-modules.instructions.md        # 核心模块
-│   ├── gui-development.instructions.md     # GUI开发
-│   ├── platform-automation.instructions.md # 平台自动化
-│   └── build-scripts.instructions.md       # 构建脚本
-├── prompts/                         # 专用prompt文件
-│   ├── server-optimization.prompt.md       # 服务器优化
-│   ├── api-development.prompt.md          # API开发
-│   ├── rbac-system.prompt.md              # 权限系统
-│   └── device-automation.prompt.md        # 设备自动化
-└── workflows/                       # GitHub Actions
-    └── update-docs.yml             # 文档自动更新
+├── copilot-instructions.md          # 主要仓库指令
+├── instructions/                    # 路径特定指令
+│   ├── gui-development.instructions.md
+│   ├── server-backend.instructions.md
+│   ├── server-frontend.instructions.md
+│   ├── platform-automation.instructions.md
+│   ├── core-modules.instructions.md
+│   ├── auth-system.instructions.md
+│   ├── employee-client.instructions.md
+│   └── build-scripts.instructions.md
+├── prompts/                         # 可复用提示文件
+│   ├── contact-management.prompt.md
+│   ├── precision-acquisition.prompt.md
+│   ├── device-management.prompt.md
+│   ├── billing-system.prompt.md
+│   ├── statistics-dashboard.prompt.md
+│   ├── main-window-architecture.prompt.md
+│   ├── api-development.prompt.md
+│   ├── gui-modernization.prompt.md
+│   ├── rbac-system.prompt.md
+│   ├── device-automation.prompt.md
+│   ├── server-optimization.prompt.md
+│   ├── project-setup.prompt.md
+│   └── build-system.prompt.md
+└── AGENTS.md                        # AI代理指令（2025新功能）
 ```
 
-## 使用指南
+## 如何使用
 
-### 1. 自动应用的指令
+### 1. 确认VS Code设置
 
-项目的模块化指令会根据你编辑的文件自动应用：
+确保您的VS Code workspace settings包含：
 
-- 编辑 `server-backend/**/*.rs` 时，自动应用Rust后端指令
-- 编辑 `server-frontend/**/*.tsx` 时，自动应用React前端指令
-- 编辑 `employee-client/**/*.py` 时，自动应用Python客户端指令
+```json
+{
+    "chat.promptFiles": true,
+    "chat.promptFilesLocations": [".github/prompts"],
+    "copilot.chat.useInstructionFiles": true,
+    "github.copilot.enable": {
+        "*": true,
+        "python": true,
+        "rust": true,
+        "javascript": true,
+        "typescript": true
+    }
+}
+```
+
+### 2. 使用自定义指令
+
+#### 仓库级指令（自动应用）
+- `.github/copilot-instructions.md` 会自动应用到所有聊天请求
+- 包含项目概述、技术架构、业务需求等核心信息
+
+#### 路径特定指令（智能匹配）
+当您在特定路径下工作时，相应的指令文件会自动应用：
+
+```markdown
+---
+applyTo: "src/gui/**/*.py"
+---
+# GUI开发专用指令会在编辑GUI文件时自动应用
+```
+
+### 3. 使用提示文件
+
+#### 通过聊天附件使用
+1. 在Copilot Chat中点击📎附件按钮
+2. 选择"Prompt..."
+3. 选择相应的 `.prompt.md` 文件
+
+#### 通过命令运行
+在聊天框中输入：
+```
+/contact-management
+/precision-acquisition
+/device-management
+```
+
+#### 通过命令面板使用
+1. 按 `Ctrl+Shift+P`
+2. 输入 "Chat: Run Prompt"
+3. 选择所需的提示文件
+
+### 4. AI代理指令 (AGENTS.md)
+
+这是2025年的新功能，用于GitHub Copilot coding agent：
+- 自动应用到编程代理任务
+- 包含构建、测试、验证指令
+- 提供架构和代码质量规范
+
+## 提示文件使用场景
+
+| 提示文件 | 使用场景 | 推荐时机 |
+|---------|----------|---------|
+| `contact-management` | 开发通讯录导入功能 | 创建新的GUI界面时 |
+| `precision-acquisition` | 开发精准获客模块 | 实现关键词搜索和监控功能 |
+| `device-management` | 设备连接和管理 | 处理ADB设备操作 |
+| `billing-system` | 计费和余额管理 | 实现扣费逻辑 |
+| `statistics-dashboard` | 数据可视化 | 创建统计图表 |
+| `main-window-architecture` | 主界面架构 | 设计应用程序框架 |
 
 ### 2. 手动使用Prompt文件
 

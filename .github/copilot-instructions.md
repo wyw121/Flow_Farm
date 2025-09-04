@@ -1,67 +1,108 @@
-# Flow Farm - 计费自动化流量农场系统
+# Flow Farm - 社交平台自动化获客系统
 
 ## 项目概述
 
-Flow Farm 是一个企业级计费自动化流量农场系统，专为多角色权限管理和社交媒体自动化操作而设计。
+Flow Farm 是一个专业的社交平台自动化获客管理系统，支持小红书、抖音等主流社交媒体平台的用户关注、监控和精准获客操作。
 
 ### 核心特性
 
-- **三角色架构**: 系统管理员、用户管理员、员工
-- **多平台支持**: 抖音、小红书等主流社交媒体平台
-- **自动化引流**: 智能设备控制和任务调度
-- **计费管理**: 精确的使用统计和费用计算
+- **三角色权限架构**: 系统管理员（一级）、用户管理员（二级）、员工（脚本用户）
+- **多平台支持**: 小红书（优先）、抖音（次要），未来扩展快手、B站等
+- **设备管理**: 每个员工最多连接10台设备，支持ADB自动化控制
+- **任务管理**: 通讯录导入、同行监控、精准获客、关注统计
+- **计费系统**: 基于成功关注的实时扣费机制，余额不足时禁止任务提交
+- **数据防重**: 管理员名下所有用户和设备共享关注记录，确保不重复关注
 
 ### 技术架构
 
-- **服务器后端**: Rust + Axum + SQLx + SQLite
-- **服务器前端**: React.js + TypeScript + Vite
-- **员工客户端**: Python + PySide6 + qfluentwidgets + ADB
+- **服务器后端**: Rust + Axum + SQLx + SQLite（处理数据存储、权限管理、扣费规则）
+- **服务器前端**: React.js + TypeScript + Vite（管理员操作界面）
+- **员工客户端**: Rust + Tauri 2.0 + HTML/CSS/JS（原生桌面GUI应用，支持ADB自动化控制）
+
+## 业务需求和功能模块
+
+### 设备管理要求
+- 每个员工用户最多管理10台设备
+- GUI中直观显示设备连接状态和设备名
+- 支持连接/断开设备操作
+- 任务只分配给已连接的设备
+
+### 任务管理核心功能
+1. **通讯录管理**（通讯录导入任务）
+   - 支持CSV或文本格式文件导入
+   - 平台区分：小红书、抖音子模块
+   - 自动均匀分配任务到已连接设备
+   - 显示总关注量和每设备任务量
+
+2. **精准获客**（同行监控任务）
+   - 监控指定同行账号
+   - 基于关键词搜索和爬取评论
+   - AI生成长尾词功能
+   - 收集触发关键词的用户ID并执行关注
+
+### 计费机制要求
+- 基于成功关注的实时扣费
+- 余额不足时禁止任务提交
+- 管理员名下所有用户/设备共享关注记录防重复
+- 仅成功关注后扣费并同步数据库
+
+### 平台支持优先级
+1. 小红书（优先开发完成）
+2. 抖音（次要优先级）
+3. 未来扩展：快手、B站等（模块化设计）
+
+### GUI界面要求
+- 明确区分平台操作（选项卡或下拉菜单）
+- 实时显示任务进度和余额状态
+- 支持多设备任务分配可视化
+- 关键词导入支持手动输入和内置示例
 
 ## GUI框架指导原则
 
-### 现代化UI框架迁移计划
+### Tauri 桌面应用架构
 
-基于 OneDragon 项目的成功实践，员工客户端正在从原生 PySide6 迁移到 PySide6 + qfluentwidgets 架构：
+基于 Tauri 2.0 框架的现代化桌面应用开发：
 
-#### 目标框架
-- **基础框架**: PySide6 6.8.0+ (Qt6)
-- **UI组件库**: qfluentwidgets 1.7.0+ (Microsoft Fluent Design)
-- **图标系统**: FluentIcon (内置) + qtawesome (兼容)
-- **主题系统**: 自动深色/浅色主题切换
-- **布局系统**: VerticalScrollInterface + 组件化设计
+#### 核心技术栈
+- **应用框架**: Tauri 2.0 (原生桌面应用)
+- **后端语言**: Rust (Edition 2021)
+- **前端技术**: HTML/CSS/JavaScript (最小化，仅用于UI渲染)
+- **构建系统**: Cargo + Tauri CLI
+- **平台支持**: Windows (主要) + 跨平台支持
 
-#### 迁移策略
-1. **渐进式重构**: 保持现有 `ComponentFactory` 和 `ModernTheme`
-2. **组件替换**: 逐步替换 QPushButton → PrimaryPushButton
-3. **界面继承**: 从 VerticalScrollInterface 继承主界面
-4. **设置卡片**: 使用 SettingCard 系列组件替换自定义设置界面
+#### 开发模式
+1. **业务逻辑**: 完全使用Rust实现
+2. **GUI渲染**: 通过HTML/CSS定义界面
+3. **通信机制**: Tauri命令和事件系统
+4. **安全模式**: Tauri提供安全的API访问和沙盒化
 
-#### OneDragon GUI架构借鉴
+#### Tauri 应用架构示例
 
-```python
-# 推荐的新组件使用模式
-from qfluentwidgets import (
-    VerticalScrollInterface, PrimaryPushButton,
-    SettingCardGroup, ComboBoxSettingCard, FluentIcon,
-    InfoBar, MessageBox, Theme
-)
+```rust
+// src-tauri/src/main.rs
+use tauri::command;
 
-class ModernInterface(VerticalScrollInterface):
-    def __init__(self):
-        super().__init__(
-            object_name="modern_interface",
-            nav_text_cn="现代界面",
-            nav_icon=FluentIcon.HOME
-        )
+#[command]
+fn connect_device(device_id: String) -> Result<String, String> {
+    // 设备连接逻辑
+    Ok("Device connected".to_string())
+}
+
+fn main() {
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![connect_device])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
 ```
 
 ## 构建指令 (BuildInstructions)
 
 ### 环境要求
 
-- **Rust**: 1.75+ (server-backend)
+- **Rust**: 1.75+ (server-backend + employee-client)
 - **Node.js**: 18+ (server-frontend)
-- **Python**: 3.8+ (employee-client)
+- **Tauri CLI**: 2.0+ (employee-client)
 - **Android SDK**: Platform Tools (ADB)
 
 ### 快速启动 (推荐顺序)
@@ -85,14 +126,14 @@ npm run dev
 # Web界面: http://localhost:3000
 ```
 
-#### 3. 员工客户端 (Python)
+#### 3. 员工客户端 (Rust + Tauri)
 
 ```bash
 cd employee-client
-python -m venv venv
-venv\Scripts\activate  # Windows
-pip install -r requirements.txt
-python src/main.py --gui --debug
+cargo tauri dev  # 开发模式
+# 或
+cargo tauri build  # 生产构建
+# GUI界面: 原生桌面应用自动启动
 ```
 
 ## 项目结构和模块化指令
@@ -103,7 +144,7 @@ python src/main.py --gui --debug
 | -------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------- |
 | `server-backend/src/**/*.rs`           | [server-backend.instructions.md](.github/instructions/server-backend.instructions.md)           | Rust 后端开发指令     |
 | `server-frontend/**/*.{tsx,ts,jsx,js}` | [server-frontend.instructions.md](.github/instructions/server-frontend.instructions.md)         | React.js 前端开发指令 |
-| `employee-client/**/*.py`              | [employee-client.instructions.md](.github/instructions/employee-client.instructions.md)         | Python 客户端开发指令 |
+| `employee-client/src-tauri/**/*.rs`    | [employee-client.instructions.md](.github/instructions/employee-client.instructions.md)         | Rust + Tauri 客户端开发指令 |
 | `src/auth/**/*.py`                     | [auth-system.instructions.md](.github/instructions/auth-system.instructions.md)                 | 认证系统指令          |
 | `src/core/**/*.py`                     | [core-modules.instructions.md](.github/instructions/core-modules.instructions.md)               | 核心模块指令          |
 | `src/gui/**/*.py`                      | [gui-development.instructions.md](.github/instructions/gui-development.instructions.md)         | GUI 开发指令          |
@@ -152,7 +193,7 @@ python src/main.py --gui --debug
 | ---------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------- |
 | `server-backend/src/**/*.rs`       | [server-backend.instructions.md](.github/instructions/server-backend.instructions.md)           | Rust 后端开发指令     |
 | `server-frontend/**/*.{vue,ts,js}` | [server-frontend.instructions.md](.github/instructions/server-frontend.instructions.md)         | Vue.js 前端开发指令   |
-| `employee-client/**/*.py`          | [employee-client.instructions.md](.github/instructions/employee-client.instructions.md)         | Python 客户端开发指令 |
+| `employee-client/src-tauri/**/*.rs`    | [employee-client.instructions.md](.github/instructions/employee-client.instructions.md)         | Rust + Tauri 客户端开发指令 |
 | `src/auth/**/*.py`                 | [auth-system.instructions.md](.github/instructions/auth-system.instructions.md)                 | 认证系统指令          |
 | `src/core/**/*.py`                 | [core-modules.instructions.md](.github/instructions/core-modules.instructions.md)               | 核心模块指令          |
 | `src/gui/**/*.py`                  | [gui-development.instructions.md](.github/instructions/gui-development.instructions.md)         | GUI 开发指令          |
@@ -317,27 +358,19 @@ Flow_Farm/                          # 项目根目录
 │   │   └── stores/              # Pinia状态管理
 │   ├── package.json             # Node.js依赖
 │   └── vite.config.ts           # Vite配置
-├── employee-client/                # 员工客户端 (Python GUI)
-│   ├── src/                     # 源代码目录
-│   │   ├── main.py              # 应用程序入口点
-│   │   ├── core/                # 核心业务逻辑模块
-│   │   │   ├── device_manager.py    # 设备管理 (ADB连接和控制)
-│   │   │   ├── automation_engine.py # 自动化引擎 (UI操作核心)
-│   │   │   ├── task_scheduler.py    # 任务调度器 (多任务管理)
-│   │   │   └── config_manager.py    # 配置管理器
-│   │   ├── gui/                 # GUI界面模块 (用户交互)
-│   │   │   ├── main_window.py   # 主窗口 (应用程序主界面)
-│   │   │   ├── components/      # 可复用组件
-│   │   │   ├── windows/         # 独立窗口
-│   │   │   └── dialogs/         # 对话框
-│   │   ├── platforms/           # 平台特定自动化模块
-│   │   │   ├── base_platform.py     # 平台基类
-│   │   │   ├── xiaohongshu/     # 小红书自动化
-│   │   │   └── douyin/          # 抖音自动化
-│   │   ├── auth/                # 权限认证系统
-│   │   └── utils/               # 工具类和帮助函数
-│   ├── requirements.txt         # Python依赖
-│   └── config/                  # 配置文件目录
+├── employee-client/                # 员工客户端 (Rust + Tauri)
+│   ├── src-tauri/              # Rust 后端代码
+│   │   ├── src/                # Rust 源代码
+│   │   │   ├── main.rs        # 应用程序入口点
+│   │   │   ├── api.rs         # API 通信模块
+│   │   │   ├── device.rs      # 设备管理 (ADB连接和控制)
+│   │   │   ├── models.rs      # 数据模型
+│   │   │   └── utils.rs       # 工具函数
+│   │   ├── Cargo.toml         # Rust 依赖
+│   │   └── tauri.conf.json    # Tauri 配置
+│   ├── src/                   # 前端资源 (HTML/CSS/JS)
+│   ├── logs/                  # 日志文件
+│   └── target/                # 构建产物
 ├── config/                        # 全局配置文件目录
 ├── docs/                         # 项目文档
 ├── tests/                        # 测试文件目录
@@ -356,9 +389,9 @@ Flow_Farm/                          # 项目根目录
 
 ### 关键配置文件
 
-- `server-backend/app/main.py`: FastAPI 应用入口，包含 API 路由
-- `server-frontend/src/main.ts`: Vue.js 应用入口
-- `employee-client/src/main.py`: 员工客户端入口
+- `server-backend/src/main.rs`: Rust 后端应用入口，包含 Axum 服务器
+- `server-frontend/src/main.tsx`: React.js 应用入口
+- `employee-client/src-tauri/src/main.rs`: Tauri 应用入口
 - `config/app_config.json`: 主要配置文件，包含所有系统设置
 - `Flow_Farm.code-workspace`: VS Code 工作区配置
 
@@ -370,12 +403,12 @@ Flow_Farm/                          # 项目根目录
 
 ### 开发时文件位置规则
 
-- 新增 API 接口: `server-backend/app/api/`
+- 新增 API 接口: `server-backend/src/handlers/`
 - 新增 Web 页面: `server-frontend/src/views/`
-- 新增设备管理功能: `employee-client/src/core/device_manager.py`
-- 新增 GUI 组件: `employee-client/src/gui/components/`
-- 新增平台支持: `employee-client/src/platforms/新平台名/`
-- 新增权限功能: `employee-client/src/auth/`
+- 新增设备管理功能: `employee-client/src-tauri/src/device.rs`
+- 新增 GUI 组件: `employee-client/src/` (HTML/CSS/JS 前端资源)
+- 新增平台支持: `employee-client/src-tauri/src/` (Rust 模块)
+- 新增权限功能: `employee-client/src-tauri/src/` (Rust 认证模块)
   │ │ ├── windows/ # 独立窗口
   │ │ │ ├── admin_panel.py # 管理员控制面板
   │ │ │ ├── user_panel.py # 用户操作面板
