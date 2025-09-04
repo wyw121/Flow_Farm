@@ -443,8 +443,8 @@ fn main() {
         .setup(|app| {
             let app_handle = app.handle().clone();
 
-            // 启动设备扫描器
-            tokio::spawn(async move {
+            // 启动设备扫描器 - 使用 tauri::async_runtime::spawn 而不是 tokio::spawn
+            tauri::async_runtime::spawn(async move {
                 start_device_scanner(app_handle).await;
             });
 
