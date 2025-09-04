@@ -43,8 +43,12 @@ pub struct AdbManager {
 impl AdbManager {
     pub fn new(adb_path: Option<String>) -> Self {
         let adb_path = adb_path.unwrap_or_else(|| {
+            info!("开始搜索ADB程序...");
             // 尝试查找系统中的ADB路径
-            Self::find_adb_path().unwrap_or_else(|| "adb".to_string())
+            Self::find_adb_path().unwrap_or_else(|| {
+                warn!("未找到ADB程序，使用默认命令'adb'");
+                "adb".to_string()
+            })
         });
 
         info!("ADB Manager initialized with path: {}", adb_path);
@@ -53,19 +57,57 @@ impl AdbManager {
 
     /// 尝试查找系统中的ADB路径
     fn find_adb_path() -> Option<String> {
-        // 常见的ADB路径
+        // 常见的ADB路径，包括模拟器内置的ADB
         let possible_paths = vec![
+            // 系统默认路径
             "adb",
             "adb.exe",
+
+            // Android SDK 标准路径
             r"C:\Users\%USERNAME%\AppData\Local\Android\Sdk\platform-tools\adb.exe",
             r"D:\Android\sdk\platform-tools\adb.exe",
             r"C:\Android\sdk\platform-tools\adb.exe",
             r"%ANDROID_HOME%\platform-tools\adb.exe",
             r"%ANDROID_SDK_ROOT%\platform-tools\adb.exe",
+
+            // 雷电模拟器路径
+            r"D:\leidian\LDPlayer9\adb.exe",
+            r"C:\leidian\LDPlayer9\adb.exe",
+            r"D:\LDPlayer\LDPlayer4.0\adb.exe",
+            r"C:\LDPlayer\LDPlayer4.0\adb.exe",
+
+            // 夜神模拟器路径
+            r"D:\Nox\bin\adb.exe",
+            r"C:\Program Files (x86)\Nox\bin\adb.exe",
+            r"D:\Program Files\Nox\bin\adb.exe",
+
+            // 逍遥模拟器路径
+            r"D:\Microvirt\MEmu\adb.exe",
+            r"C:\Program Files\Microvirt\MEmu\adb.exe",
+            r"D:\Program Files (x86)\Microvirt\MEmu\adb.exe",
+
+            // BlueStacks 模拟器路径
+            r"C:\Program Files\BlueStacks\HD-Adb.exe",
+            r"C:\Program Files (x86)\BlueStacks\HD-Adb.exe",
+
+            // MuMu模拟器路径
+            r"D:\Program Files\Netease\MuMu\emulator\nemu\vbox\adb.exe",
+            r"C:\Program Files\Netease\MuMu\emulator\nemu\vbox\adb.exe",
         ];
 
         for path in possible_paths {
-            let expanded_path = shellexpand::tilde(path).to_string();
+            // 扩展环境变量
+            let expanded_path = if path.contains('%') {
+                // 处理环境变量
+                let expanded = shellexpand::env(path).unwrap_or_else(|_| path.into());
+                expanded.to_string()
+            } else {
+                path.to_string()
+            };
+
+            debug!("正在测试ADB路径: {}", expanded_path);
+
+            // 测试ADB是否可用
             if let Ok(output) = Command::new(&expanded_path)
                 .arg("version")
                 .output()
@@ -73,10 +115,15 @@ impl AdbManager {
                 if output.status.success() {
                     info!("Found ADB at: {}", expanded_path);
                     return Some(expanded_path);
+                } else {
+                    debug!("ADB测试失败: {} (退出码: {:?})", expanded_path, output.status.code());
                 }
+            } else {
+                debug!("无法执行ADB命令: {}", expanded_path);
             }
         }
 
+        warn!("No ADB installation found in common paths");
         None
     }
 
@@ -513,6 +560,28 @@ impl AdbManager {
     /// 等待
     pub async fn wait(&self, duration_ms: u64) {
         sleep(Duration::from_millis(duration_ms)).await;
+    }
+
+    /// 断开设备连接
+    pub async fn disconnect_device(&self, device_id: &str) -> Result<()> {
+        info!("Disconnecting device: {}", device_id);
+
+        // ADB 本身不需要显式断开连接，但我们可以检查设备状态
+        let devices = self.get_devices().await?;
+        let device_exists = devices.iter().any(|d| d.id == device_id);
+
+        if !device_exists {
+            return Err(anyhow::anyhow!("Device {} not found", device_id));
+        }
+
+        info!("Device {} marked as disconnected", device_id);
+        Ok(())
+    }
+
+    /// 获取指定设备的详细信息
+    pub async fn get_device_info(&self, device_id: &str) -> Result<Option<AdbDevice>> {
+        let devices = self.get_devices().await?;
+        Ok(devices.into_iter().find(|d| d.id == device_id))
     }
 }
 

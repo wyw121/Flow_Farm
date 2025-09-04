@@ -1,7 +1,6 @@
 use std::sync::{Arc, Mutex};
 use reqwest::Client;
 use serde_json;
-use chrono::Utc;
 
 use crate::auth_models::*;
 

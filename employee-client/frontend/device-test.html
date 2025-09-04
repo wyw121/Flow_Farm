@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备管理测试</title>
+    <link rel="stylesheet" href="device-styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: var(--background);
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>设备管理功能测试</h1>
+
+        <!-- ADB状态 -->
+        <div id="adb-status" class="status-card">
+            <div class="status-indicator">
+                <span class="status-dot status-online"></span>
+                <span class="status-text">ADB连接正常</span>
+            </div>
+        </div>
+
+        <!-- 设备列表 -->
+        <div class="devices-section">
+            <div class="section-header">
+                <h3>连接的设备 (<span id="device-count">2</span>/10)</h3>
+                <div class="device-stats">
+                    <span class="stat-item">
+                        <span class="stat-label">可用:</span>
+                        <span id="available-count" class="stat-value">2</span>
+                    </span>
+                    <span class="stat-item">
+                        <span class="stat-label">已连接:</span>
+                        <span id="connected-count" class="stat-value">1</span>
+                    </span>
+                </div>
+            </div>
+
+            <div id="devices-grid" class="devices-grid">
+                <!-- 测试设备卡片1 - 已连接 -->
+                <div class="device-card connected">
+                    <div class="device-header">
+                        <div class="device-name">设备 1</div>
+                        <div class="device-status connected">已连接</div>
+                    </div>
+                    <div class="device-info">
+                        <div class="device-info-row">
+                            <span class="device-info-label">设备ID:</span>
+                            <span class="device-info-value">emulator-5554</span>
+                        </div>
+                        <div class="device-info-row">
+                            <span class="device-info-label">型号:</span>
+                            <span class="device-info-value">SDK built for x86</span>
+                        </div>
+                        <div class="device-info-row">
+                            <span class="device-info-label">Android版本:</span>
+                            <span class="device-info-value">11</span>
+                        </div>
+                        <div class="device-info-row">
+                            <span class="device-info-label">电量:</span>
+                            <span class="device-info-value">85%</span>
+                        </div>
+                    </div>
+                    <div class="device-actions">
+                        <button class="btn btn-danger">断开连接</button>
+                        <button class="btn btn-info">详情</button>
+                    </div>
+                </div>
+
+                <!-- 测试设备卡片2 - 可连接 -->
+                <div class="device-card">
+                    <div class="device-header">
+                        <div class="device-name">设备 2</div>
+                        <div class="device-status available">可连接</div>
+                    </div>
+                    <div class="device-info">
+                        <div class="device-info-row">
+                            <span class="device-info-label">设备ID:</span>
+                            <span class="device-info-value">1a2b3c4d</span>
+                        </div>
+                        <div class="device-info-row">
+                            <span class="device-info-label">型号:</span>
+                            <span class="device-info-value">SM-G950F</span>
+                        </div>
+                        <div class="device-info-row">
+                            <span class="device-info-label">Android版本:</span>
+                            <span class="device-info-value">9</span>
+                        </div>
+                        <div class="device-info-row">
+                            <span class="device-info-label">电量:</span>
+                            <span class="device-info-value">72%</span>
+                        </div>
+                    </div>
+                    <div class="device-actions">
+                        <button class="btn btn-success">连接</button>
+                        <button class="btn btn-info">详情</button>
+                    </div>
+                </div>
+
+                <!-- 测试设备卡片3 - 离线 -->
+                <div class="device-card offline">
+                    <div class="device-header">
+                        <div class="device-name">设备 3</div>
+                        <div class="device-status offline">离线</div>
+                    </div>
+                    <div class="device-info">
+                        <div class="device-info-row">
+                            <span class="device-info-label">设备ID:</span>
+                            <span class="device-info-value">offline-device</span>
+                        </div>
+                        <div class="device-info-row">
+                            <span class="device-info-label">型号:</span>
+                            <span class="device-info-value">未知</span>
+                        </div>
+                        <div class="device-info-row">
+                            <span class="device-info-label">Android版本:</span>
+                            <span class="device-info-value">未知</span>
+                        </div>
+                    </div>
+                    <div class="device-actions">
+                        <button class="btn btn-secondary" disabled>不可用</button>
+                        <button class="btn btn-info">详情</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 控制按钮 -->
+        <div style="margin-top: 2rem;">
+            <button class="btn btn-primary">
+                <span class="btn-icon">🔍</span>
+                扫描设备
+            </button>
+            <button class="btn btn-secondary">
+                <span class="btn-icon">🔄</span>
+                刷新设备
+            </button>
+            <button class="btn btn-info">
+                <span class="btn-icon">🛠️</span>
+                检查ADB
+            </button>
+        </div>
+    </div>
+
+    <!-- 测试通知 -->
+    <div class="notification success" style="display: block; position: relative; margin-top: 2rem;">
+        设备连接成功
+    </div>
+
+    <script>
+        console.log('设备管理界面测试页面加载完成');
+
+        // 测试按钮功能
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                console.log('按钮被点击:', e.target.textContent.trim());
+            });
+        });
+    </script>
+</body>
+</html>

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flow Farm Employee Client</title>
+    <link rel="stylesheet" href="device-styles.css">
+    <link rel="stylesheet" href="styles.css">
     <style>
         * {
             margin: 0;
@@ -234,10 +236,6 @@
             color: #666;
             font-size: 0.875rem;
         }
-
-        .hidden {
-            display: none !important;
-        }
     </style>
 </head>
 <body>
@@ -279,30 +277,109 @@
             </header>
 
             <div class="app-content">
-                <div class="welcome-section">
-                    <h2>欢迎使用 Flow Farm 员工客户端</h2>
-                    <p>您已成功登录系统。这里是您的工作台，您可以管理设备、执行任务和查看工作记录。</p>
+                <!-- 导航标签页 -->
+                <nav class="nav-tabs">
+                    <button class="nav-tab active" data-tab="device-management">设备管理</button>
+                    <button class="nav-tab" data-tab="task-management">任务管理</button>
+                    <button class="nav-tab" data-tab="statistics">工作统计</button>
+                    <button class="nav-tab" data-tab="settings">系统设置</button>
+                </nav>
+
+                <!-- 设备管理标签页 -->
+                <div id="device-management" class="tab-content active">
+                    <div class="page-header">
+                        <h2>🔌 设备管理</h2>
+                        <div class="header-actions">
+                            <button id="refresh-devices-btn" class="btn btn-secondary">
+                                <span class="btn-icon">🔄</span>
+                                刷新设备
+                            </button>
+                            <button id="check-adb-btn" class="btn btn-info">
+                                <span class="btn-icon">🛠️</span>
+                                检查ADB
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ADB状态提示 -->
+                    <div id="adb-status" class="status-card">
+                        <div class="status-indicator">
+                            <span class="status-dot status-unknown"></span>
+                            <span class="status-text">检查ADB连接状态...</span>
+                        </div>
+                        <!-- ADB路径配置区域 -->
+                        <div id="adb-config" class="adb-config">
+                            <div class="config-row">
+                                <label for="adb-path-input">ADB路径:</label>
+                                <input type="text" id="adb-path-input" placeholder="请输入ADB程序完整路径，如：D:\leidian\LDPlayer9\adb.exe">
+                                <button class="btn btn-primary" onclick="setAdbPath()">设置</button>
+                            </div>
+                            <div class="config-row">
+                                <button class="btn btn-info" onclick="findAdbInstallations()">自动搜索ADB</button>
+                                <small class="config-help-text">搜索常见模拟器和SDK中的ADB程序</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 设备列表 -->
+                    <div class="devices-section">
+                        <div class="section-header">
+                            <h3>连接的设备 (<span id="device-count">0</span>/10)</h3>
+                            <div class="device-stats">
+                                <span class="stat-item">
+                                    <span class="stat-label">可用:</span>
+                                    <span id="available-count" class="stat-value">0</span>
+                                </span>
+                                <span class="stat-item">
+                                    <span class="stat-label">已连接:</span>
+                                    <span id="connected-count" class="stat-value">0</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div id="devices-grid" class="devices-grid">
+                            <!-- 设备卡片将在这里动态生成 -->
+                        </div>
+
+                        <div id="no-devices" class="empty-state">
+                            <div class="empty-icon">📱</div>
+                            <h3>未检测到设备</h3>
+                            <p>请确保设备已连接并开启USB调试模式</p>
+                            <button id="scan-devices-btn" class="btn btn-primary">
+                                <span class="btn-icon">🔍</span>
+                                扫描设备
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <h3>🔌 设备管理</h3>
-                        <p>连接和管理您的工作设备，监控设备状态和性能。</p>
+                <!-- 任务管理标签页 -->
+                <div id="task-management" class="tab-content">
+                    <div class="page-header">
+                        <h2>📋 任务管理</h2>
                     </div>
-
-                    <div class="feature-card">
-                        <h3>📋 任务执行</h3>
-                        <p>创建和执行自动化任务，提高工作效率。</p>
+                    <div class="placeholder-content">
+                        <p>任务管理功能正在开发中...</p>
                     </div>
+                </div>
 
-                    <div class="feature-card">
-                        <h3>📊 工作记录</h3>
-                        <p>查看和管理您的工作记录，跟踪工作进度。</p>
+                <!-- 统计标签页 -->
+                <div id="statistics" class="tab-content">
+                    <div class="page-header">
+                        <h2>📊 工作统计</h2>
                     </div>
+                    <div class="placeholder-content">
+                        <p>工作统计功能正在开发中...</p>
+                    </div>
+                </div>
 
-                    <div class="feature-card">
-                        <h3>⚙️ 系统设置</h3>
-                        <p>个性化设置和系统配置选项。</p>
+                <!-- 设置标签页 -->
+                <div id="settings" class="tab-content">
+                    <div class="page-header">
+                        <h2>⚙️ 系统设置</h2>
+                    </div>
+                    <div class="placeholder-content">
+                        <p>系统设置功能正在开发中...</p>
                     </div>
                 </div>
             </div>
@@ -357,6 +434,54 @@
         const loginMessage = document.getElementById('login-message');
         const userDisplayName = document.getElementById('user-display-name');
         const logoutBtn = document.getElementById('logout-btn');
+
+        // 设备管理相关的DOM元素
+        let devicesGridEl, deviceCountEl, availableCountEl, connectedCountEl, noDevicesEl, adbStatusEl;
+        let currentDevices = [];
+        let connectedDevicesMap = new Map(); // 存储已连接设备的状态
+
+        // 初始化设备管理DOM元素
+        function initializeDeviceManagementElements() {
+            try {
+                devicesGridEl = document.getElementById('devices-grid');
+                deviceCountEl = document.getElementById('device-count');
+                availableCountEl = document.getElementById('available-count');
+                connectedCountEl = document.getElementById('connected-count');
+                noDevicesEl = document.getElementById('no-devices');
+                adbStatusEl = document.getElementById('adb-status');
+
+                console.log('设备管理DOM元素初始化:', {
+                    devicesGridEl: !!devicesGridEl,
+                    deviceCountEl: !!deviceCountEl,
+                    availableCountEl: !!availableCountEl,
+                    connectedCountEl: !!connectedCountEl,
+                    noDevicesEl: !!noDevicesEl,
+                    adbStatusEl: !!adbStatusEl
+                });
+
+                // 绑定事件
+                const refreshBtn = document.getElementById('refresh-devices-btn');
+                const checkAdbBtn = document.getElementById('check-adb-btn');
+                const scanBtn = document.getElementById('scan-devices-btn');
+
+                if (refreshBtn) refreshBtn.addEventListener('click', refreshDevices);
+                if (checkAdbBtn) checkAdbBtn.addEventListener('click', checkAdbStatus);
+                if (scanBtn) scanBtn.addEventListener('click', refreshDevices);
+
+                // 绑定标签页切换
+                const navTabs = document.querySelectorAll('.nav-tab');
+                console.log('找到导航标签页数量:', navTabs.length);
+                navTabs.forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        const tabId = e.target.dataset.tab;
+                        console.log('切换到标签页:', tabId);
+                        switchTab(tabId);
+                    });
+                });
+            } catch (error) {
+                console.error('初始化设备管理元素失败:', error);
+            }
+        }
 
         // 应用初始化
         document.addEventListener('DOMContentLoaded', async () => {
@@ -487,8 +612,422 @@
             // 显示用户信息
             const displayName = user.full_name || user.username;
             console.log('设置显示名称:', displayName);
-            userDisplayName.textContent = `${displayName} (${user.role})`;
+            if (userDisplayName) {
+                userDisplayName.textContent = `${displayName} (${user.role})`;
+            }
+
+            console.log('主应用界面应该现在可见了');
+            console.log('loginScreen hidden:', loginScreen.classList.contains('hidden'));
+            console.log('mainApp hidden:', mainApp.classList.contains('hidden'));
+
+            // 初始化设备管理
+            initializeDeviceManagementElements();
+
+            // 延迟执行设备检查，确保DOM已渲染
+            setTimeout(() => {
+                console.log('开始执行设备状态检查和刷新...');
+                checkAdbStatus();
+                refreshDevices();
+            }, 500);
         }
+
+        // ========== 设备管理功能 ==========
+
+        // 标签页切换
+        function switchTab(tabId) {
+            try {
+                console.log('切换标签页到:', tabId);
+
+                // 切换标签页按钮状态
+                const navTabs = document.querySelectorAll('.nav-tab');
+                navTabs.forEach(tab => {
+                    tab.classList.remove('active');
+                });
+
+                const activeTab = document.querySelector(`[data-tab="${tabId}"]`);
+                if (activeTab) {
+                    activeTab.classList.add('active');
+                    console.log('激活标签页按钮:', tabId);
+                } else {
+                    console.warn('未找到标签页按钮:', tabId);
+                }
+
+                // 切换标签页内容
+                const tabContents = document.querySelectorAll('.tab-content');
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                });
+
+                const activeContent = document.getElementById(tabId);
+                if (activeContent) {
+                    activeContent.classList.add('active');
+                    console.log('显示标签页内容:', tabId);
+                } else {
+                    console.warn('未找到标签页内容:', tabId);
+                }
+            } catch (error) {
+                console.error('切换标签页失败:', error);
+            }
+        }
+
+        // 检查ADB状态
+        async function checkAdbStatus() {
+            try {
+                updateAdbStatus('检查ADB连接状态...', 'unknown');
+
+                const isAvailable = await invoke('check_adb_available');
+
+                if (isAvailable) {
+                    updateAdbStatus('ADB连接正常', 'online');
+                    hideAdbConfig();
+                } else {
+                    updateAdbStatus('ADB未安装或不可用 - 请配置ADB路径', 'offline');
+                    showAdbConfig();
+                }
+
+                return isAvailable;
+            } catch (error) {
+                console.error('检查ADB状态失败:', error);
+                updateAdbStatus('ADB状态检查失败 - 请配置ADB路径', 'offline');
+                showAdbConfig();
+                return false;
+            }
+        }
+
+        // 显示ADB配置区域
+        function showAdbConfig() {
+            const configEl = document.getElementById('adb-config');
+            if (configEl) {
+                configEl.classList.remove('hidden');
+            }
+        }
+
+        // 隐藏ADB配置区域
+        function hideAdbConfig() {
+            const configEl = document.getElementById('adb-config');
+            if (configEl) {
+                configEl.classList.add('hidden');
+            }
+        }
+
+        // 设置ADB路径
+        async function setAdbPath() {
+            const pathInput = document.getElementById('adb-path-input');
+            const adbPath = pathInput.value.trim();
+
+            if (!adbPath) {
+                showNotification('请输入ADB路径', 'error');
+                return;
+            }
+
+            try {
+                showNotification('正在验证ADB路径...', 'info');
+
+                const isValid = await invoke('set_adb_path', { adbPath });
+
+                if (isValid) {
+                    showNotification('ADB路径设置成功！', 'success');
+                    // 重新检查ADB状态
+                    setTimeout(() => {
+                        checkAdbStatus();
+                    }, 1000);
+                } else {
+                    showNotification('ADB路径无效', 'error');
+                }
+            } catch (error) {
+                console.error('设置ADB路径失败:', error);
+                showNotification('ADB路径设置失败: ' + error, 'error');
+            }
+        }
+
+        // 自动搜索ADB安装
+        async function findAdbInstallations() {
+            try {
+                showNotification('正在搜索ADB程序...', 'info');
+
+                const foundPaths = await invoke('find_adb_installations');
+
+                if (foundPaths.length > 0) {
+                    // 自动选择第一个找到的路径
+                    const pathInput = document.getElementById('adb-path-input');
+                    pathInput.value = foundPaths[0];
+
+                    showNotification(`找到 ${foundPaths.length} 个ADB程序，已自动选择第一个`, 'success');
+
+                    // 如果找到了路径，提示用户可以点击设置
+                    setTimeout(() => {
+                        showNotification('请点击"设置"按钮应用ADB路径', 'info');
+                    }, 2000);
+                } else {
+                    showNotification('未找到ADB程序，请手动输入路径', 'info');
+                }
+            } catch (error) {
+                console.error('搜索ADB安装失败:', error);
+                showNotification('搜索ADB安装失败: ' + error, 'error');
+            }
+        }
+
+        // 更新ADB状态显示
+        function updateAdbStatus(message, status) {
+            if (!adbStatusEl) return;
+
+            const indicator = adbStatusEl.querySelector('.status-indicator');
+            const dot = indicator.querySelector('.status-dot');
+            const text = indicator.querySelector('.status-text');
+
+            dot.className = `status-dot status-${status}`;
+            text.textContent = message;
+        }
+
+        // 刷新设备列表
+        async function refreshDevices() {
+            try {
+                console.log('开始刷新设备列表');
+
+                // 检查ADB是否可用
+                const adbAvailable = await checkAdbStatus();
+                if (!adbAvailable) {
+                    showNotification('ADB不可用，请检查ADB安装', 'error');
+                    updateDevicesList([]);
+                    return;
+                }
+
+                showNotification('正在扫描设备...', 'info');
+
+                const devices = await invoke('get_adb_devices');
+                console.log('获取到的设备列表:', devices);
+
+                // 确保devices是一个数组
+                const deviceList = Array.isArray(devices) ? devices : [];
+                currentDevices = deviceList;
+                updateDevicesList(currentDevices);
+
+                if (deviceList.length > 0) {
+                    showNotification(`发现 ${deviceList.length} 个设备`, 'success');
+                } else {
+                    showNotification('未发现任何设备', 'info');
+                }
+
+            } catch (error) {
+                console.error('刷新设备列表失败:', error);
+                showNotification('设备扫描失败: ' + (error.message || error), 'error');
+                updateDevicesList([]);
+            }
+        }
+
+        // 更新设备列表显示
+        function updateDevicesList(devices) {
+            if (!devicesGridEl || !deviceCountEl || !availableCountEl || !connectedCountEl || !noDevicesEl) {
+                console.warn('设备管理元素未初始化');
+                return;
+            }
+
+            // 确保devices是一个数组
+            const validDevices = Array.isArray(devices) ? devices : [];
+            const deviceCount = validDevices.length;
+            const availableDevices = validDevices.filter(d => d && (d.status === 'device' || d.status === 'available'));
+            const connectedDevices = validDevices.filter(d => d && connectedDevicesMap.has(d.id));
+
+            // 更新统计数字
+            deviceCountEl.textContent = deviceCount;
+            availableCountEl.textContent = availableDevices.length;
+            connectedCountEl.textContent = connectedDevices.length;
+
+            // 清空设备网格
+            devicesGridEl.innerHTML = '';
+
+            if (deviceCount === 0) {
+                // 显示空状态
+                noDevicesEl.classList.remove('hidden');
+                noDevicesEl.classList.add('show-block');
+                devicesGridEl.classList.add('hidden');
+                devicesGridEl.classList.remove('show-grid');
+            } else {
+                // 隐藏空状态，显示设备网格
+                noDevicesEl.classList.add('hidden');
+                noDevicesEl.classList.remove('show-block');
+                devicesGridEl.classList.remove('hidden');
+                devicesGridEl.classList.add('show-grid');
+
+                // 生成设备卡片
+                validDevices.forEach((device, index) => {
+                    if (device && index < 10) { // 最多显示10个设备
+                        try {
+                            const deviceCard = createDeviceCard(device, index + 1);
+                            devicesGridEl.appendChild(deviceCard);
+                        } catch (error) {
+                            console.error('创建设备卡片失败:', error, device);
+                        }
+                    }
+                });
+            }
+        }
+
+        // 创建设备卡片
+        function createDeviceCard(device, slotNumber) {
+            if (!device || !device.id) {
+                console.error('无效的设备数据:', device);
+                return document.createElement('div');
+            }
+
+            const isConnected = connectedDevicesMap.has(device.id);
+            const isAvailable = device.status === 'device';
+
+            const card = document.createElement('div');
+            card.className = `device-card ${isConnected ? 'connected' : ''} ${!isAvailable ? 'offline' : ''}`;
+            card.dataset.deviceId = device.id;
+
+            // 获取设备状态和样式
+            let statusText, statusClass;
+            if (isConnected) {
+                statusText = '已连接';
+                statusClass = 'connected';
+            } else if (isAvailable) {
+                statusText = '可连接';
+                statusClass = 'available';
+            } else if (device.status === 'unauthorized') {
+                statusText = '未授权';
+                statusClass = 'unauthorized';
+            } else {
+                statusText = '离线';
+                statusClass = 'offline';
+            }
+
+            card.innerHTML = `
+                <div class="device-header">
+                    <div class="device-name">设备 ${slotNumber}</div>
+                    <div class="device-status ${statusClass}">${statusText}</div>
+                </div>
+                <div class="device-info">
+                    <div class="device-info-row">
+                        <span class="device-info-label">设备ID:</span>
+                        <span class="device-info-value">${device.id || '未知'}</span>
+                    </div>
+                    <div class="device-info-row">
+                        <span class="device-info-label">型号:</span>
+                        <span class="device-info-value">${device.model || '未知'}</span>
+                    </div>
+                    <div class="device-info-row">
+                        <span class="device-info-label">Android版本:</span>
+                        <span class="device-info-value">${device.android_version || '未知'}</span>
+                    </div>
+                    ${device.battery_level ? `
+                    <div class="device-info-row">
+                        <span class="device-info-label">电量:</span>
+                        <span class="device-info-value">${device.battery_level}%</span>
+                    </div>
+                    ` : ''}
+                </div>
+                <div class="device-actions">
+                    ${getDeviceActionButton(device, isConnected, isAvailable)}
+                    <button class="btn btn-info" onclick="showDeviceInfo('${device.id}')">详情</button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // 获取设备操作按钮
+        function getDeviceActionButton(device, isConnected, isAvailable) {
+            if (isConnected) {
+                return `<button class="btn btn-danger" onclick="disconnectDevice('${device.id}')">断开连接</button>`;
+            } else if (isAvailable) {
+                return `<button class="btn btn-success" onclick="connectDevice('${device.id}')">连接</button>`;
+            } else {
+                return `<button class="btn btn-secondary" disabled>不可用</button>`;
+            }
+        }
+
+        // 连接设备
+        async function connectDevice(deviceId) {
+            try {
+                showNotification('正在连接设备...', 'info');
+
+                const device = await invoke('connect_adb_device', { deviceId });
+                console.log('设备连接成功:', device);
+
+                // 更新连接状态
+                connectedDevicesMap.set(deviceId, device);
+
+                // 刷新设备列表显示
+                updateDevicesList(currentDevices);
+
+                showNotification('设备连接成功', 'success');
+
+            } catch (error) {
+                console.error('连接设备失败:', error);
+                showNotification('设备连接失败: ' + error, 'error');
+            }
+        }
+
+        // 断开设备连接
+        async function disconnectDevice(deviceId) {
+            try {
+                showNotification('正在断开设备...', 'info');
+
+                await invoke('disconnect_adb_device', { deviceId });
+                console.log('设备断开成功:', deviceId);
+
+                // 更新连接状态
+                connectedDevicesMap.delete(deviceId);
+
+                // 刷新设备列表显示
+                updateDevicesList(currentDevices);
+
+                showNotification('设备断开成功', 'success');
+
+            } catch (error) {
+                console.error('断开设备失败:', error);
+                showNotification('设备断开失败: ' + error, 'error');
+            }
+        }
+
+        // 显示设备详细信息
+        async function showDeviceInfo(deviceId) {
+            try {
+                const device = await invoke('get_device_info', { deviceId });
+
+                if (device) {
+                    alert(`设备详细信息:\n\n设备ID: ${device.id}\n名称: ${device.name}\n型号: ${device.model || '未知'}\n制造商: ${device.manufacturer || '未知'}\nAndroid版本: ${device.android_version || '未知'}\n屏幕分辨率: ${device.screen_resolution || '未知'}\n电量: ${device.battery_level ? device.battery_level + '%' : '未知'}\n状态: ${device.status}\n最后检测时间: ${new Date(device.last_seen).toLocaleString()}`);
+                } else {
+                    showNotification('获取设备信息失败', 'error');
+                }
+
+            } catch (error) {
+                console.error('获取设备信息失败:', error);
+                showNotification('获取设备信息失败: ' + error, 'error');
+            }
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'info', duration = 3000) {
+            // 移除已存在的通知
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            // 创建新通知
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            // 自动移除通知
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, duration);
+        }
+
+        // 将函数暴露到全局作用域，供HTML中的onclick使用
+        window.connectDevice = connectDevice;
+        window.disconnectDevice = disconnectDevice;
+        window.showDeviceInfo = showDeviceInfo;
+        window.setAdbPath = setAdbPath;
+        window.findAdbInstallations = findAdbInstallations;
 
         // 设置加载状态
         function setLoading(loading) {

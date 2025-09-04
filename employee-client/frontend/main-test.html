@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主界面测试</title>
+    <link rel="stylesheet" href="device-styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 主应用界面 -->
+        <div class="main-app" style="display: flex;">
+            <header class="app-header">
+                <h1>Flow Farm 员工客户端</h1>
+                <div class="user-info">
+                    <span class="user-name">张三 (员工)</span>
+                    <button class="logout-btn">退出登录</button>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- 导航标签页 -->
+                <nav class="nav-tabs">
+                    <button class="nav-tab active" data-tab="device-management">设备管理</button>
+                    <button class="nav-tab" data-tab="task-management">任务管理</button>
+                    <button class="nav-tab" data-tab="statistics">工作统计</button>
+                    <button class="nav-tab" data-tab="settings">系统设置</button>
+                </nav>
+
+                <!-- 设备管理标签页 -->
+                <div id="device-management" class="tab-content active">
+                    <div class="page-header">
+                        <h2>🔌 设备管理</h2>
+                        <div class="header-actions">
+                            <button class="btn btn-secondary">
+                                <span class="btn-icon">🔄</span>
+                                刷新设备
+                            </button>
+                            <button class="btn btn-info">
+                                <span class="btn-icon">🛠️</span>
+                                检查ADB
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ADB状态提示 -->
+                    <div class="status-card">
+                        <div class="status-indicator">
+                            <span class="status-dot status-online"></span>
+                            <span class="status-text">ADB连接正常</span>
+                        </div>
+                    </div>
+
+                    <!-- 设备列表 -->
+                    <div class="devices-section">
+                        <div class="section-header">
+                            <h3>连接的设备 (<span>2</span>/10)</h3>
+                            <div class="device-stats">
+                                <span class="stat-item">
+                                    <span class="stat-label">可用:</span>
+                                    <span class="stat-value">2</span>
+                                </span>
+                                <span class="stat-item">
+                                    <span class="stat-label">已连接:</span>
+                                    <span class="stat-value">1</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="devices-grid">
+                            <!-- 设备卡片示例 -->
+                            <div class="device-card connected">
+                                <div class="device-header">
+                                    <div class="device-name">设备 1</div>
+                                    <div class="device-status connected">已连接</div>
+                                </div>
+                                <div class="device-info">
+                                    <div class="device-info-row">
+                                        <span class="device-info-label">设备ID:</span>
+                                        <span class="device-info-value">emulator-5554</span>
+                                    </div>
+                                    <div class="device-info-row">
+                                        <span class="device-info-label">型号:</span>
+                                        <span class="device-info-value">SDK built for x86</span>
+                                    </div>
+                                </div>
+                                <div class="device-actions">
+                                    <button class="btn btn-danger">断开连接</button>
+                                    <button class="btn btn-info">详情</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 其他标签页 -->
+                <div id="task-management" class="tab-content">
+                    <div class="page-header">
+                        <h2>📋 任务管理</h2>
+                    </div>
+                    <div class="placeholder-content">
+                        <p>任务管理功能正在开发中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签页切换功能
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabId = e.target.dataset.tab;
+
+                // 切换标签页按钮状态
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+
+                // 切换内容
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tabId)?.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
