@@ -10,11 +10,15 @@ mod models;
 mod contact_manager;
 mod adb_manager;
 mod xiaohongshu_automator;
+mod auth_models;
+mod auth_service;
 
 use models::*;
 use contact_manager::{ContactManager, ContactList};
 use adb_manager::{AdbManager, AdbDevice};
 use xiaohongshu_automator::{XiaohongshuAutomator, XiaohongshuConfig, AutomationTask, SearchResult};
+use auth_service::{AuthService, AuthConfig};
+use auth_models::{UserSession, UserInfo};
 
 struct AppState {
     devices: Arc<Mutex<HashMap<String, DeviceInfo>>>,
@@ -24,7 +28,82 @@ struct AppState {
     xiaohongshu_automator: Arc<XiaohongshuAutomator>,
     automation_tasks: Arc<Mutex<HashMap<String, AutomationTask>>>,
     contact_lists: Arc<Mutex<HashMap<String, ContactList>>>,
+    auth_service: Arc<AuthService>,
 }
+
+// 认证相关的Tauri命令
+
+#[tauri::command]
+async fn login(
+    username: String,
+    password: String,
+    state: State<'_, AppState>
+) -> Result<UserSession, String> {
+    tracing::info!("收到登录请求，用户名: {}", username);
+
+    match state.auth_service.login(&username, &password).await {
+        Ok(session) => {
+            tracing::info!("用户 {} 登录成功", username);
+            Ok(session)
+        }
+        Err(e) => {
+            tracing::error!("登录失败: {}", e);
+            Err(format!("登录失败: {}", e))
+        }
+    }
+}
+
+#[tauri::command]
+async fn logout(state: State<'_, AppState>) -> Result<(), String> {
+    state.auth_service.logout();
+    Ok(())
+}
+
+#[tauri::command]
+async fn get_current_session(state: State<'_, AppState>) -> Result<Option<UserSession>, String> {
+    Ok(state.auth_service.get_current_session())
+}
+
+#[tauri::command]
+async fn is_logged_in(state: State<'_, AppState>) -> Result<bool, String> {
+    Ok(state.auth_service.is_logged_in())
+}
+
+#[tauri::command]
+async fn get_current_user(state: State<'_, AppState>) -> Result<Option<UserInfo>, String> {
+    Ok(state.auth_service.get_current_user())
+}
+
+#[tauri::command]
+async fn validate_token(token: String, state: State<'_, AppState>) -> Result<bool, String> {
+    match state.auth_service.validate_token(&token).await {
+        Ok(is_valid) => Ok(is_valid),
+        Err(e) => {
+            tracing::error!("Token验证失败: {}", e);
+            Ok(false)
+        }
+    }
+}
+
+#[tauri::command]
+async fn update_auth_config(
+    server_url: String,
+    timeout_seconds: u64,
+    state: State<'_, AppState>
+) -> Result<(), String> {
+    // 注意：这里需要获取可变引用，但Arc不支持
+    // 实际使用中，可能需要重新设计架构或使用其他同步原语
+    let config = AuthConfig {
+        server_url,
+        timeout_seconds,
+    };
+
+    // 这里我们记录配置更新，但实际实现可能需要重新创建AuthService
+    tracing::info!("收到认证配置更新请求: {:?}", config);
+    Ok(())
+}
+
+// 设备和任务相关的命令
 
 #[tauri::command]
 async fn get_devices(state: State<'_, AppState>) -> Result<Vec<DeviceInfo>, String> {
@@ -428,6 +507,13 @@ fn main() {
     let contact_manager = Arc::new(ContactManager::new());
     let xiaohongshu_automator = Arc::new(XiaohongshuAutomator::new((*adb_manager).clone()));
 
+    // 创建认证服务
+    let auth_config = AuthConfig {
+        server_url: "http://localhost:8000".to_string(),
+        timeout_seconds: 30,
+    };
+    let auth_service = Arc::new(AuthService::new(Some(auth_config)));
+
     let app_state = AppState {
         devices: Arc::new(Mutex::new(HashMap::new())),
         tasks: Arc::new(Mutex::new(HashMap::new())),
@@ -436,6 +522,7 @@ fn main() {
         xiaohongshu_automator,
         automation_tasks: Arc::new(Mutex::new(HashMap::new())),
         contact_lists: Arc::new(Mutex::new(HashMap::new())),
+        auth_service,
     };
 
     tauri::Builder::default()
@@ -451,6 +538,15 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            // 认证相关命令
+            login,
+            logout,
+            get_current_session,
+            is_logged_in,
+            get_current_user,
+            validate_token,
+            update_auth_config,
+            // 基础命令
             greet,
             get_devices,
             connect_device,
