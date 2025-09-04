@@ -31,6 +31,7 @@ pub async fn create_app(database: Database, config: Config) -> Router {
         .route("/health", get(handlers::health::health_check))
         .route("/api/v1/auth/login", post(handlers::auth::login))
         .route("/api/v1/auth/register", post(handlers::auth::register))
+        .route("/api/v1/auth/logout", post(handlers::auth::logout))
         .route("/docs", get(handlers::docs::api_docs))
         .with_state((database.clone(), config.clone()));
 

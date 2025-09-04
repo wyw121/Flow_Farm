@@ -1,5 +1,5 @@
 use axum::{
-    extract::{State, Json},
+    extract::{Json, State},
     http::StatusCode,
     response::Json as ResponseJson,
 };
@@ -7,11 +7,11 @@ use serde_json::{json, Value};
 use validator::Validate;
 
 use crate::{
-    Database, Config,
-    models::{LoginRequest, CreateUserRequest, ApiResponse, LoginResponse, UserInfo},
+    middleware::auth::AuthContext,
+    models::{ApiResponse, CreateUserRequest, LoginRequest, LoginResponse, UserInfo},
     services::auth::AuthService,
     utils::jwt::Claims,
-    middleware::auth::AuthContext,
+    Config, Database,
 };
 
 type AppState = (Database, Config);
@@ -27,11 +27,16 @@ pub async fn login(
 
     let auth_service = AuthService::new(database, config);
 
-    match auth_service.login(&request.username, &request.password).await {
+    match auth_service
+        .login(&request.username, &request.password)
+        .await
+    {
         Ok(response) => Ok(ResponseJson(ApiResponse::success(response))),
         Err(e) => {
             tracing::error!("登录失败: {}", e);
-            Ok(ResponseJson(ApiResponse::error("用户名或密码错误".to_string())))
+            Ok(ResponseJson(ApiResponse::error(
+                "用户名或密码错误".to_string(),
+            )))
         }
     }
 }
@@ -68,11 +73,24 @@ pub async fn refresh_token(
 ) -> Result<ResponseJson<ApiResponse<String>>, StatusCode> {
     let auth_service = AuthService::new(database, config);
 
-    match auth_service.refresh_token(&auth_context.user.id.to_string()).await {
+    match auth_service
+        .refresh_token(&auth_context.user.id.to_string())
+        .await
+    {
         Ok(token) => Ok(ResponseJson(ApiResponse::success(token))),
         Err(e) => {
             tracing::error!("刷新token失败: {}", e);
-            Ok(ResponseJson(ApiResponse::error("刷新token失败".to_string())))
+            Ok(ResponseJson(ApiResponse::error(
+                "刷新token失败".to_string(),
+            )))
         }
     }
+}
+
+pub async fn logout(
+    State((_database, _config)): State<AppState>,
+) -> Result<ResponseJson<ApiResponse<String>>, StatusCode> {
+    // 对于JWT token，logout通常在前端处理（删除token）
+    // 这里只是返回成功响应
+    Ok(ResponseJson(ApiResponse::success("注销成功".to_string())))
 }
