@@ -2,15 +2,58 @@
 
 ## Project Overview
 
-Flow Farm Employee Client is a modern desktop application built with **Rust** and **Tauri framework** for native GUI development. This is a standalone employee management and automation client that provides:
+Flow Farm Employee Client 是一个用于员工角色的现代化桌面 GUI 应用程序，使用 **Rust** 和 **Tauri 框架** 构建。这是一个独立的员工管理和自动化客户端，提供以下功能：
 
-- Employee authentication and authorization
-- Device automation management via ADB
-- Task execution and monitoring
-- Real-time data synchronization with server
-- Modern native GUI using Tauri (Rust + HTML/CSS/JS)
+- 员工身份验证和授权
+- 设备自动化管理（通过 ADB）
+- 任务执行和监控（重点：通讯录管理、精准获客）
+- 与服务器实时数据同步
+- 支持多平台社交媒体操作（小红书优先，抖音紧随，未来扩展快手、B 站等）
+- 设备管理（最多支持 10 台设备）
+- 余额检查和扣费机制
+- 关注统计和进度显示
 
-**Important**: This project uses **native Rust GUI with Tauri**, NOT React.js or web-based frameworks.
+**重要提醒**: 本项目使用 **Tauri 原生 GUI（Rust + HTML/CSS/JS）**，而不是 React.js 或纯 Web 框架。
+
+## 核心模块架构
+
+### 设备管理模块
+
+- 设备编号管理（1-10）
+- 设备连接状态监控
+- ADB 自动化控制
+- 任务分配到已连接设备
+
+### 任务管理模块（重点）
+
+1. **通讯录管理**：
+
+   - 文件上传（CSV/文本）
+   - 数据导入到服务器
+   - 自动关注执行
+   - 不重复分配任务
+
+2. **精准获客（同行监控）**：
+   - 搜索条件配置
+   - 同行账号监控
+   - 评论关键词爬取
+   - 用户 ID 收集
+   - 达到阈值后自动关注
+
+### 关注统计模块
+
+- 总关注人数统计
+- 每日新增关注数
+- 余额比较和检查
+- 任务进度显示
+
+### 通用机制
+
+- 余额显示和检查（超过余额禁止提交任务）
+- 自动任务分配（均匀分发到已连接设备）
+- 实时进度条显示
+- 成功关注后扣费机制
+- 平台特定脚本执行（小红书/抖音）
 
 ## Technology Stack
 
@@ -21,6 +64,8 @@ Flow Farm Employee Client is a modern desktop application built with **Rust** an
 - **Frontend**: HTML/CSS/JavaScript (minimal, for UI only)
 - **Build System**: Cargo + Tauri CLI
 - **Platform**: Windows (primary), with cross-platform support
+- **Database**: SQLx for local storage
+- **API Communication**: reqwest for server communication
 
 ### Key Dependencies
 
@@ -39,15 +84,58 @@ employee-client/
 ├── src-tauri/              # Rust backend code
 │   ├── src/
 │   │   ├── main.rs        # Application entry point
-│   │   ├── api.rs         # API communication
-│   │   ├── device.rs      # Device management
-│   │   └── models.rs      # Data models
+│   │   ├── api.rs         # API communication with server
+│   │   ├── device.rs      # Device management & ADB control
+│   │   ├── models.rs      # Data models and structures
+│   │   └── utils.rs       # Utility functions
 │   ├── Cargo.toml         # Rust dependencies
 │   └── tauri.conf.json    # Tauri configuration
 ├── src/                   # Frontend assets (HTML/CSS/JS)
+│   ├── index.html         # Main application UI
+│   ├── styles.css         # Application styling
+│   └── components/        # UI components
+├── frontend/              # Additional frontend resources
 ├── logs/                  # Application logs
+├── public/                # Static assets
 └── target/                # Build artifacts (excluded)
 ```
+
+## Build and Development Instructions
+
+### Environment Setup
+
+1. **Install Rust**: Use rustup to install latest stable Rust
+2. **Install Tauri CLI**: `cargo install tauri-cli`
+3. **Verify Installation**: `cargo tauri --version`
+
+### Development Commands
+
+```bash
+# Development mode (hot reload)
+cargo tauri dev
+
+# Check code
+cargo check
+
+# Run tests
+cargo test
+
+# Code formatting
+cargo fmt
+
+# Code linting
+cargo clippy --all-targets --all-features
+
+# Production build
+cargo tauri build
+```
+
+### Important Build Notes
+
+- **Always run `cargo check` before making changes**
+- **Use `cargo tauri dev` for development with hot reload**
+- **Production builds require: `cargo tauri build`**
+- **Target platform**: Windows (x86_64-pc-windows-msvc)
 
 ## Build and Development Instructions
 
