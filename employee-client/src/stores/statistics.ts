@@ -12,7 +12,7 @@ export const useStatisticsStore = defineStore('statistics', () => {
 
   const loadStatistics = async () => {
     try {
-      const { invoke } = await import('@tauri-apps/api/tauri')
+      const { invoke } = await import('@tauri-apps/api/core')
       const stats = await invoke<FollowStatistics>('get_statistics')
       statistics.value = stats
     } catch (error) {

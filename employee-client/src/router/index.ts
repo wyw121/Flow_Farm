@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '../stores/user'
 
 // 页面组件
@@ -9,6 +9,7 @@ const TaskCenter = () => import('../views/TaskCenter.vue')
 const Statistics = () => import('../views/Statistics.vue')
 const Settings = () => import('../views/Settings.vue')
 const Login = () => import('../views/Login.vue')
+const XiaohongshuAutomation = () => import('../views/XiaohongshuAutomation.vue')
 
 const routes: RouteRecordRaw[] = [
   {
@@ -46,6 +47,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/xiaohongshu',
+    name: 'XiaohongshuAutomation',
+    component: XiaohongshuAutomation,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/settings',
     name: 'Settings',
     component: Settings,
@@ -61,7 +68,7 @@ const router = createRouter({
 // 路由守卫
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
-  
+
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
     next('/login')
   } else if (to.path === '/login' && userStore.isLoggedIn) {

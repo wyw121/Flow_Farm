@@ -1,18 +1,18 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { DeviceInfo } from '../types'
 
 export const useDeviceStore = defineStore('device', () => {
   const devices = ref<DeviceInfo[]>([])
   const isScanning = ref(false)
 
-  const connectedDevices = computed(() => 
+  const connectedDevices = computed(() =>
     devices.value.filter(device => device.status === '已连接')
   )
 
   const loadDevices = async () => {
     try {
-      const { invoke } = await import('@tauri-apps/api/tauri')
+      const { invoke } = await import('@tauri-apps/api/core')
       const deviceList = await invoke<DeviceInfo[]>('get_devices')
       devices.value = deviceList
     } catch (error) {
@@ -22,8 +22,8 @@ export const useDeviceStore = defineStore('device', () => {
 
   const connectDevice = async (deviceId: string) => {
     try {
-      const { invoke } = await import('@tauri-apps/api/tauri')
-      
+      const { invoke } = await import('@tauri-apps/api/core')
+
       // 更新设备状态为连接中
       const device = devices.value.find(d => d.id === deviceId)
       if (device) {
@@ -31,10 +31,10 @@ export const useDeviceStore = defineStore('device', () => {
       }
 
       const result = await invoke<string>('connect_device', { deviceId })
-      
+
       // 重新加载设备列表
       await loadDevices()
-      
+
       return result
     } catch (error) {
       // 恢复设备状态
@@ -49,12 +49,12 @@ export const useDeviceStore = defineStore('device', () => {
 
   const disconnectDevice = async (deviceId: string) => {
     try {
-      const { invoke } = await import('@tauri-apps/api/tauri')
+      const { invoke } = await import('@tauri-apps/api/core')
       const result = await invoke<string>('disconnect_device', { deviceId })
-      
+
       // 重新加载设备列表
       await loadDevices()
-      
+
       return result
     } catch (error) {
       console.error('断开设备失败:', error)
