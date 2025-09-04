@@ -44,6 +44,16 @@ device_dumps/
 build/
 dist/
 *.spec
+target/
+
+# Node modules 和前端构建
+node_modules/
+.npm
+.yarn-cache
+
+# Tauri 和 Rust
+src-tauri/target/
+Cargo.lock
 
 # 测试文件
 .pytest_cache/
