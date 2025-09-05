@@ -1,201 +1,93 @@
-# ADB XML Reader
+# 小红书自动化工具
 
-一个用 Rust 编写的独立工具，通过 ADB 连接读取 Android 设备的 UI 页面信息并解析为结构化数据。
+一个专为小红书设计的自动化工具，支持通讯录好友导入和自动关注功能。
 
-## 功能特性
+## 🎯 核心功能
 
-- 🔍 **UI 层次结构分析**: 完整解析 Android 应用的 UI 结构
-- 📱 **多设备支持**: 自动检测连接的设备，支持指定特定设备
-- 🎯 **智能搜索**: 按文本内容和资源ID查找UI元素
-- 📸 **截图功能**: 同时保存当前屏幕截图用于对比分析
-- 📊 **统计报告**: 提供UI元素的详细统计信息
-- 💾 **数据导出**: 将UI层次结构保存为JSON格式便于后续处理
-- 📞 **联系人导入**: 支持CSV和VCF格式的联系人批量导入
-- 🤖 **自动化操作**: 小红书自动导航和关注功能
-- 🎮 **智能点击**: 支持精确坐标点击和UI元素自动定位
+### 1. 📞 通讯录好友导入
+从CSV文件批量导入联系人到设备通讯录，支持中国手机号格式（+86）。
 
-## 安装要求
+### 2. 🤖 小红书自动关注通讯录好友
+自动导航到小红书通讯录页面，并智能关注所有通讯录中的好友。
 
-- Rust 1.70+
-- ADB (Android Debug Bridge) 已安装并在 PATH 中
-- Android 设备已启用 USB 调试并授权连接
+## 🚀 快速开始
 
-## 编译运行
-
+### 编译项目
 ```bash
-# 进入项目目录
-cd d:\repositories\Flow_Farm\adb_xml_reader
-
-# 编译项目
 cargo build --release
-
-# 运行程序
-cargo run -- --help
 ```
 
-## 使用方法
+### 使用方法
 
-### 基本用法
-
+#### 1. 通讯录导入
 ```bash
-# 获取默认设备的UI信息
-cargo run
-
-# 指定特定设备
-cargo run -- --device emulator-5554
-
-# 保存到指定文件
-cargo run -- --output my_ui.json
+# 从CSV文件导入联系人（格式: 姓名,电话,地址,职业,邮箱）
+target\release\adb_xml_reader.exe --import-vcf test_contacts_vcf.txt --device "127.0.0.1:5555"
 ```
 
-### 高级功能
-
+#### 2. 小红书自动关注
 ```bash
-# 同时保存截图
-cargo run -- --screenshot screen.png
+# 智能检测当前页面并开始关注
+target\release\adb_xml_reader.exe --smart-follow --device "127.0.0.1:5555"
 
-# 在终端打印UI层次结构
-cargo run -- --print
-
-# 搜索包含特定文本的元素
-cargo run -- --search "登录"
-
-# 查找特定资源ID的元素
-cargo run -- --find-id "com.example:id/login_button"
-
-# 精确坐标点击
-cargo run -- --click 500,800
-
-# 组合使用多个功能
-cargo run -- --print --search "按钮" --screenshot current.png
-```
-
-### 小红书自动化功能 ⭐ NEW
-
-```bash
-# 自动导航到通讯录页面（左上角菜单 -> 发现好友 -> 通讯录）
-cargo run -- --auto-contact-flow
-
-# 完整自动关注流程（导航 + 自动关注所有通讯录好友）
-cargo run -- --auto-follow-contacts
-
-# 使用编译后的程序（推荐）
-target\release\adb_xml_reader.exe --auto-follow-contacts
-
-# 指定设备执行自动关注
+# 从主页开始完整流程（菜单→发现好友→通讯录→关注）
 target\release\adb_xml_reader.exe --auto-follow-contacts --device "127.0.0.1:5555"
 ```
 
-### 联系人导入功能
+## ⚙️ 环境要求
 
-```bash
-# VCF格式联系人导入（推荐）
-cargo run -- --import-vcf contacts.csv
+- Rust 1.70+
+- Android设备已启用USB调试
+- ADB (Android Debug Bridge) 已安装
+- 小红书APP已安装
 
-# 优化版联系人导入（避免Google登录）
-cargo run -- --import-contacts-optimized contacts.csv
+## 📋 联系人文件格式
 
-# 传统联系人导入
-cargo run -- --import-contacts contacts.csv
+CSV文件格式示例（`test_contacts_vcf.txt`）：
+```
+陈美飞,13800001234,上海市浦东新区,软件工程师,chen@email.com
+李时尚,13900005678,北京市朝阳区,设计师,li@email.com
+刘流行,13700009876,深圳市南山区,产品经理,liu@email.com
 ```
 
-## 输出格式
+## 🛡️ 安全特性
 
-### JSON 结构
-```json
-{
-  "tag": "android.widget.LinearLayout",
-  "class": "android.widget.LinearLayout",
-  "text": null,
-  "content_desc": null,
-  "resource_id": "com.example:id/main_layout",
-  "package": "com.example.app",
-  "bounds": "[0,0][1080,1920]",
-  "clickable": false,
-  "enabled": true,
-  "focused": false,
-  "selected": false,
-  "children": [...]
-}
+- 操作间隔控制，避免频繁操作被检测
+- 智能跳过已关注用户
+- 自动页面状态检测
+- 详细的执行日志和进度报告
+
+## ⚠️ 使用注意
+
+- 建议在网络良好时使用
+- 确保设备屏幕保持亮屏状态
+- 首次使用建议小规模测试
+- 请遵守平台使用规定
+
+## 📊 执行示例
+
+```
+🧠 开始执行智能关注流程...
+🧠 开始智能联系人流程检测...
+      🔍 页面检测: 关注按钮=0, 已关注按钮=4, 通讯录标题=true
+✅ 检测到当前在通讯录页面，直接开始关注
+🤖 开始自动关注通讯录中的好友...
+
+📄 正在处理第 1 页...
+      ⏭️  跳过已关注用户: '已关注'
+      🎯 找到关注按钮: '关注' 位置: Some(Bounds { left: 911, top: 170, right: 1009, bottom: 216 })
+      👆 点击第 1 个关注按钮...
+      🔍 按钮文字变化: '关注' -> '已关注'
+      ✅ 按钮状态确认: 关注成功
+
+📈 关注统计:
+   总共关注: 3 个好友
+   处理页数: 2 页
+
+✅ 智能关注流程执行成功！
 ```
 
-### 终端输出示例
-```
-✅ 发现设备:
-  ➤ emulator-5554
+---
 
-正在获取 UI 层次结构...
-✅ 成功获取 UI XML (15234 字符)
-✅ UI 层次结构已保存到: ui_hierarchy.json
-
-📊 统计信息:
-  总元素数: 127
-  可点击元素: 23
-  有文本元素: 45
-  有ID元素: 67
-```
-
-## UI 元素属性说明
-
-| 属性 | 类型 | 说明 |
-|------|------|------|
-| `tag` | String | XML标签名 (如 Button, TextView) |
-| `class` | Option<String> | Android 类名 |
-| `text` | Option<String> | 显示的文本内容 |
-| `content_desc` | Option<String> | 无障碍描述 |
-| `resource_id` | Option<String> | 资源ID标识符 |
-| `package` | Option<String> | 所属应用包名 |
-| `bounds` | Option<String> | 屏幕坐标边界 |
-| `clickable` | bool | 是否可点击 |
-| `enabled` | bool | 是否启用 |
-| `focused` | bool | 是否获得焦点 |
-| `selected` | bool | 是否被选中 |
-| `children` | Vec<UIElement> | 子元素列表 |
-
-## 应用场景
-
-1. **UI 自动化测试**: 分析应用界面结构，编写自动化测试脚本
-2. **应用逆向分析**: 了解第三方应用的界面组织结构
-3. **辅助功能开发**: 为无障碍功能提供UI元素信息
-4. **自动化脚本开发**: 为自动化操作提供精确的元素定位信息
-5. **界面调试**: 帮助开发者理解复杂界面的层次结构
-
-## 注意事项
-
-⚠️ **重要提示**
-- 确保目标设备屏幕处于活动状态（非锁屏状态）
-- 某些系统界面可能需要更高权限才能获取完整信息
-- 请遵守相关法律法规，仅用于合法的开发和测试目的
-- 不同Android版本的UI结构可能存在差异
-
-## 故障排除
-
-### 常见问题
-
-1. **未找到设备**
-   ```bash
-   adb devices  # 检查设备连接状态
-   adb kill-server && adb start-server  # 重启ADB服务
-   ```
-
-2. **获取到空XML**
-   - 确保设备屏幕未锁定
-   - 尝试操作设备后重新获取
-   - 检查应用是否有特殊保护机制
-
-3. **权限被拒绝**
-   - 在设备上重新授权ADB调试权限
-   - 检查开发者选项是否正确启用
-
-## 开发说明
-
-本工具基于以下技术栈：
-- **tokio**: 异步运行时
-- **roxmltree**: XML 解析
-- **serde**: 序列化和反序列化
-- **clap**: 命令行参数解析
-- **anyhow**: 错误处理
-
-## 许可证
-
-本项目为 Flow Farm 内部工具，仅供学习和开发使用。
+**版本**: v1.0.0  
+**最后更新**: 2025年9月6日

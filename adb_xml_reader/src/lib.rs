@@ -5,8 +5,6 @@ use tokio::process::Command as TokioCommand;
 use std::time::Duration;
 use tokio::time::sleep;
 
-pub mod contact_import;
-pub mod vcf_import;
 pub mod vcf_import_optimized;
 
 pub use vcf_import_optimized::VcfImporter;

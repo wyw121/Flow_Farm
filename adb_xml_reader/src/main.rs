@@ -337,25 +337,7 @@ async fn main() -> Result<()> {
         println!("\n📞 开始优化版联系人导入（避免Google登录弹窗）...");
         println!("{}", "=".repeat(60));
 
-        // 加载联系人数据
-        let contacts = match adb_client.load_contacts_from_file(contacts_file) {
-            Ok(contacts) => contacts,
-            Err(e) => {
-                println!("❌ 加载联系人文件失败: {}", e);
-                return Err(e);
-            }
-        };
-
-        if contacts.is_empty() {
-            println!("❌ 联系人文件为空或格式错误");
-            return Ok(());
-        }
-
-        println!("📋 准备导入 {} 个联系人", contacts.len());
-        println!("🔧 使用优化策略：本地存储、避免系统账户、智能重试");
-        println!();
-
-        match adb_client.execute_contact_import_flow(&contacts).await {
+        match adb_client.import_contacts_to_device(contacts_file).await {
             Ok(_) => {
                 println!("\n✅ 优化版联系人导入完成！");
                 println!("🎯 特点：避免了Google登录弹窗干扰");
