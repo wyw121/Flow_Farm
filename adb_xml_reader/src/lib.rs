@@ -5,8 +5,72 @@ use tokio::process::Command as TokioCommand;
 use std::time::Duration;
 use tokio::time::sleep;
 
+pub mod contact_import;
+pub mod vcf_import;
+
+pub use vcf_import::VcfImporter;
+
 // ADB 可执行文件路径
 const ADB_PATH: &str = r"D:\leidian\LDPlayer9\adb.exe";
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Bounds {
+    pub left: i32,
+    pub top: i32,
+    pub right: i32,
+    pub bottom: i32,
+}
+
+impl Bounds {
+    pub fn from_string(bounds_str: &str) -> Result<Self> {
+        // bounds格式: "[left,top][right,bottom]"
+        let bounds_str = bounds_str.trim_matches(['[', ']']);
+        let parts: Vec<&str> = bounds_str.split("][").collect();
+
+        if parts.len() != 2 {
+            return Err(anyhow::anyhow!("无效的bounds格式: {}", bounds_str));
+        }
+
+        let left_top: Vec<i32> = parts[0].split(',')
+            .map(|s| s.parse::<i32>())
+            .collect::<Result<Vec<_>, _>>()
+            .context("解析左上角坐标失败")?;
+
+        let right_bottom: Vec<i32> = parts[1].split(',')
+            .map(|s| s.parse::<i32>())
+            .collect::<Result<Vec<_>, _>>()
+            .context("解析右下角坐标失败")?;
+
+        if left_top.len() != 2 || right_bottom.len() != 2 {
+            return Err(anyhow::anyhow!("坐标格式错误"));
+        }
+
+        Ok(Bounds {
+            left: left_top[0],
+            top: left_top[1],
+            right: right_bottom[0],
+            bottom: right_bottom[1],
+        })
+    }
+
+    pub fn center_x(&self) -> i32 {
+        (self.left + self.right) / 2
+    }
+
+    pub fn center_y(&self) -> i32 {
+        (self.top + self.bottom) / 2
+    }
+
+    pub fn center(&self) -> (i32, i32) {
+        (self.center_x(), self.center_y())
+    }
+}
+
+impl std::fmt::Display for Bounds {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[{},{}][{},{}]", self.left, self.top, self.right, self.bottom)
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UIElement {
@@ -16,12 +80,44 @@ pub struct UIElement {
     pub content_desc: Option<String>,
     pub resource_id: Option<String>,
     pub package: Option<String>,
-    pub bounds: Option<String>,
+    pub bounds: Option<Bounds>,
     pub clickable: bool,
     pub enabled: bool,
     pub focused: bool,
     pub selected: bool,
     pub children: Vec<UIElement>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Contact {
+    pub name: String,
+    pub phone: String,
+    pub address: Option<String>,
+    pub profession: Option<String>,
+    pub email: Option<String>,
+}
+
+impl Contact {
+    pub fn from_csv_line(line: &str) -> Result<Contact> {
+        let parts: Vec<&str> = line.split(',').collect();
+        if parts.len() < 2 {
+            return Err(anyhow::anyhow!("联系人格式错误，至少需要姓名和电话"));
+        }
+
+        Ok(Contact {
+            name: parts[0].trim().to_string(),
+            phone: parts[1].trim().to_string(),
+            address: if parts.len() > 2 && !parts[2].trim().is_empty() {
+                Some(parts[2].trim().to_string())
+            } else { None },
+            profession: if parts.len() > 3 && !parts[3].trim().is_empty() {
+                Some(parts[3].trim().to_string())
+            } else { None },
+            email: if parts.len() > 4 && !parts[4].trim().is_empty() {
+                Some(parts[4].trim().to_string())
+            } else { None },
+        })
+    }
 }
 
 pub struct AdbClient {
@@ -121,6 +217,9 @@ impl AdbClient {
 
     /// 递归解析 XML 节点
     fn parse_node(&self, node: &roxmltree::Node) -> UIElement {
+        let bounds = node.attribute("bounds")
+            .and_then(|s| Bounds::from_string(s).ok());
+
         let mut element = UIElement {
             tag: node.tag_name().name().to_string(),
             class: node.attribute("class").map(|s| s.to_string()),
@@ -128,7 +227,7 @@ impl AdbClient {
             content_desc: node.attribute("content-desc").map(|s| s.to_string()),
             resource_id: node.attribute("resource-id").map(|s| s.to_string()),
             package: node.attribute("package").map(|s| s.to_string()),
-            bounds: node.attribute("bounds").map(|s| s.to_string()),
+            bounds,
             clickable: node.attribute("clickable").unwrap_or("false") == "true",
             enabled: node.attribute("enabled").unwrap_or("false") == "true",
             focused: node.attribute("focused").unwrap_or("false") == "true",
@@ -213,7 +312,7 @@ impl AdbClient {
         }
 
         if let Some(bounds) = &element.bounds {
-            println!("{}  bounds: {}", indent_str, bounds);
+            println!("{}  bounds: [{},{}][{},{}]", indent_str, bounds.left, bounds.top, bounds.right, bounds.bottom);
         }
 
         if element.clickable {
@@ -286,41 +385,20 @@ impl AdbClient {
         Ok(())
     }
 
-    /// 根据元素bounds字符串解析坐标并点击中心点
-    pub async fn click_element_bounds(&self, bounds: &str) -> Result<()> {
-        let coords = self.parse_bounds_center(bounds)?;
-        self.click_coordinates(coords.0, coords.1).await
+    /// 根据元素bounds点击中心点
+    pub async fn click_element_bounds(&self, bounds: &Bounds) -> Result<()> {
+        let center_x = bounds.center_x();
+        let center_y = bounds.center_y();
+        self.click_coordinates(center_x, center_y).await
     }
 
-    /// 解析bounds字符串获取中心点坐标
-    fn parse_bounds_center(&self, bounds: &str) -> Result<(i32, i32)> {
-        // bounds格式: "[left,top][right,bottom]"
-        let bounds = bounds.trim_matches(['[', ']']);
-        let parts: Vec<&str> = bounds.split("][").collect();
-
-        if parts.len() != 2 {
-            return Err(anyhow::anyhow!("无效的bounds格式: {}", bounds));
-        }
-
-        let left_top: Vec<i32> = parts[0].split(',')
-            .map(|s| s.parse::<i32>())
-            .collect::<Result<Vec<_>, _>>()
-            .context("解析左上角坐标失败")?;
-
-        let right_bottom: Vec<i32> = parts[1].split(',')
-            .map(|s| s.parse::<i32>())
-            .collect::<Result<Vec<_>, _>>()
-            .context("解析右下角坐标失败")?;
-
-        if left_top.len() != 2 || right_bottom.len() != 2 {
-            return Err(anyhow::anyhow!("坐标格式错误"));
-        }
-
-        let center_x = (left_top[0] + right_bottom[0]) / 2;
-        let center_y = (left_top[1] + right_bottom[1]) / 2;
-
-        Ok((center_x, center_y))
+    /// 根据元素bounds字符串解析坐标并点击中心点（兼容性方法）
+    pub async fn click_element_bounds_str(&self, bounds: &str) -> Result<()> {
+        let bounds = Bounds::from_string(bounds)?;
+        self.click_element_bounds(&bounds).await
     }
+
+
 
     /// 搜索并点击包含指定文本的可点击元素
     pub async fn find_and_click_text(&self, search_text: &str, description: &str) -> Result<bool> {
@@ -520,6 +598,239 @@ impl AdbClient {
             serde_json::to_string_pretty(&self.parse_ui_xml(&final_xml)?)?)?;
 
         println!("💾 已保存最终页面状态: final_contacts_page.png, final_contacts_ui.json");
+
+        Ok(())
+    }
+
+    /// 从CSV文件读取联系人信息
+    pub fn load_contacts_from_file(&self, file_path: &str) -> Result<Vec<Contact>> {
+        let content = std::fs::read_to_string(file_path)
+            .context(format!("无法读取联系人文件: {}", file_path))?;
+
+        let mut contacts = Vec::new();
+        for (line_num, line) in content.lines().enumerate() {
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+
+            match Contact::from_csv_line(line) {
+                Ok(contact) => {
+                    println!("✅ 解析联系人 {}: {} - {}", line_num + 1, contact.name, contact.phone);
+                    contacts.push(contact);
+                }
+                Err(e) => {
+                    println!("⚠️  跳过第{}行，格式错误: {}", line_num + 1, e);
+                }
+            }
+        }
+
+        println!("📞 总共解析到 {} 个联系人", contacts.len());
+        Ok(contacts)
+    }
+
+    /// 向Android设备添加单个联系人
+    pub async fn add_contact_to_device(&self, contact: &Contact) -> Result<bool> {
+        println!("📱 正在添加联系人: {} - {}", contact.name, contact.phone);
+
+        // 构建联系人插入命令
+        let mut cmd = TokioCommand::new(ADB_PATH);
+        if let Some(device) = &self.device_id {
+            cmd.args(&["-s", device]);
+        }
+
+        // 使用Android的content provider插入联系人
+        let insert_cmd = format!(
+            "content insert --uri content://com.android.contacts/raw_contacts --bind account_type:s:null --bind account_name:s:null"
+        );
+
+        cmd.args(&["shell", &insert_cmd]);
+
+        let output = cmd.output().await
+            .context("执行联系人插入命令失败")?;
+
+        if !output.status.success() {
+            let error = String::from_utf8_lossy(&output.stderr);
+            println!("❌ 插入联系人失败: {}", error);
+            return Ok(false);
+        }
+
+        // 获取插入的raw_contact_id
+        let output_str = String::from_utf8_lossy(&output.stdout);
+        println!("📄 插入结果: {}", output_str.trim());
+
+        // 简化实现：使用adb shell am命令启动联系人添加意图
+        self.add_contact_via_intent(contact).await
+    }
+
+    /// 通过Android Intent添加联系人（更可靠的方法）
+    async fn add_contact_via_intent(&self, contact: &Contact) -> Result<bool> {
+        let mut cmd = TokioCommand::new(ADB_PATH);
+        if let Some(device) = &self.device_id {
+            cmd.args(&["-s", device]);
+        }
+
+        // 构建Intent命令来添加联系人
+        let mut intent_cmd = format!(
+            "am start -a android.intent.action.INSERT -t vnd.android.cursor.dir/contact -e name '{}' -e phone '{}'",
+            contact.name, contact.phone
+        );
+
+        // 添加可选字段
+        if let Some(email) = &contact.email {
+            intent_cmd.push_str(&format!(" -e email '{}'", email));
+        }
+
+        cmd.args(&["shell", &intent_cmd]);
+
+        let output = cmd.output().await
+            .context("执行联系人Intent命令失败")?;
+
+        if output.status.success() {
+            println!("✅ 成功启动联系人添加界面: {}", contact.name);
+            // 等待界面加载
+            sleep(Duration::from_secs(2)).await;
+
+            // 尝试自动点击保存按钮
+            self.try_save_contact().await?;
+
+            Ok(true)
+        } else {
+            let error = String::from_utf8_lossy(&output.stderr);
+            println!("❌ 启动联系人添加失败: {}", error);
+            Ok(false)
+        }
+    }
+
+    /// 尝试点击保存按钮来保存联系人
+    async fn try_save_contact(&self) -> Result<()> {
+        println!("🔍 尝试查找并点击保存按钮...");
+
+        // 等待页面加载
+        sleep(Duration::from_secs(1)).await;
+
+        // 获取当前页面UI
+        let xml_content = self.dump_ui_hierarchy().await?;
+        let root_element = self.parse_ui_xml(&xml_content)?;
+
+        // 搜索保存相关的按钮
+        let save_texts = ["保存", "确定", "完成", "Save", "Done", "OK"];
+
+        for save_text in &save_texts {
+            let found_elements = self.find_elements_by_text(&root_element, save_text);
+
+            for element in found_elements {
+                if element.clickable {
+                    if let Some(bounds) = &element.bounds {
+                        println!("📍 找到保存按钮: {} 位置: [{},{}][{},{}]", save_text,
+                                bounds.left, bounds.top, bounds.right, bounds.bottom);
+                        self.click_element_bounds(bounds).await?;
+                        sleep(Duration::from_secs(1)).await;
+                        return Ok(());
+                    }
+                }
+            }
+        }
+
+        // 如果没找到保存按钮，尝试点击右上角（通常是保存位置）
+        println!("🎯 未找到明确的保存按钮，尝试点击右上角区域...");
+        self.click_coordinates(1000, 100).await?;
+
+        Ok(())
+    }
+
+    /// 批量导入联系人到设备
+    pub async fn import_contacts_to_device(&self, file_path: &str) -> Result<()> {
+        println!("🚀 开始批量导入联系人...");
+        println!("📁 文件路径: {}", file_path);
+
+        // 加载联系人
+        let contacts = self.load_contacts_from_file(file_path)?;
+
+        if contacts.is_empty() {
+            println!("❌ 没有找到有效的联系人数据");
+            return Ok(());
+        }
+
+        println!("📞 准备导入 {} 个联系人", contacts.len());
+
+        let mut success_count = 0;
+        let mut failed_count = 0;
+
+        // 先尝试打开联系人应用
+        self.open_contacts_app().await?;
+
+        for (index, contact) in contacts.iter().enumerate() {
+            println!("\n--- 处理联系人 {}/{} ---", index + 1, contacts.len());
+
+            match self.add_contact_to_device(contact).await {
+                Ok(true) => {
+                    success_count += 1;
+                    println!("✅ 成功导入: {}", contact.name);
+                }
+                Ok(false) => {
+                    failed_count += 1;
+                    println!("❌ 导入失败: {}", contact.name);
+                }
+                Err(e) => {
+                    failed_count += 1;
+                    println!("❌ 导入出错: {} - {}", contact.name, e);
+                }
+            }
+
+            // 两次导入间隔，避免过快操作
+            if index < contacts.len() - 1 {
+                println!("⏳ 等待 3 秒后继续...");
+                sleep(Duration::from_secs(3)).await;
+            }
+        }
+
+        println!("\n📊 导入完成统计:");
+        println!("✅ 成功: {} 个联系人", success_count);
+        println!("❌ 失败: {} 个联系人", failed_count);
+        println!("📞 总计: {} 个联系人", contacts.len());
+
+        // 保存导入报告
+        let report = format!(
+            "Contact Import Report\nTime: {}\nSuccess: {}\nFailed: {}\nTotal: {}",
+            chrono::Utc::now().format("%Y-%m-%d %H:%M:%S"),
+            success_count, failed_count, contacts.len()
+        );
+
+        std::fs::write("contact_import_report.txt", report)?;
+        println!("📄 导入报告已保存到: contact_import_report.txt");
+
+        Ok(())
+    }
+
+    /// 打开联系人应用
+    async fn open_contacts_app(&self) -> Result<()> {
+        println!("📱 正在打开联系人应用...");
+
+        let mut cmd = TokioCommand::new(ADB_PATH);
+        if let Some(device) = &self.device_id {
+            cmd.args(&["-s", device]);
+        }
+
+        // 尝试启动联系人应用
+        cmd.args(&["shell", "am", "start", "-n", "com.android.contacts/.activities.PeopleActivity"]);
+
+        let output = cmd.output().await.context("启动联系人应用失败")?;
+
+        if output.status.success() {
+            println!("✅ 联系人应用启动成功");
+            sleep(Duration::from_secs(3)).await;
+        } else {
+            // 尝试通用方式
+            println!("⚠️  尝试通用方式启动联系人...");
+            let mut cmd2 = TokioCommand::new(ADB_PATH);
+            if let Some(device) = &self.device_id {
+                cmd2.args(&["-s", device]);
+            }
+            cmd2.args(&["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", "content://contacts/people"]);
+            cmd2.output().await.context("通用方式启动联系人应用失败")?;
+            sleep(Duration::from_secs(3)).await;
+        }
 
         Ok(())
     }

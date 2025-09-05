@@ -59,6 +59,24 @@ async fn main() -> Result<()> {
                 .action(clap::ArgAction::SetTrue)
         )
         .arg(
+            Arg::new("import-contacts")
+                .long("import-contacts")
+                .value_name("CSV_FILE")
+                .help("从CSV文件导入联系人到设备 (格式: 姓名,电话,地址,职业,邮箱)")
+        )
+        .arg(
+            Arg::new("import-contacts-optimized")
+                .long("import-contacts-optimized")
+                .value_name("CSV_FILE")
+                .help("优化版联系人导入 (避免Google登录弹窗，适用于小红书等应用)")
+        )
+        .arg(
+            Arg::new("import-vcf")
+                .long("import-vcf")
+                .value_name("CSV_FILE")
+                .help("通过VCF文件导入联系人 (格式: 姓名,电话,地址,职业,邮箱)")
+        )
+        .arg(
             Arg::new("click")
                 .long("click")
                 .value_name("X,Y")
@@ -74,6 +92,9 @@ async fn main() -> Result<()> {
     let print_hierarchy = matches.get_flag("print");
     let auto_contact_flow = matches.get_flag("auto-contact-flow");
     let click_coords = matches.get_one::<String>("click");
+    let import_contacts_file = matches.get_one::<String>("import-contacts");
+    let import_contacts_optimized_file = matches.get_one::<String>("import-contacts-optimized");
+    let import_vcf_file = matches.get_one::<String>("import-vcf");
 
     let adb_client = AdbClient::new(device_id.clone());
 
@@ -233,6 +254,99 @@ async fn main() -> Result<()> {
             Err(e) => {
                 println!("❌ 自动联系人流程执行失败: {}", e);
                 println!("提示: 请确保应用界面正确，并且元素可见");
+            }
+        }
+    }
+
+    // 执行VCF联系人导入（如果指定）
+    if let Some(contacts_file) = import_vcf_file {
+        println!("\n📞 开始VCF联系人导入...");
+        println!("{}", "=".repeat(50));
+
+        let adb_path = "D:\\leidian\\LDPlayer9\\adb.exe";
+        let default_device = "127.0.0.1:5555".to_string();
+        let device_id = target_device.as_ref().unwrap_or(&default_device);
+        let vcf_importer = adb_xml_reader::VcfImporter::new(adb_path, device_id);
+
+        match vcf_importer.import_contacts_from_file(contacts_file).await {
+            Ok(_) => {
+                println!("\n✅ VCF联系人导入准备完成！");
+                println!("📱 请按照提示在设备上完成导入操作");
+
+                // 如果执行了VCF导入流程，直接返回
+                return Ok(());
+            },
+            Err(e) => {
+                println!("❌ VCF联系人导入失败: {}", e);
+                println!("💡 建议：");
+                println!("   1. 确保联系人文件格式正确 (姓名,电话,地址,职业,邮箱)");
+                println!("   2. 检查设备存储权限");
+                println!("   3. 确保联系人应用可以正常打开");
+                return Err(e);
+            }
+        }
+    }
+
+    // 执行优化版联系人导入（如果指定）
+    if let Some(contacts_file) = import_contacts_optimized_file {
+        println!("\n📞 开始优化版联系人导入（避免Google登录弹窗）...");
+        println!("{}", "=".repeat(60));
+
+        // 加载联系人数据
+        let contacts = match adb_client.load_contacts_from_file(contacts_file) {
+            Ok(contacts) => contacts,
+            Err(e) => {
+                println!("❌ 加载联系人文件失败: {}", e);
+                return Err(e);
+            }
+        };
+
+        if contacts.is_empty() {
+            println!("❌ 联系人文件为空或格式错误");
+            return Ok(());
+        }
+
+        println!("📋 准备导入 {} 个联系人", contacts.len());
+        println!("🔧 使用优化策略：本地存储、避免系统账户、智能重试");
+        println!();
+
+        match adb_client.execute_contact_import_flow(&contacts).await {
+            Ok(_) => {
+                println!("\n✅ 优化版联系人导入完成！");
+                println!("🎯 特点：避免了Google登录弹窗干扰");
+                println!("📄 建议检查小红书通讯录页面确认导入结果");
+
+                // 如果执行了导入流程，直接返回
+                return Ok(());
+            },
+            Err(e) => {
+                println!("❌ 优化版联系人导入失败: {}", e);
+                println!("💡 建议：");
+                println!("   1. 确保当前在小红书通讯录页面");
+                println!("   2. 检查联系人文件格式 (姓名,电话)");
+                println!("   3. 确保设备屏幕常亮，避免锁屏");
+                return Err(e);
+            }
+        }
+    }
+
+    // 执行联系人导入（如果指定）
+    if let Some(contacts_file) = import_contacts_file {
+        println!("\n📞 开始导入联系人...");
+        println!("{}", "=".repeat(50));
+
+        match adb_client.import_contacts_to_device(contacts_file).await {
+            Ok(_) => {
+                println!("\n✅ 联系人导入流程执行完成！");
+                println!("详细结果请查看 contact_import_report.txt");
+
+                // 如果执行了导入流程，直接返回
+                return Ok(());
+            },
+            Err(e) => {
+                println!("❌ 联系人导入失败: {}", e);
+                println!("提示: 请确保CSV文件格式正确，设备连接正常");
+                return Err(e);
             }
         }
     }
