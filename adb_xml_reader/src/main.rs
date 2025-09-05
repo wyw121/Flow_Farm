@@ -59,6 +59,24 @@ async fn main() -> Result<()> {
                 .action(clap::ArgAction::SetTrue)
         )
         .arg(
+            Arg::new("auto-follow-contacts")
+                .long("auto-follow-contacts")
+                .help("自动执行联系人流程并关注所有通讯录好友")
+                .action(clap::ArgAction::SetTrue)
+        )
+        .arg(
+            Arg::new("smart-follow")
+                .long("smart-follow")
+                .help("智能检测当前页面并自动关注通讯录好友（推荐）")
+                .action(clap::ArgAction::SetTrue)
+        )
+        .arg(
+            Arg::new("follow-current-page")
+                .long("follow-current-page")
+                .help("直接关注当前页面的所有用户（无需导航）")
+                .action(clap::ArgAction::SetTrue)
+        )
+        .arg(
             Arg::new("import-contacts")
                 .long("import-contacts")
                 .value_name("CSV_FILE")
@@ -91,6 +109,8 @@ async fn main() -> Result<()> {
     let find_resource_id = matches.get_one::<String>("find-id");
     let print_hierarchy = matches.get_flag("print");
     let auto_contact_flow = matches.get_flag("auto-contact-flow");
+    let auto_follow_contacts = matches.get_flag("auto-follow-contacts");
+    let smart_follow = matches.get_flag("smart-follow");
     let click_coords = matches.get_one::<String>("click");
     let import_contacts_file = matches.get_one::<String>("import-contacts");
     let import_contacts_optimized_file = matches.get_one::<String>("import-contacts-optimized");
@@ -238,15 +258,40 @@ async fn main() -> Result<()> {
         }
     }
 
+    // 执行智能关注流程（如果指定）
+    if smart_follow {
+        println!("\n🧠 开始执行智能关注流程...");
+        println!("   📢 将自动检测当前页面状态并从合适位置开始");
+        println!("{}", "=".repeat(50));
+
+        match adb_client.execute_smart_contact_flow().await {
+            Ok(_) => {
+                println!("\n✅ 智能关注流程执行成功！");
+                return Ok(());
+            },
+            Err(e) => {
+                println!("❌ 智能关注流程执行失败: {}", e);
+                println!("提示: 请确保在小红书APP中，程序会自动检测页面状态");
+            }
+        }
+    }
+
     // 执行自动联系人流程（如果指定）
-    if auto_contact_flow {
+    if auto_contact_flow || auto_follow_contacts {
         println!("\n🤖 开始执行自动联系人流程...");
+        if auto_follow_contacts {
+            println!("   📢 注意: 将在联系人流程后自动关注所有好友");
+        }
         println!("{}", "=".repeat(50));
 
         match adb_client.execute_contact_flow().await {
             Ok(_) => {
                 println!("\n✅ 自动联系人流程执行成功！");
-                println!("已完成: 左上角菜单 -> 发现好友 -> 通讯录");
+                if auto_follow_contacts {
+                    println!("✅ 已完成: 左上角菜单 -> 发现好友 -> 通讯录 -> 自动关注");
+                } else {
+                    println!("已完成: 左上角菜单 -> 发现好友 -> 通讯录");
+                }
 
                 // 如果执行了自动流程，直接返回，不显示常规统计信息
                 return Ok(());

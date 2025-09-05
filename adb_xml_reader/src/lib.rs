@@ -7,8 +7,9 @@ use tokio::time::sleep;
 
 pub mod contact_import;
 pub mod vcf_import;
+pub mod vcf_import_optimized;
 
-pub use vcf_import::VcfImporter;
+pub use vcf_import_optimized::VcfImporter;
 
 // ADB 可执行文件路径
 const ADB_PATH: &str = r"D:\leidian\LDPlayer9\adb.exe";
@@ -127,6 +128,178 @@ pub struct AdbClient {
 impl AdbClient {
     pub fn new(device_id: Option<String>) -> Self {
         Self { device_id }
+    }
+
+    /// 智能执行联系人流程：自动检测当前页面状态并从合适位置开始
+    pub async fn execute_smart_contact_flow(&self) -> Result<()> {
+        println!("\n🧠 开始智能联系人流程检测...");
+
+        // 获取当前页面状态
+        let ui_xml = self.dump_ui_hierarchy().await?;
+        let ui_root = self.parse_ui_xml(&ui_xml)?;
+
+        // 检查当前页面状态
+        let current_state = self.detect_current_page_state(&ui_root).await?;
+
+        match current_state.as_str() {
+            "contacts_page" => {
+                println!("✅ 检测到当前在通讯录页面，直接开始关注");
+                self.auto_follow_contacts().await?;
+            },
+            "discover_friends_page" => {
+                println!("✅ 检测到当前在发现好友页面，点击通讯录后开始关注");
+                // 点击通讯录选项
+                if !self.click_contacts_tab().await? {
+                    return Err(anyhow::anyhow!("无法点击通讯录选项"));
+                }
+                tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+                self.auto_follow_contacts().await?;
+            },
+            "main_page" => {
+                println!("✅ 检测到当前在主页，执行完整流程");
+                self.execute_contact_flow().await?;
+            },
+            _ => {
+                return Err(anyhow::anyhow!("无法识别当前页面状态，请确保在小红书APP中"));
+            }
+        }
+
+        Ok(())
+    }
+
+    /// 检测当前页面状态
+    async fn detect_current_page_state(&self, ui_root: &UIElement) -> Result<String> {
+        // 检查是否在通讯录页面（有关注相关按钮且页面较简单）
+        let follow_buttons = self.count_follow_buttons(ui_root);
+        let followed_buttons = self.count_followed_buttons(ui_root);
+        let total_buttons = follow_buttons + followed_buttons;
+
+        let has_contacts_tab = self.find_element_by_text(ui_root, "通讯录").is_some();
+        let has_contacts_friends_title = self.find_element_by_text(ui_root, "通讯录好友").is_some();
+        let has_discover_title = self.find_element_by_text(ui_root, "发现好友").is_some();
+
+        println!("      🔍 页面检测: 关注按钮={}, 已关注按钮={}, 通讯录标题={}, 发现好友标题={}",
+                 follow_buttons, followed_buttons, has_contacts_friends_title, has_discover_title);
+
+        // 如果有"通讯录好友"标题，说明在真正的通讯录页面
+        if has_contacts_friends_title && total_buttons > 0 {
+            return Ok("contacts_page".to_string());
+        }
+
+        // 如果有关注相关按钮且数量不多，且没有通讯录选项卡，可能在通讯录页面
+        if total_buttons > 0 && total_buttons < 20 && !has_contacts_tab && !has_discover_title {
+            return Ok("contacts_page".to_string());
+        }
+
+        // 如果有通讯录选项卡且有发现好友标题，在发现好友页面
+        if has_contacts_tab && has_discover_title {
+            return Ok("discover_friends_page".to_string());
+        }
+
+        // 检查是否有左上角菜单（主页特征）
+        if self.find_element_by_content_desc(ui_root, "菜单").is_some() {
+            return Ok("main_page".to_string());
+        }
+
+        Ok("unknown".to_string())
+    }
+
+    /// 统计关注按钮数量（仅"关注"按钮）
+    fn count_follow_buttons(&self, ui_root: &UIElement) -> i32 {
+        let mut count = 0;
+        self.count_follow_buttons_recursive(ui_root, &mut count);
+        count
+    }
+
+    /// 统计已关注按钮数量
+    fn count_followed_buttons(&self, ui_root: &UIElement) -> i32 {
+        let mut count = 0;
+        self.count_followed_buttons_recursive(ui_root, &mut count);
+        count
+    }
+
+    /// 递归统计关注按钮
+    fn count_follow_buttons_recursive(&self, element: &UIElement, count: &mut i32) {
+        if element.clickable && element.enabled {
+            let is_follow_button =
+                element.text.as_ref().map_or(false, |text| text == "关注") ||
+                element.content_desc.as_ref().map_or(false, |desc| desc.contains("关注") && !desc.contains("已关注"));
+
+            if is_follow_button {
+                *count += 1;
+            }
+        }
+
+        for child in &element.children {
+            self.count_follow_buttons_recursive(child, count);
+        }
+    }
+
+    /// 递归统计已关注按钮
+    fn count_followed_buttons_recursive(&self, element: &UIElement, count: &mut i32) {
+        if element.clickable && element.enabled {
+            let is_followed_button =
+                element.text.as_ref().map_or(false, |text| text == "已关注") ||
+                element.content_desc.as_ref().map_or(false, |desc| desc.contains("已关注"));
+
+            if is_followed_button {
+                *count += 1;
+            }
+        }
+
+        for child in &element.children {
+            self.count_followed_buttons_recursive(child, count);
+        }
+    }
+
+    /// 点击通讯录选项卡
+    async fn click_contacts_tab(&self) -> Result<bool> {
+        println!("📱 正在点击通讯录选项...");
+
+        let ui_xml = self.dump_ui_hierarchy().await?;
+        let ui_root = self.parse_ui_xml(&ui_xml)?;
+
+        // 查找"通讯录"文本对应的可点击父元素
+        if let Some(contacts_element) = self.find_contacts_clickable_element(&ui_root) {
+            if let Some(bounds) = &contacts_element.bounds {
+                let center_x = (bounds.left + bounds.right) / 2;
+                let center_y = (bounds.top + bounds.bottom) / 2;
+
+                self.click_coordinates(center_x, center_y).await?;
+                println!("✅ 成功点击通讯录选项");
+                return Ok(true);
+            }
+        }
+
+        println!("❌ 未找到可点击的通讯录选项");
+        Ok(false)
+    }
+
+    /// 查找通讯录可点击元素
+    fn find_contacts_clickable_element(&self, ui_root: &UIElement) -> Option<UIElement> {
+        self.find_contacts_clickable_recursive(ui_root)
+    }
+
+    /// 递归查找通讯录可点击元素
+    fn find_contacts_clickable_recursive(&self, element: &UIElement) -> Option<UIElement> {
+        // 检查当前元素是否包含"通讯录"文本且可点击
+        let has_contacts_text = element.text.as_ref().map_or(false, |text| text.contains("通讯录"));
+        let has_contacts_child = element.children.iter().any(|child|
+            child.text.as_ref().map_or(false, |text| text.contains("通讯录"))
+        );
+
+        if element.clickable && (has_contacts_text || has_contacts_child) {
+            return Some(element.clone());
+        }
+
+        // 递归检查子元素
+        for child in &element.children {
+            if let Some(found) = self.find_contacts_clickable_recursive(child) {
+                return Some(found);
+            }
+        }
+
+        None
     }
 
     /// 获取连接的设备列表
@@ -322,6 +495,46 @@ impl AdbClient {
         for child in &element.children {
             self.print_hierarchy(child, indent + 1);
         }
+    }
+
+    /// 通过文本内容查找元素
+    fn find_element_by_text(&self, ui_root: &UIElement, text: &str) -> Option<UIElement> {
+        self.find_element_by_text_recursive(ui_root, text)
+    }
+
+    /// 递归通过文本查找元素
+    fn find_element_by_text_recursive(&self, element: &UIElement, text: &str) -> Option<UIElement> {
+        if element.text.as_ref().map_or(false, |t| t.contains(text)) {
+            return Some(element.clone());
+        }
+
+        for child in &element.children {
+            if let Some(found) = self.find_element_by_text_recursive(child, text) {
+                return Some(found);
+            }
+        }
+
+        None
+    }
+
+    /// 通过内容描述查找元素
+    fn find_element_by_content_desc(&self, ui_root: &UIElement, desc: &str) -> Option<UIElement> {
+        self.find_element_by_content_desc_recursive(ui_root, desc)
+    }
+
+    /// 递归通过内容描述查找元素
+    fn find_element_by_content_desc_recursive(&self, element: &UIElement, desc: &str) -> Option<UIElement> {
+        if element.content_desc.as_ref().map_or(false, |d| d.contains(desc)) {
+            return Some(element.clone());
+        }
+
+        for child in &element.children {
+            if let Some(found) = self.find_element_by_content_desc_recursive(child, desc) {
+                return Some(found);
+            }
+        }
+
+        None
     }
 
     /// 获取当前屏幕截图
@@ -599,7 +812,382 @@ impl AdbClient {
 
         println!("💾 已保存最终页面状态: final_contacts_page.png, final_contacts_ui.json");
 
+        // 步骤4: 开始自动关注通讯录好友
+        println!("\n--- 步骤 4: 开始自动关注通讯录好友 ---");
+        match self.auto_follow_contacts().await {
+            Ok(follow_count) => {
+                println!("✅ 自动关注完成！成功关注 {} 个好友", follow_count);
+            },
+            Err(e) => {
+                println!("⚠️  自动关注过程中出现错误: {}", e);
+                println!("   💡 可能部分用户已关注或页面结构发生变化");
+            }
+        }
+
         Ok(())
+    }
+
+    /// 自动关注通讯录中的所有好友
+    pub async fn auto_follow_contacts(&self) -> Result<i32> {
+        println!("🤖 开始自动关注通讯录中的好友...");
+
+        let mut total_followed = 0;
+        let mut page_scroll_count = 0;
+        let max_pages = 10; // 最多滚动10页，避免无限循环
+
+        loop {
+            println!("\n📄 正在处理第 {} 页...", page_scroll_count + 1);
+
+            // 获取当前页面UI
+            let ui_xml = self.dump_ui_hierarchy().await?;
+            let ui_root = self.parse_ui_xml(&ui_xml)?;
+
+            // 查找所有关注按钮
+            let follow_buttons = self.find_follow_buttons(&ui_root).await?;
+
+            if follow_buttons.is_empty() {
+                println!("   📝 当前页面没有找到关注按钮");
+
+                // 尝试滚动到下一页
+                if page_scroll_count < max_pages {
+                    println!("   📜 尝试滚动到下一页...");
+                    self.scroll_down().await?;
+                    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+                    page_scroll_count += 1;
+                    continue;
+                } else {
+                    println!("   🏁 已达到最大滚动页数，结束关注");
+                    break;
+                }
+            }
+
+            let buttons_on_page = follow_buttons.len();
+            println!("   🎯 找到 {} 个关注按钮", buttons_on_page);
+
+            let mut page_followed = 0;
+
+            // 逐个点击关注按钮
+            for (i, button) in follow_buttons.iter().enumerate() {
+                println!("      👆 点击第 {} 个关注按钮...", i + 1);
+
+                match self.click_follow_button(button).await {
+                    Ok(true) => {
+                        page_followed += 1;
+                        total_followed += 1;
+                        println!("      ✅ 关注成功！");
+                    },
+                    Ok(false) => {
+                        println!("      ⚠️  该用户可能已关注或无法关注");
+                    },
+                    Err(e) => {
+                        println!("      ❌ 关注失败: {}", e);
+                    }
+                }
+
+                // 每次点击后短暂等待，避免操作过快
+                tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
+            }
+
+            println!("   📊 本页关注结果: {}/{} 成功", page_followed, buttons_on_page);
+
+            // 如果本页没有新的关注按钮了，可能是已经全部关注完成
+            if page_followed == 0 && buttons_on_page > 0 {
+                println!("   💡 本页所有用户可能已关注，尝试下一页...");
+            }
+
+            // 滚动到下一页
+            if page_scroll_count < max_pages {
+                println!("   📜 滚动到下一页...");
+                self.scroll_down().await?;
+                tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+                page_scroll_count += 1;
+            } else {
+                println!("   🏁 已处理完所有页面");
+                break;
+            }
+        }
+
+        println!("\n📈 关注统计:");
+        println!("   总共关注: {} 个好友", total_followed);
+        println!("   处理页数: {} 页", page_scroll_count + 1);
+
+        // 关注完成后，返回主页
+        println!("\n🏠 关注完成，返回主页...");
+        self.return_to_homepage().await?;
+
+        Ok(total_followed)
+    }
+
+    /// 查找页面中的所有关注按钮
+    async fn find_follow_buttons(&self, ui_root: &UIElement) -> Result<Vec<UIElement>> {
+        let mut buttons = Vec::new();
+
+        // 递归查找关注按钮
+        self.find_follow_buttons_recursive(ui_root, &mut buttons);
+
+        Ok(buttons)
+    }
+
+    /// 递归查找关注按钮
+    fn find_follow_buttons_recursive(&self, element: &UIElement, buttons: &mut Vec<UIElement>) {
+        // 查找包含"关注"文本的可点击按钮，但排除已关注的
+        if element.clickable && element.enabled {
+            let empty_string = String::new();
+            let text = element.text.as_ref().unwrap_or(&empty_string);
+            let desc = element.content_desc.as_ref().unwrap_or(&empty_string);
+            let id = element.resource_id.as_ref().unwrap_or(&empty_string);
+
+            // 检查是否是关注相关按钮
+            let is_follow_related =
+                text.contains("关注") || text.contains("Follow") || text.contains("关注TA") ||
+                desc.contains("关注") || desc.contains("Follow") ||
+                id.contains("follow") || id.contains("关注");
+
+            // 检查是否已经关注过了
+            let is_already_followed =
+                text.contains("已关注") || text.contains("取消关注") ||
+                desc.contains("已关注") || desc.contains("取消关注");
+
+            // 只添加需要关注的按钮（关注相关但未关注的）
+            if is_follow_related && !is_already_followed {
+                buttons.push(element.clone());
+                // 调试信息
+                println!("      🎯 找到关注按钮: '{}' 位置: {:?}", text, element.bounds);
+            } else if is_already_followed {
+                // 调试信息：跳过已关注的
+                println!("      ⏭️  跳过已关注用户: '{}'", text);
+            }
+        }
+
+        // 递归检查子元素
+        for child in &element.children {
+            self.find_follow_buttons_recursive(child, buttons);
+        }
+    }
+
+    /// 点击关注按钮并验证结果
+    async fn click_follow_button(&self, button: &UIElement) -> Result<bool> {
+        if let Some(bounds) = &button.bounds {
+            // 计算按钮中心点
+            let center_x = (bounds.left + bounds.right) / 2;
+            let center_y = (bounds.top + bounds.bottom) / 2;
+
+            // 记录点击前的按钮状态
+            let before_text = button.text.clone().unwrap_or_default();
+
+            // 点击按钮
+            self.click_coordinates(center_x, center_y).await?;
+
+            // 等待UI更新
+            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+
+            // 重新获取UI并检查结果
+            let ui_xml = self.dump_ui_hierarchy().await?;
+            let ui_root = self.parse_ui_xml(&ui_xml)?;
+
+            // 检查是否关注成功（按钮文本变化）
+            if let Some(updated_button) = self.find_button_at_position(&ui_root, center_x, center_y) {
+                let after_text = updated_button.text.clone().unwrap_or_default();
+
+                println!("      🔍 按钮文字变化: '{}' -> '{}'", before_text, after_text);
+
+                // 如果按钮文字从"关注"变成了"已关注"或消失，说明关注成功
+                if before_text.contains("关注") && !before_text.contains("已关注") {
+                    if after_text.contains("已关注") || after_text.contains("取消关注") {
+                        println!("      ✅ 按钮状态确认: 关注成功");
+                        return Ok(true);
+                    } else if after_text.is_empty() {
+                        println!("      ✅ 按钮消失确认: 关注成功");
+                        return Ok(true);
+                    } else if after_text == before_text {
+                        println!("      ⚠️  按钮文字未变化，可能已经关注过了");
+                        return Ok(false);
+                    }
+                }
+            }
+
+            // 作为备选，检查页面上是否有"已关注"文字（更宽泛的搜索）
+            if self.verify_page_contains("已关注", "关注结果验证(备选)").await? {
+                println!("      ✅ 页面存在'已关注'文字，确认关注成功");
+                return Ok(true);
+            }
+
+            // 如果按钮原本就是"已关注"，说明用户已经关注过了
+            if before_text.contains("已关注") {
+                println!("      💡 用户已经关注过了");
+                return Ok(false);
+            }
+
+            // 其他情况视为可能成功（避免误判）
+            println!("      ❓ 无法明确确定关注结果，假设成功");
+            return Ok(true);
+        }
+
+        Err(anyhow::anyhow!("无法获取按钮位置信息"))
+    }
+
+    /// 在指定位置查找按钮元素
+    fn find_button_at_position(&self, ui_root: &UIElement, x: i32, y: i32) -> Option<UIElement> {
+        self.find_button_at_position_recursive(ui_root, x, y)
+    }
+
+    /// 递归在指定位置查找按钮
+    fn find_button_at_position_recursive(&self, element: &UIElement, x: i32, y: i32) -> Option<UIElement> {
+        if let Some(bounds) = &element.bounds {
+            // 检查点击坐标是否在元素边界内
+            if x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom {
+                // 如果是可点击的按钮，返回它
+                if element.clickable {
+                    return Some(element.clone());
+                }
+            }
+        }
+
+        // 递归检查子元素
+        for child in &element.children {
+            if let Some(found) = self.find_button_at_position_recursive(child, x, y) {
+                return Some(found);
+            }
+        }
+
+        None
+    }
+
+    /// 向下滚动页面
+    async fn scroll_down(&self) -> Result<()> {
+        // 使用ADB滑动命令向下滚动
+        // 从屏幕中间向下滑动
+        let default_device = "127.0.0.1:5555";
+        let device_id = self.device_id.as_ref().map(|s| s.as_str()).unwrap_or(default_device);
+        let cmd = format!("{} -s {} shell input swipe 500 800 500 400 300",
+                         ADB_PATH, device_id);
+
+        let output = TokioCommand::new("cmd")
+            .args(&["/C", &cmd])
+            .output()
+            .await
+            .context("执行滚动命令失败")?;
+
+        if output.status.success() {
+            Ok(())
+        } else {
+            Err(anyhow::anyhow!("滚动命令执行失败"))
+        }
+    }
+
+    /// 返回小红书主页
+    async fn return_to_homepage(&self) -> Result<()> {
+        println!("🏠 准备返回主页...");
+
+        // 方法1: 多次点击返回按钮
+        for i in 0..3 {
+            println!("   👈 点击返回按钮 ({}/3)...", i + 1);
+
+            // 查找并点击返回按钮
+            let ui_xml = self.dump_ui_hierarchy().await?;
+            let ui_root = self.parse_ui_xml(&ui_xml)?;
+
+            if let Some(back_button) = self.find_back_button(&ui_root) {
+                if let Some(bounds) = &back_button.bounds {
+                    let center_x = (bounds.left + bounds.right) / 2;
+                    let center_y = (bounds.top + bounds.bottom) / 2;
+                    self.click_coordinates(center_x, center_y).await?;
+                }
+            } else {
+                // 如果找不到返回按钮，使用系统返回键
+                let default_device = "127.0.0.1:5555";
+                let device_id = self.device_id.as_ref().map(|s| s.as_str()).unwrap_or(default_device);
+                let cmd = format!("{} -s {} shell input keyevent KEYCODE_BACK",
+                                 ADB_PATH, device_id);
+                TokioCommand::new("cmd")
+                    .args(&["/C", &cmd])
+                    .output()
+                    .await
+                    .context("执行返回键失败")?;
+            }
+
+            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+        }
+
+        // 方法2: 点击底部导航栏的首页按钮
+        println!("   🏠 尝试点击底部首页按钮...");
+        let ui_xml = self.dump_ui_hierarchy().await?;
+        let ui_root = self.parse_ui_xml(&ui_xml)?;
+
+        if let Some(home_button) = self.find_home_button(&ui_root) {
+            if let Some(bounds) = &home_button.bounds {
+                let center_x = (bounds.left + bounds.right) / 2;
+                let center_y = (bounds.top + bounds.bottom) / 2;
+                self.click_coordinates(center_x, center_y).await?;
+            }
+        }
+
+        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+        println!("✅ 已返回主页");
+
+        Ok(())
+    }
+
+    /// 查找返回按钮
+    fn find_back_button(&self, ui_root: &UIElement) -> Option<UIElement> {
+        self.find_back_button_recursive(ui_root)
+    }
+
+    /// 递归查找返回按钮
+    fn find_back_button_recursive(&self, element: &UIElement) -> Option<UIElement> {
+        if element.clickable {
+            // 检查是否为返回按钮
+            let is_back_button =
+                element.content_desc.as_ref().map_or(false, |desc|
+                    desc.contains("返回") || desc.contains("back") || desc.contains("Back")) ||
+                element.text.as_ref().map_or(false, |text|
+                    text.contains("返回") || text.contains("back")) ||
+                element.resource_id.as_ref().map_or(false, |id|
+                    id.contains("back") || id.contains("返回"));
+
+            if is_back_button {
+                return Some(element.clone());
+            }
+        }
+
+        for child in &element.children {
+            if let Some(found) = self.find_back_button_recursive(child) {
+                return Some(found);
+            }
+        }
+
+        None
+    }
+
+    /// 查找首页按钮（底部导航栏）
+    fn find_home_button(&self, ui_root: &UIElement) -> Option<UIElement> {
+        self.find_home_button_recursive(ui_root)
+    }
+
+    /// 递归查找首页按钮
+    fn find_home_button_recursive(&self, element: &UIElement) -> Option<UIElement> {
+        if element.clickable {
+            // 检查是否为首页按钮
+            let is_home_button =
+                element.content_desc.as_ref().map_or(false, |desc|
+                    desc.contains("首页") || desc.contains("主页") || desc.contains("Home") || desc.contains("home")) ||
+                element.text.as_ref().map_or(false, |text|
+                    text.contains("首页") || text.contains("主页") || text.contains("Home")) ||
+                element.resource_id.as_ref().map_or(false, |id|
+                    id.contains("home") || id.contains("首页") || id.contains("main"));
+
+            if is_home_button {
+                return Some(element.clone());
+            }
+        }
+
+        for child in &element.children {
+            if let Some(found) = self.find_home_button_recursive(child) {
+                return Some(found);
+            }
+        }
+
+        None
     }
 
     /// 从CSV文件读取联系人信息
