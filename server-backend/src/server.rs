@@ -1,9 +1,14 @@
 use axum::{
+    http::Method,
     middleware,
     routing::{delete, get, post, put},
     Router,
 };
-use tower_http::{cors::CorsLayer, trace::TraceLayer};
+use std::path::PathBuf;
+use tower_http::{
+    compression::CompressionLayer, cors::CorsLayer, services::ServeDir,
+    trace::TraceLayer,
+};
 
 use crate::{handlers, Config, Database};
 
@@ -12,12 +17,12 @@ pub async fn create_app(database: Database, config: Config) -> Router {
     let cors = CorsLayer::new()
         .allow_origin(tower_http::cors::Any)
         .allow_methods([
-            axum::http::Method::GET,
-            axum::http::Method::POST,
-            axum::http::Method::PUT,
-            axum::http::Method::DELETE,
-            axum::http::Method::PATCH,
-            axum::http::Method::OPTIONS,
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::DELETE,
+            Method::PATCH,
+            Method::OPTIONS,
         ])
         .allow_headers([
             axum::http::HeaderName::from_static("authorization"),
@@ -25,6 +30,25 @@ pub async fn create_app(database: Database, config: Config) -> Router {
             axum::http::HeaderName::from_static("x-requested-with"),
         ])
         .allow_credentials(false);
+
+    // 静态文件服务配置
+    let static_files_service = {
+        let static_dir = PathBuf::from(&config.static_dir);
+        if static_dir.exists() {
+            tracing::info!(
+                "📁 静态文件目录: {:?}",
+                static_dir.canonicalize().unwrap_or(static_dir.clone())
+            );
+            ServeDir::new(&config.static_dir)
+                .precompressed_gzip()
+                .precompressed_br()
+                .append_index_html_on_directories(true)
+        } else {
+            tracing::warn!("⚠️  静态文件目录不存在: {:?}", static_dir);
+            tracing::info!("💡 请确保运行 'npm run build' 构建前端");
+            ServeDir::new(".")
+        }
+    };
 
     // 公开路由（不需要认证）
     let public_routes = Router::new()
@@ -136,6 +160,10 @@ pub async fn create_app(database: Database, config: Config) -> Router {
     Router::new()
         .merge(public_routes)
         .merge(protected_routes)
+        // 静态文件服务 (优先级最低，放在最后)
+        .fallback_service(static_files_service)
+        // 全局中间件
+        .layer(CompressionLayer::new())
         .layer(TraceLayer::new_for_http())
         .layer(cors)
 }

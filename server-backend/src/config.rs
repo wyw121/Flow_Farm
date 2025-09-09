@@ -13,6 +13,10 @@ pub struct Config {
     pub jwt_expires_in: i64,
     pub allowed_origins: Vec<String>,
     pub bcrypt_rounds: u32,
+    pub static_dir: String,
+    pub enable_tls: bool,
+    pub tls_cert_path: Option<String>,
+    pub tls_key_path: Option<String>,
 }
 
 impl Config {
@@ -47,6 +51,14 @@ impl Config {
                 .unwrap_or_else(|_| "12".to_string())
                 .parse()
                 .unwrap_or(12),
+            static_dir: std::env::var("STATIC_DIR")
+                .unwrap_or_else(|_| "../server-frontend/dist".to_string()),
+            enable_tls: std::env::var("ENABLE_TLS")
+                .unwrap_or_else(|_| "false".to_string())
+                .parse()
+                .unwrap_or(false),
+            tls_cert_path: std::env::var("TLS_CERT_PATH").ok(),
+            tls_key_path: std::env::var("TLS_KEY_PATH").ok(),
         };
 
         Ok(config)

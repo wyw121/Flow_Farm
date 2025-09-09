@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flow Farm - 前端资源未找到</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 600px;
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+
+        .message {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .steps {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .steps h3 {
+            margin-top: 0;
+            color: #FFD700;
+        }
+
+        .steps ol {
+            margin: 1rem 0;
+        }
+
+        .steps li {
+            margin: 0.8rem 0;
+        }
+
+        .code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        .api-link {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .api-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .status {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🌾</div>
+        <h1>Flow Farm 后端服务</h1>
+        <div class="message">
+            前端界面资源未找到，但API服务正常运行。
+        </div>
+
+        <div class="steps">
+            <h3>🚀 如何部署前端界面：</h3>
+            <ol>
+                <li>进入前端目录：<span class="code">cd server-frontend</span></li>
+                <li>安装依赖：<span class="code">npm install</span></li>
+                <li>构建生产版本：<span class="code">npm run build</span></li>
+                <li>重启后端服务</li>
+            </ol>
+        </div>
+
+        <div class="status">
+            ✅ <strong>后端API服务正常</strong><br>
+            📊 系统运行中，可通过API接口访问所有功能
+        </div>
+
+        <a href="/api/v1/health" class="api-link">🔍 检查API健康状态</a>
+        <a href="/docs" class="api-link">📚 查看API文档</a>
+    </div>
+</body>
+</html>
