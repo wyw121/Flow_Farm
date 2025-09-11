@@ -135,6 +135,7 @@ export interface CompanyStatistics {
   today_follows: number
   total_billing_amount: number
   unpaid_amount: number
+  balance: number
 }
 
 export interface PaginatedResponse<T> {

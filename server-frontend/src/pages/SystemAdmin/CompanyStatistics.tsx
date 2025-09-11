@@ -167,6 +167,22 @@ const CompanyStatistics: React.FC = () => {
       ),
     },
     {
+      title: '余额 (¥)',
+      dataIndex: 'balance',
+      key: 'balance',
+      render: (balance: number) => (
+        <Statistic
+          value={balance}
+          precision={2}
+          prefix="¥"
+          valueStyle={{
+            fontSize: '14px',
+            color: balance > 0 ? '#52c41a' : '#ff4d4f'
+          }}
+        />
+      ),
+    },
+    {
       title: '操作',
       key: 'action',
       render: (record: CompanyStatsType) => (
@@ -199,6 +215,7 @@ const CompanyStatistics: React.FC = () => {
       todayFollows: acc.todayFollows + company.today_follows,
       totalRevenue: acc.totalRevenue + company.total_billing_amount,
       unpaidAmount: acc.unpaidAmount + company.unpaid_amount,
+      totalBalance: acc.totalBalance + company.balance,
     }),
     {
       totalCompanies: 0,
@@ -207,6 +224,7 @@ const CompanyStatistics: React.FC = () => {
       todayFollows: 0,
       totalRevenue: 0,
       unpaidAmount: 0,
+      totalBalance: 0,
     }
   )
 
@@ -312,6 +330,17 @@ const CompanyStatistics: React.FC = () => {
               precision={2}
               prefix="¥"
               valueStyle={{ color: '#ff4d4f' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={4}>
+          <Card>
+            <Statistic
+              title="总余额"
+              value={totalStats.totalBalance}
+              precision={2}
+              prefix="¥"
+              valueStyle={{ color: totalStats.totalBalance > 0 ? '#52c41a' : '#ff4d4f' }}
             />
           </Card>
         </Col>

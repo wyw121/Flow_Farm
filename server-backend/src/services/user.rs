@@ -474,7 +474,8 @@ impl UserService {
                 0 as total_follows,
                 0 as today_follows,
                 0.0 as total_billing_amount,
-                0.0 as unpaid_amount
+                0.0 as unpaid_amount,
+                COALESCE(u.balance, 0.0) as balance
             FROM users u
             WHERE u.role = 'user_admin'
             ORDER BY u.company, u.username

@@ -18,6 +18,7 @@ pub struct User {
     pub company: Option<String>,
     pub max_employees: Option<i32>,
     pub current_employees: Option<i32>,
+    pub balance: Option<f64>,
     pub created_at: Option<DateTime<Utc>>,
     pub updated_at: Option<DateTime<Utc>>,
     pub last_login: Option<DateTime<Utc>>,
@@ -110,6 +111,7 @@ pub struct UserInfo {
     pub is_verified: bool,
     pub current_employees: i32,
     pub max_employees: i32,
+    pub balance: f64,
     pub parent_id: Option<i32>,
     pub created_at: String,
     pub last_login: Option<String>,
@@ -133,6 +135,7 @@ impl From<User> for UserInfo {
             is_verified,
             current_employees: user.current_employees.unwrap_or(0),
             max_employees: user.max_employees.unwrap_or(0),
+            balance: user.balance.unwrap_or(0.0),
             parent_id: user.parent_id,
             created_at: user
                 .created_at
@@ -317,6 +320,7 @@ pub struct CompanyStatistics {
     pub today_follows: i64,
     pub total_billing_amount: f64,
     pub unpaid_amount: f64,
+    pub balance: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

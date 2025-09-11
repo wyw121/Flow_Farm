@@ -96,6 +96,7 @@ impl AuthService {
             is_verified: false,
             current_employees: 0,
             max_employees: request.max_employees.unwrap_or(10),
+            balance: 1000.0, // 新用户默认余额
             parent_id: None,
             created_at: now.format("%Y-%m-%d %H:%M:%S").to_string(),
             last_login: None,
