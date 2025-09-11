@@ -48,7 +48,9 @@ const UserManagement: React.FC = () => {
     const [searchText, setSearchText] = useState('')
     const [editModalVisible, setEditModalVisible] = useState(false)
     const [viewModalVisible, setViewModalVisible] = useState(false)
+    const [deleteModalVisible, setDeleteModalVisible] = useState(false)
     const [currentUser, setCurrentUser] = useState<UserAdmin | null>(null)
+    const [userToDelete, setUserToDelete] = useState<UserAdmin | null>(null)
     const [form] = Form.useForm()
 
     // 获取用户列表
@@ -132,26 +134,34 @@ const UserManagement: React.FC = () => {
     // 删除用户
     const handleDelete = (user: UserAdmin) => {
         console.log('🗑️ 删除用户被点击，用户:', user)
-        Modal.confirm({
-            title: '确认删除',
-            content: `确定要删除用户 "${user.username}" 吗？此操作不可恢复。`,
-            okText: '删除',
-            okType: 'danger',
-            cancelText: '取消',
-            onOk: async () => {
-                console.log('✅ 用户确认删除，开始执行删除操作')
-                try {
-                    console.log('🔄 调用删除API...')
-                    await userService.deleteUser(user.id)
-                    console.log('✅ 删除API调用成功')
-                    message.success('删除成功')
-                    fetchUsers()
-                } catch (error: any) {
-                    console.error('❌ 删除失败:', error)
-                    message.error(`删除失败: ${error?.message || error}`)
-                }
-            }
-        })
+        setUserToDelete(user)
+        setDeleteModalVisible(true)
+    }
+
+    // 确认删除
+    const confirmDelete = async () => {
+        if (!userToDelete) return
+        
+        console.log('✅ 用户确认删除，开始执行删除操作')
+        try {
+            console.log('🔄 调用删除API...')
+            await userService.deleteUser(userToDelete.id)
+            console.log('✅ 删除API调用成功')
+            message.success('删除成功')
+            setDeleteModalVisible(false)
+            setUserToDelete(null)
+            fetchUsers()
+        } catch (error: any) {
+            console.error('❌ 删除失败:', error)
+            message.error(`删除失败: ${error?.message || error}`)
+        }
+    }
+
+    // 取消删除
+    const cancelDelete = () => {
+        console.log('❌ 用户取消删除操作')
+        setDeleteModalVisible(false)
+        setUserToDelete(null)
     }
 
     // 保存编辑
@@ -544,6 +554,26 @@ const UserManagement: React.FC = () => {
                             </Col>
                         </Row>
                     </div>
+                )}
+            </Modal>
+
+            {/* 删除确认Modal */}
+            <Modal
+                title="确认删除"
+                open={deleteModalVisible}
+                onOk={confirmDelete}
+                onCancel={cancelDelete}
+                okText="删除"
+                cancelText="取消"
+                okType="danger"
+                centered
+            >
+                {userToDelete && (
+                    <p>
+                        确定要删除用户 <strong>"{userToDelete.username}"</strong> 吗？
+                        <br />
+                        <span style={{ color: '#ff4d4f' }}>此操作不可恢复。</span>
+                    </p>
                 )}
             </Modal>
         </div>
