@@ -30,6 +30,7 @@ import {
 } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { companyPricingService } from '../../services/companyPricingService'
+import { userService } from '../../services/userService'
 import { CompanyPricingPlan, CompanyOperationPricing } from '../../types'
 
 const { Title, Text } = Typography
@@ -41,6 +42,7 @@ const CompanyPricingManagement: React.FC = () => {
   const [operationPricing, setOperationPricing] = useState<CompanyOperationPricing[]>([])
   const [filteredPlans, setFilteredPlans] = useState<CompanyPricingPlan[]>([])
   const [filteredOperations, setFilteredOperations] = useState<CompanyOperationPricing[]>([])
+  const [companyNames, setCompanyNames] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [planModalVisible, setPlanModalVisible] = useState(false)
   const [operationModalVisible, setOperationModalVisible] = useState(false)
@@ -80,8 +82,18 @@ const CompanyPricingManagement: React.FC = () => {
   const loadData = async () => {
     await Promise.all([
       loadCompanyPlans(),
-      loadOperationPricing()
+      loadOperationPricing(),
+      loadCompanyNames()
     ])
+  }
+
+  const loadCompanyNames = async () => {
+    try {
+      const names = await userService.getCompanyNames()
+      setCompanyNames(names)
+    } catch (error: any) {
+      message.error('加载公司名称失败：' + error.message)
+    }
   }
 
   const loadCompanyPlans = async () => {
@@ -527,13 +539,24 @@ const CompanyPricingManagement: React.FC = () => {
                         <Text style={{ fontSize: '12px', color: '#666' }}>筛选条件：</Text>
                       </Col>
                       <Col>
-                        <Input
+                        <Select
                           placeholder="公司名称"
                           value={planFilters.companyName}
-                          onChange={(e) => setPlanFilters({...planFilters, companyName: e.target.value})}
+                          onChange={(value) => setPlanFilters({...planFilters, companyName: value || ''})}
                           style={{ width: 120 }}
                           allowClear
+                          showSearch
                           size="small"
+                          filterOption={(input, option) =>
+                            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                          }
+                          options={[
+                            { value: '', label: '全部公司' },
+                            ...companyNames.map(name => ({
+                              value: name,
+                              label: name
+                            }))
+                          ]}
                         />
                       </Col>
                       <Col>
@@ -631,13 +654,24 @@ const CompanyPricingManagement: React.FC = () => {
                         <Text style={{ fontSize: '12px', color: '#666' }}>筛选条件：</Text>
                       </Col>
                       <Col>
-                        <Input
+                        <Select
                           placeholder="公司名称"
                           value={operationFilters.companyName}
-                          onChange={(e) => setOperationFilters({...operationFilters, companyName: e.target.value})}
+                          onChange={(value) => setOperationFilters({...operationFilters, companyName: value || ''})}
                           style={{ width: 120 }}
                           allowClear
+                          showSearch
                           size="small"
+                          filterOption={(input, option) =>
+                            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                          }
+                          options={[
+                            { value: '', label: '全部公司' },
+                            ...companyNames.map(name => ({
+                              value: name,
+                              label: name
+                            }))
+                          ]}
                         />
                       </Col>
                       <Col>
@@ -745,12 +779,27 @@ const CompanyPricingManagement: React.FC = () => {
           <Form.Item
             name="company_name"
             label="公司名称"
-            rules={[{ required: true, message: '请输入公司名称' }]}
+            rules={[{ required: true, message: '请选择公司名称' }]}
           >
-            <Input 
-              placeholder="请输入公司名称" 
-              disabled={!!editingPlan}
-            />
+            {editingPlan ? (
+              <Input 
+                placeholder="公司名称" 
+                disabled={true}
+              />
+            ) : (
+              <Select
+                placeholder="请选择公司名称"
+                allowClear
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                options={companyNames.map(name => ({
+                  value: name,
+                  label: name
+                }))}
+              />
+            )}
           </Form.Item>
 
           <Form.Item
@@ -814,12 +863,27 @@ const CompanyPricingManagement: React.FC = () => {
           <Form.Item
             name="company_name"
             label="公司名称"
-            rules={[{ required: true, message: '请输入公司名称' }]}
+            rules={[{ required: true, message: '请选择公司名称' }]}
           >
-            <Input 
-              placeholder="请输入公司名称" 
-              disabled={!!editingOperation}
-            />
+            {editingOperation ? (
+              <Input 
+                placeholder="公司名称" 
+                disabled={true}
+              />
+            ) : (
+              <Select
+                placeholder="请选择公司名称"
+                allowClear
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                options={companyNames.map(name => ({
+                  value: name,
+                  label: name
+                }))}
+              />
+            )}
           </Form.Item>
 
           <Row gutter={16}>

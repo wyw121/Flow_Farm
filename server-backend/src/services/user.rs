@@ -3,6 +3,7 @@ use crate::{
     Database,
 };
 use anyhow::{anyhow, Result};
+use sqlx::Row;
 
 pub struct UserService {
     database: Database,
@@ -484,5 +485,32 @@ impl UserService {
             .await?;
 
         Ok(statistics)
+    }
+
+    // 获取所有公司名称列表
+    pub async fn get_company_names(&self, current_user: &UserInfo) -> Result<Vec<String>> {
+        // 权限检查：只有系统管理员可以查看所有公司名称
+        if current_user.role != "system_admin" {
+            return Err(anyhow!("权限不足：只有系统管理员可以查看公司名称列表"));
+        }
+
+        // 查询所有不为空的公司名称，去重并排序
+        let query = r#"
+            SELECT DISTINCT company
+            FROM users
+            WHERE company IS NOT NULL AND company != ''
+            ORDER BY company
+        "#;
+
+        let rows = sqlx::query(query)
+            .fetch_all(&self.database.pool)
+            .await?;
+
+        let company_names: Vec<String> = rows
+            .into_iter()
+            .map(|row| row.get::<String, _>("company"))
+            .collect();
+
+        Ok(company_names)
     }
 }

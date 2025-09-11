@@ -152,3 +152,22 @@ pub async fn get_company_statistics(
         }
     }
 }
+
+// 获取所有公司名称列表
+pub async fn get_company_names(
+    State((database, _config)): State<AppState>,
+    auth_context: AuthContext,
+) -> Result<ResponseJson<ApiResponse<Vec<String>>>, StatusCode> {
+    let user_service = UserService::new(database);
+
+    match user_service.get_company_names(&auth_context.user).await {
+        Ok(company_names) => Ok(ResponseJson(ApiResponse::success(company_names))),
+        Err(e) => {
+            tracing::error!("获取公司名称列表失败: {}", e);
+            Ok(ResponseJson(ApiResponse::error(format!(
+                "获取公司名称列表失败: {}",
+                e
+            ))))
+        }
+    }
+}

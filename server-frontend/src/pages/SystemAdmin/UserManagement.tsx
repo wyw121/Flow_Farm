@@ -62,11 +62,11 @@ const UserManagement: React.FC = () => {
             console.log('🔄 开始获取用户列表...')
             console.log('🔑 当前token:', localStorage.getItem('token'))
             
-            // 获取所有用户（包括用户管理员和员工）
+            // 获取所有用户（只包括用户管理员）
             const response = await userService.getUsers(1, 100) // 移除角色过滤
             console.log('📋 获取到的用户数据:', response)
             const userAdmins: UserAdmin[] = response.items
-                .filter(user => user.role === 'user_admin' || user.role === 'employee') // 前端过滤
+                .filter(user => user.role === 'user_admin') // 只显示用户管理员
                 .map(user => ({
                     id: user.id,
                     username: user.username,

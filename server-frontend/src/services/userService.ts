@@ -100,4 +100,10 @@ export const userService = {
     const response = await apiClient.post(`/api/v1/users/${userId}/toggle-status`)
     return response.data
   },
+
+  // 获取公司名称列表（用于下拉选择）
+  async getCompanyNames(): Promise<string[]> {
+    const response = await apiClient.get('/api/v1/users/companies/names')
+    return adaptApiResponse<string[]>(response)
+  },
 }

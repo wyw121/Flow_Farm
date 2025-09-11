@@ -73,6 +73,10 @@ pub async fn create_app(database: Database, config: Config) -> Router {
             "/api/v1/users/companies/statistics",
             get(handlers::users::get_company_statistics),
         )
+        .route(
+            "/api/v1/users/companies/names",
+            get(handlers::users::get_company_names),
+        )
         // 工作记录
         .route(
             "/api/v1/work-records",
