@@ -71,9 +71,13 @@ export interface BillingRecord {
 
 export interface PricingRule {
   id: number
-  rule_name: string
-  billing_type: string
+  name?: string          // 规则名称 (可选)
+  rule_name: string      // 规则名称
+  rule_type?: string     // 计费类型：employee_count | follow_count (可选)
+  billing_type: string   // 计费类型
+  billing_period?: string // 计费周期：monthly | yearly | one_time (可选)
   unit_price: number
+  description?: string   // 规则描述
   is_active: boolean
   created_at?: string
   updated_at?: string

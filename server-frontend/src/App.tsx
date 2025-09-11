@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
-import RootRedirect from './components/RootRedirect'
+import TestPage from './components/TestPage'
 import UnauthorizedPage from './components/UnauthorizedPage'
 import Login from './pages/Login'
 import SystemAdminDashboard from './pages/SystemAdminDashboard'
@@ -77,8 +77,21 @@ const App: React.FC = () => {
   // 已认证时的主要路由
   return (
     <Routes>
-        {/* 登录页面重定向 */}
-        <Route path="/login" element={<RootRedirect />} />
+        {/* 登录页面重定向 - 已登录用户访问登录页时直接重定向到相应仪表板 */}
+        <Route
+          path="/login"
+          element={
+            user?.role === 'system_admin' ? (
+              <Navigate to="/system-admin/dashboard" replace />
+            ) : user?.role === 'user_admin' ? (
+              <Navigate to="/user-admin/dashboard" replace />
+            ) : user?.role === 'employee' ? (
+              <Navigate to="/employee/dashboard" replace />
+            ) : (
+              <Navigate to="/unauthorized" replace />
+            )
+          }
+        />
 
         {/* 系统管理员路由 */}
         <Route
@@ -104,6 +117,9 @@ const App: React.FC = () => {
           }
         />
 
+        {/* 测试页面路由 */}
+        <Route path="/test" element={<TestPage />} />
+
         {/* 调试路由 */}
         <Route
           path="/debug"
@@ -122,7 +138,20 @@ const App: React.FC = () => {
         />
 
         {/* 根路径智能重定向 */}
-        <Route path="/" element={<RootRedirect />} />
+        <Route
+          path="/"
+          element={
+            user?.role === 'system_admin' ? (
+              <Navigate to="/system-admin/dashboard" replace />
+            ) : user?.role === 'user_admin' ? (
+              <Navigate to="/user-admin/dashboard" replace />
+            ) : user?.role === 'employee' ? (
+              <Navigate to="/employee/dashboard" replace />
+            ) : (
+              <Navigate to="/unauthorized" replace />
+            )
+          }
+        />
 
         {/* 无权限页面 */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />

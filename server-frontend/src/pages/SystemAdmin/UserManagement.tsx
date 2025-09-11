@@ -55,24 +55,29 @@ const UserManagement: React.FC = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true)
-            // 获取用户管理员列表
-            const response = await userService.getUsers(1, 100, 'user_admin')
-            const userAdmins: UserAdmin[] = response.items.map(user => ({
-                id: user.id,
-                username: user.username,
-                email: user.email || '',
-                phone: user.phone || '',
-                company_name: user.company || '',
-                max_employees: user.max_employees,
-                current_employees: user.current_employees,
-                status: user.is_active ? 'active' : 'inactive',
-                created_at: user.created_at,
-                last_login: user.last_login || '',
-                balance: 0 // 这个需要从billing API获取
-            }))
+            console.log('🔄 开始获取用户列表...')
+            // 获取所有用户（包括用户管理员和员工）
+            const response = await userService.getUsers(1, 100) // 移除角色过滤
+            console.log('📋 获取到的用户数据:', response)
+            const userAdmins: UserAdmin[] = response.items
+                .filter(user => user.role === 'user_admin' || user.role === 'employee') // 前端过滤
+                .map(user => ({
+                    id: user.id,
+                    username: user.username,
+                    email: user.email || '',
+                    phone: user.phone || '',
+                    company_name: user.company || '',
+                    max_employees: user.max_employees,
+                    current_employees: user.current_employees,
+                    status: user.is_active ? 'active' : 'inactive',
+                    created_at: user.created_at,
+                    last_login: user.last_login || '',
+                    balance: 0 // 这个需要从billing API获取
+                }))
+            console.log('👥 处理后的用户列表:', userAdmins)
             setUsers(userAdmins)
         } catch (error) {
-            console.error('获取用户列表失败:', error)
+            console.error('❌ 获取用户列表失败:', error)
             message.error('获取用户列表失败')
         } finally {
             setLoading(false)
@@ -126,6 +131,7 @@ const UserManagement: React.FC = () => {
 
     // 删除用户
     const handleDelete = (user: UserAdmin) => {
+        console.log('🗑️ 删除用户被点击，用户:', user)
         Modal.confirm({
             title: '确认删除',
             content: `确定要删除用户 "${user.username}" 吗？此操作不可恢复。`,
@@ -133,13 +139,16 @@ const UserManagement: React.FC = () => {
             okType: 'danger',
             cancelText: '取消',
             onOk: async () => {
+                console.log('✅ 用户确认删除，开始执行删除操作')
                 try {
+                    console.log('🔄 调用删除API...')
                     await userService.deleteUser(user.id)
+                    console.log('✅ 删除API调用成功')
                     message.success('删除成功')
                     fetchUsers()
-                } catch (error) {
-                    console.error('删除失败:', error)
-                    message.error('删除失败')
+                } catch (error: any) {
+                    console.error('❌ 删除失败:', error)
+                    message.error(`删除失败: ${error?.message || error}`)
                 }
             }
         })
@@ -297,7 +306,10 @@ const UserManagement: React.FC = () => {
                         type="link"
                         danger
                         icon={<DeleteOutlined />}
-                        onClick={() => handleDelete(record)}
+                        onClick={() => {
+                            console.log('🖱️ 删除按钮被点击，记录:', record)
+                            handleDelete(record)
+                        }}
                     >
                         删除
                     </Button>

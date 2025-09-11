@@ -1,10 +1,10 @@
 import {
-  DashboardOutlined,
-  DownOutlined,
-  LogoutOutlined,
-  SettingOutlined,
-  TeamOutlined,
-  UserOutlined,
+    DashboardOutlined,
+    DownOutlined,
+    LogoutOutlined,
+    SettingOutlined,
+    TeamOutlined,
+    UserOutlined,
 } from '@ant-design/icons'
 import { Avatar, Button, Dropdown, Layout, Menu, Space } from 'antd'
 import React, { useState } from 'react'
@@ -18,6 +18,7 @@ import ApiTestPage from './SystemAdmin/ApiTestPage'
 import CompanyStatistics from './SystemAdmin/CompanyStatistics'
 import SystemDashboard from './SystemAdmin/Dashboard'
 import PricingSettings from './SystemAdmin/PricingSettings'
+import UserDeleteTest from './SystemAdmin/UserDeleteTest'
 import UserManagement from './SystemAdmin/UserManagement'
 
 const { Header, Sider, Content } = Layout
@@ -133,6 +134,7 @@ const SystemAdminDashboard: React.FC = () => {
             <Route path="/companies" element={<CompanyStatistics />} />
             <Route path="/pricing" element={<PricingSettings />} />
             <Route path="/api-test" element={<ApiTestPage />} />
+            <Route path="/delete-test" element={<UserDeleteTest />} />
             {/* 默认重定向到dashboard */}
             <Route path="*" element={<SystemDashboard />} />
           </Routes>

@@ -22,12 +22,41 @@ const Login: React.FC = () => {
     dispatch(login(values))
   }
 
+  // 验证用户名/邮箱/手机号格式
+  const validateLoginField = (_: any, value: string) => {
+    if (!value) {
+      return Promise.reject(new Error('请输入用户名、邮箱或手机号!'))
+    }
+
+    if (value.length < 3) {
+      return Promise.reject(new Error('至少3个字符!'))
+    }
+
+    // 邮箱格式验证
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    // 手机号格式验证（中国手机号）
+    const phoneRegex = /^1[3-9]\d{9}$/
+
+    // 如果是邮箱或手机号格式，直接通过
+    if (emailRegex.test(value) || phoneRegex.test(value)) {
+      return Promise.resolve()
+    }
+
+    // 如果不是邮箱或手机号，检查是否是有效的用户名
+    // 用户名可以包含字母、数字、下划线、中文字符
+    if (value.length >= 3) {
+      return Promise.resolve()
+    }
+
+    return Promise.reject(new Error('请输入有效的用户名、邮箱或手机号!'))
+  }
+
   return (
     <div className="login-container">
       <Card className="login-form">
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <Title level={2}>Flow Farm 管理系统</Title>
-          <p style={{ color: '#666' }}>请输入您的账号密码登录</p>
+          <p style={{ color: '#666' }}>支持用户名、邮箱或手机号登录</p>
         </div>
 
         {error && (
@@ -51,8 +80,7 @@ const Login: React.FC = () => {
           <Form.Item
             name="username"
             rules={[
-              { required: true, message: '请输入用户名、邮箱或手机号!' },
-              { min: 3, message: '至少3个字符!' },
+              { validator: validateLoginField },
             ]}
           >
             <Input
@@ -90,6 +118,7 @@ const Login: React.FC = () => {
         </Form>
 
         <div style={{ textAlign: 'center', color: '#666', fontSize: '12px' }}>
+          <p>💡 登录方式：用户名、邮箱地址 或 手机号码</p>
           <p>系统管理员请使用管理员账号登录</p>
           <p>用户管理员请使用分配的账号登录</p>
         </div>

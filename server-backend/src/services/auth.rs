@@ -18,10 +18,12 @@ impl AuthService {
     }
 
     pub async fn login(&self, username: &str, password: &str) -> Result<LoginResponse> {
-        // 查找用户
+        // 查找用户 - 支持通过用户名、邮箱或手机号登录
         let user = sqlx::query_as::<_, User>(
-            "SELECT * FROM users WHERE username = ? AND (is_active IS NULL OR is_active = 1)",
+            "SELECT * FROM users WHERE (username = ? OR email = ? OR phone = ?) AND (is_active IS NULL OR is_active = 1)",
         )
+        .bind(username)
+        .bind(username)
         .bind(username)
         .fetch_optional(&self.database.pool)
         .await?
