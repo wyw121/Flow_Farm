@@ -211,13 +211,50 @@ const UserManagement: React.FC = () => {
             setEditModalVisible(false)
             fetchUsers()
         } catch (error: any) {
-            console.error('保存失败:', error)
-            console.error('错误详情:', {
+            console.error('🚨 保存失败:', error)
+            console.error('🔍 错误详情:', {
                 message: error?.message,
                 response: error?.response?.data,
                 status: error?.response?.status
             })
-            message.error(`保存失败: ${error?.response?.data?.message || error?.message || '未知错误'}`)
+            
+            // 提取错误信息
+            let errorMessage = '未知错误'
+            
+            if (error?.response?.data?.message) {
+                errorMessage = error.response.data.message
+                console.log('📡 使用 response.data.message:', errorMessage)
+            } else if (error?.message) {
+                errorMessage = error.message
+                console.log('📝 使用 error.message:', errorMessage)
+            }
+            
+            console.log('🎯 最终错误信息:', JSON.stringify(errorMessage))
+            console.log('� 检查用户名已存在:', errorMessage.includes('用户名已存在'))
+            console.log('� 检查邮箱已存在:', errorMessage.includes('邮箱已存在'))
+            console.log('� 检查手机号已存在:', errorMessage.includes('手机号已存在'))
+            
+            // 特定错误的友好提示
+            if (errorMessage.includes('用户名已存在')) {
+                console.log('✅ 匹配到用户名已存在错误 - 显示友好提示')
+                message.error('❌ 用户名已被使用，请选择其他用户名')
+            } else if (errorMessage.includes('邮箱已存在')) {
+                console.log('✅ 匹配到邮箱已存在错误 - 显示友好提示')
+                message.error('❌ 邮箱已被注册，请使用其他邮箱地址')
+            } else if (errorMessage.includes('手机号已存在')) {
+                console.log('✅ 匹配到手机号已存在错误 - 显示友好提示')
+                message.error('❌ 手机号已被注册，请使用其他手机号')
+            } else if (errorMessage.includes('权限不足')) {
+                console.log('✅ 匹配到权限不足错误 - 显示友好提示')
+                message.error('❌ 权限不足，无法执行此操作')
+            } else if (errorMessage.includes('密码')) {
+                console.log('✅ 匹配到密码错误 - 显示友好提示')
+                message.error('❌ 密码格式不正确或加密失败')
+            } else {
+                console.log('❌ 未匹配到特定错误，显示通用错误')
+                console.log('❌ 原始错误信息:', errorMessage)
+                message.error(`操作失败: ${errorMessage}`)
+            }
         }
     }
 

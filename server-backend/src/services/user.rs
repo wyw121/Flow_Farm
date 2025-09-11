@@ -131,6 +131,18 @@ impl UserService {
             }
         }
 
+        // 检查手机号是否已存在（如果提供了手机号）
+        if let Some(ref phone) = request.phone {
+            let existing_phone = sqlx::query_as::<_, User>("SELECT * FROM users WHERE phone = ?")
+                .bind(phone)
+                .fetch_optional(&self.database.pool)
+                .await?;
+
+            if existing_phone.is_some() {
+                return Err(anyhow!("手机号已存在"));
+            }
+        }
+
         // 对密码进行哈希加密
         let hashed_password = bcrypt::hash(&request.password, bcrypt::DEFAULT_COST)
             .map_err(|e| anyhow!("密码加密失败: {}", e))?;
@@ -247,6 +259,36 @@ impl UserService {
 
                 if existing.is_some() {
                     return Err(anyhow!("用户名已存在"));
+                }
+            }
+        }
+
+        // 检查邮箱唯一性（如果要更新邮箱）
+        if let Some(ref email) = request.email {
+            if Some(email) != user.email.as_ref() {
+                let existing = sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = ? AND id != ?")
+                    .bind(email)
+                    .bind(user_id_int)
+                    .fetch_optional(&self.database.pool)
+                    .await?;
+
+                if existing.is_some() {
+                    return Err(anyhow!("邮箱已存在"));
+                }
+            }
+        }
+
+        // 检查手机号唯一性（如果要更新手机号）
+        if let Some(ref phone) = request.phone {
+            if Some(phone) != user.phone.as_ref() {
+                let existing = sqlx::query_as::<_, User>("SELECT * FROM users WHERE phone = ? AND id != ?")
+                    .bind(phone)
+                    .bind(user_id_int)
+                    .fetch_optional(&self.database.pool)
+                    .await?;
+
+                if existing.is_some() {
+                    return Err(anyhow!("手机号已存在"));
                 }
             }
         }

@@ -1,3 +1,4 @@
+import { App as AntApp } from 'antd'
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, Route, Routes } from 'react-router-dom'
@@ -44,11 +45,13 @@ const App: React.FC = () => {
   // 未认证时显示登录页面
   if (!isAuthenticated) {
     return (
-      <Routes>
-        {/* 重定向所有路径到登录页 */}
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <AntApp>
+        <Routes>
+          {/* 重定向所有路径到登录页 */}
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </AntApp>
     )
   }
 
@@ -76,7 +79,8 @@ const App: React.FC = () => {
 
   // 已认证时的主要路由
   return (
-    <Routes>
+    <AntApp>
+      <Routes>
         {/* 登录页面重定向 - 已登录用户访问登录页时直接重定向到相应仪表板 */}
         <Route
           path="/login"
@@ -159,6 +163,7 @@ const App: React.FC = () => {
         {/* 404页面 - 重定向到根路径 */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+    </AntApp>
   )
 }
 
