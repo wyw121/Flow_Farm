@@ -5,6 +5,8 @@ import {
   SettingOutlined,
   TeamOutlined,
   DollarOutlined,
+  SearchOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import {
   Button,
@@ -37,6 +39,8 @@ const { TabPane } = Tabs
 const CompanyPricingManagement: React.FC = () => {
   const [companyPlans, setCompanyPlans] = useState<CompanyPricingPlan[]>([])
   const [operationPricing, setOperationPricing] = useState<CompanyOperationPricing[]>([])
+  const [filteredPlans, setFilteredPlans] = useState<CompanyPricingPlan[]>([])
+  const [filteredOperations, setFilteredOperations] = useState<CompanyOperationPricing[]>([])
   const [loading, setLoading] = useState(false)
   const [planModalVisible, setPlanModalVisible] = useState(false)
   const [operationModalVisible, setOperationModalVisible] = useState(false)
@@ -45,9 +49,33 @@ const CompanyPricingManagement: React.FC = () => {
   const [planForm] = Form.useForm()
   const [operationForm] = Form.useForm()
 
+  // 筛选器状态
+  const [planFilters, setPlanFilters] = useState({
+    companyName: '',
+    planName: '',
+    isActive: 'all', // 'all', 'active', 'inactive'
+    priceRange: 'all', // 'all', 'low', 'medium', 'high'
+  })
+  const [operationFilters, setOperationFilters] = useState({
+    companyName: '',
+    platform: 'all', // 'all', 'xiaohongshu', 'douyin'
+    operationType: 'all', // 'all', 'follow', 'like', 'favorite', 'comment'
+    isActive: 'all', // 'all', 'active', 'inactive'
+    priceRange: 'all', // 'all', 'low', 'medium', 'high'
+  })
+
   useEffect(() => {
     loadData()
   }, [])
+
+  // 监听数据和筛选条件变化，更新筛选结果
+  useEffect(() => {
+    filterPlans()
+  }, [companyPlans, planFilters])
+
+  useEffect(() => {
+    filterOperations()
+  }, [operationPricing, operationFilters])
 
   const loadData = async () => {
     await Promise.all([
@@ -75,6 +103,108 @@ const CompanyPricingManagement: React.FC = () => {
     } catch (error: any) {
       message.error('加载操作收费规则失败：' + error.message)
     }
+  }
+
+  // 筛选功能
+  const filterPlans = () => {
+    let filtered = [...companyPlans]
+
+    // 按公司名称筛选
+    if (planFilters.companyName.trim()) {
+      filtered = filtered.filter(plan => 
+        plan.company_name.toLowerCase().includes(planFilters.companyName.toLowerCase())
+      )
+    }
+
+    // 按计划名称筛选
+    if (planFilters.planName.trim()) {
+      filtered = filtered.filter(plan => 
+        plan.plan_name.toLowerCase().includes(planFilters.planName.toLowerCase())
+      )
+    }
+
+    // 按状态筛选
+    if (planFilters.isActive !== 'all') {
+      const isActive = planFilters.isActive === 'active'
+      filtered = filtered.filter(plan => plan.is_active === isActive)
+    }
+
+    // 按价格范围筛选
+    if (planFilters.priceRange !== 'all') {
+      filtered = filtered.filter(plan => {
+        const price = plan.employee_monthly_fee
+        switch (planFilters.priceRange) {
+          case 'low': return price < 100
+          case 'medium': return price >= 100 && price < 300
+          case 'high': return price >= 300
+          default: return true
+        }
+      })
+    }
+
+    setFilteredPlans(filtered)
+  }
+
+  const filterOperations = () => {
+    let filtered = [...operationPricing]
+
+    // 按公司名称筛选
+    if (operationFilters.companyName.trim()) {
+      filtered = filtered.filter(op => 
+        op.company_name.toLowerCase().includes(operationFilters.companyName.toLowerCase())
+      )
+    }
+
+    // 按平台筛选
+    if (operationFilters.platform !== 'all') {
+      filtered = filtered.filter(op => op.platform === operationFilters.platform)
+    }
+
+    // 按操作类型筛选
+    if (operationFilters.operationType !== 'all') {
+      filtered = filtered.filter(op => op.operation_type === operationFilters.operationType)
+    }
+
+    // 按状态筛选
+    if (operationFilters.isActive !== 'all') {
+      const isActive = operationFilters.isActive === 'active'
+      filtered = filtered.filter(op => op.is_active === isActive)
+    }
+
+    // 按价格范围筛选
+    if (operationFilters.priceRange !== 'all') {
+      filtered = filtered.filter(op => {
+        const price = op.unit_price
+        switch (operationFilters.priceRange) {
+          case 'low': return price < 1
+          case 'medium': return price >= 1 && price < 5
+          case 'high': return price >= 5
+          default: return true
+        }
+      })
+    }
+
+    setFilteredOperations(filtered)
+  }
+
+  // 重置筛选器
+  const resetPlanFilters = () => {
+    setPlanFilters({
+      companyName: '',
+      planName: '',
+      isActive: 'all',
+      priceRange: 'all',
+    })
+  }
+
+  const resetOperationFilters = () => {
+    setOperationFilters({
+      companyName: '',
+      platform: 'all',
+      operationType: 'all',
+      isActive: 'all',
+      priceRange: 'all',
+    })
   }
 
   // 公司收费计划管理
@@ -375,18 +505,86 @@ const CompanyPricingManagement: React.FC = () => {
         <TabPane tab="公司收费计划" key="plans">
           <Card>
             <div style={{ marginBottom: '16px' }}>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleCreatePlan}
-              >
-                新建收费计划
-              </Button>
+              <Row gutter={[16, 16]} align="middle">
+                <Col span={6}>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={handleCreatePlan}
+                  >
+                    新建收费计划
+                  </Button>
+                </Col>
+                <Col span={18}>
+                  <div style={{ 
+                    background: '#fafafa', 
+                    padding: '12px', 
+                    borderRadius: '6px',
+                    border: '1px solid #d9d9d9'
+                  }}>
+                    <Row gutter={[8, 8]} justify="end" align="middle">
+                      <Col>
+                        <Text style={{ fontSize: '12px', color: '#666' }}>筛选条件：</Text>
+                      </Col>
+                      <Col>
+                        <Input
+                          placeholder="公司名称"
+                          value={planFilters.companyName}
+                          onChange={(e) => setPlanFilters({...planFilters, companyName: e.target.value})}
+                          style={{ width: 120 }}
+                          allowClear
+                          size="small"
+                        />
+                      </Col>
+                      <Col>
+                        <Input
+                          placeholder="计划名称"
+                          value={planFilters.planName}
+                          onChange={(e) => setPlanFilters({...planFilters, planName: e.target.value})}
+                          style={{ width: 120 }}
+                          allowClear
+                          size="small"
+                        />
+                      </Col>
+                      <Col>
+                        <Select
+                          value={planFilters.isActive}
+                          onChange={(value) => setPlanFilters({...planFilters, isActive: value})}
+                          style={{ width: 100 }}
+                          placeholder="状态"
+                          size="small"
+                        >
+                          <Option value="all">全部状态</Option>
+                          <Option value="active">启用</Option>
+                          <Option value="inactive">禁用</Option>
+                        </Select>
+                      </Col>
+                      <Col>
+                        <Select
+                          value={planFilters.priceRange}
+                          onChange={(value) => setPlanFilters({...planFilters, priceRange: value})}
+                          style={{ width: 120 }}
+                          placeholder="价格范围"
+                          size="small"
+                        >
+                          <Option value="all">全部价格</Option>
+                          <Option value="low">低价 (&lt;¥100)</Option>
+                          <Option value="medium">中价 (¥100-300)</Option>
+                          <Option value="high">高价 (≥¥300)</Option>
+                        </Select>
+                      </Col>
+                      <Col>
+                        <Button onClick={resetPlanFilters} icon={<ReloadOutlined />} size="small">重置</Button>
+                      </Col>
+                    </Row>
+                  </div>
+                </Col>
+              </Row>
             </div>
 
             <Table
               columns={planColumns}
-              dataSource={companyPlans}
+              dataSource={filteredPlans}
               rowKey="id"
               loading={loading}
               pagination={{
@@ -395,24 +593,120 @@ const CompanyPricingManagement: React.FC = () => {
                 showTotal: (total) => `共 ${total} 条记录`,
               }}
             />
+            <div style={{ marginTop: '8px', color: '#666', fontSize: '12px' }}>
+              <SearchOutlined style={{ marginRight: '4px' }} />
+              筛选结果：显示 <Text strong style={{ color: '#1890ff' }}>{filteredPlans.length}</Text> 条，
+              共 <Text strong>{companyPlans.length}</Text> 条记录
+              {filteredPlans.length < companyPlans.length && (
+                <Text style={{ color: '#fa8c16', marginLeft: '8px' }}>
+                  (已应用筛选条件)
+                </Text>
+              )}
+            </div>
           </Card>
         </TabPane>
 
         <TabPane tab="操作收费规则" key="operations">
           <Card>
             <div style={{ marginBottom: '16px' }}>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleCreateOperation}
-              >
-                新建收费规则
-              </Button>
+              <Row gutter={[16, 16]} align="middle">
+                <Col span={6}>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={handleCreateOperation}
+                  >
+                    新建收费规则
+                  </Button>
+                </Col>
+                <Col span={18}>
+                  <div style={{ 
+                    background: '#fafafa', 
+                    padding: '12px', 
+                    borderRadius: '6px',
+                    border: '1px solid #d9d9d9'
+                  }}>
+                    <Row gutter={[8, 8]} justify="end" align="middle">
+                      <Col>
+                        <Text style={{ fontSize: '12px', color: '#666' }}>筛选条件：</Text>
+                      </Col>
+                      <Col>
+                        <Input
+                          placeholder="公司名称"
+                          value={operationFilters.companyName}
+                          onChange={(e) => setOperationFilters({...operationFilters, companyName: e.target.value})}
+                          style={{ width: 120 }}
+                          allowClear
+                          size="small"
+                        />
+                      </Col>
+                      <Col>
+                        <Select
+                          value={operationFilters.platform}
+                          onChange={(value) => setOperationFilters({...operationFilters, platform: value})}
+                          style={{ width: 100 }}
+                          placeholder="平台"
+                          size="small"
+                        >
+                          <Option value="all">全部平台</Option>
+                          <Option value="xiaohongshu">小红书</Option>
+                          <Option value="douyin">抖音</Option>
+                        </Select>
+                      </Col>
+                      <Col>
+                        <Select
+                          value={operationFilters.operationType}
+                          onChange={(value) => setOperationFilters({...operationFilters, operationType: value})}
+                          style={{ width: 100 }}
+                          placeholder="操作类型"
+                          size="small"
+                        >
+                          <Option value="all">全部操作</Option>
+                          <Option value="follow">关注</Option>
+                          <Option value="like">点赞</Option>
+                          <Option value="favorite">收藏</Option>
+                          <Option value="comment">评论</Option>
+                        </Select>
+                      </Col>
+                      <Col>
+                        <Select
+                          value={operationFilters.isActive}
+                          onChange={(value) => setOperationFilters({...operationFilters, isActive: value})}
+                          style={{ width: 100 }}
+                          placeholder="状态"
+                          size="small"
+                        >
+                          <Option value="all">全部状态</Option>
+                          <Option value="active">启用</Option>
+                          <Option value="inactive">禁用</Option>
+                        </Select>
+                      </Col>
+                      <Col>
+                        <Select
+                          value={operationFilters.priceRange}
+                          onChange={(value) => setOperationFilters({...operationFilters, priceRange: value})}
+                          style={{ width: 120 }}
+                          placeholder="价格范围"
+                          size="small"
+                        >
+                          <Option value="all">全部价格</Option>
+                          <Option value="low">低价 (&lt;¥1)</Option>
+                          <Option value="medium">中价 (¥1-5)</Option>
+                          <Option value="high">高价 (≥¥5)</Option>
+                        </Select>
+                      </Col>
+                      <Col>
+                        <Button onClick={resetOperationFilters} icon={<ReloadOutlined />} size="small">重置</Button>
+                      </Col>
+                    </Row>
+                  </div>
+                </Col>
+              </Row>
             </div>
 
             <Table
               columns={operationColumns}
-              dataSource={operationPricing}
+              dataSource={filteredOperations}
               rowKey="id"
               loading={loading}
               pagination={{
@@ -421,6 +715,16 @@ const CompanyPricingManagement: React.FC = () => {
                 showTotal: (total) => `共 ${total} 条记录`,
               }}
             />
+            <div style={{ marginTop: '8px', color: '#666', fontSize: '12px' }}>
+              <SearchOutlined style={{ marginRight: '4px' }} />
+              筛选结果：显示 <Text strong style={{ color: '#1890ff' }}>{filteredOperations.length}</Text> 条，
+              共 <Text strong>{operationPricing.length}</Text> 条记录
+              {filteredOperations.length < operationPricing.length && (
+                <Text style={{ color: '#fa8c16', marginLeft: '8px' }}>
+                  (已应用筛选条件)
+                </Text>
+              )}
+            </div>
           </Card>
         </TabPane>
       </Tabs>
