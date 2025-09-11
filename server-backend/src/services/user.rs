@@ -1,5 +1,5 @@
 use crate::{
-    models::{CompanyStatistics, CreateUserRequest, User, UserInfo},
+    models::{CompanyStatistics, CreateUserRequest, UpdateUserRequest, User, UserInfo},
     Database,
 };
 use anyhow::{anyhow, Result};
@@ -174,15 +174,140 @@ impl UserService {
         Err(anyhow!("功能待实现"))
     }
 
-    #[allow(unused_variables)]
     pub async fn update_user(
         &self,
         current_user: &UserInfo,
         user_id: &str,
-        request: CreateUserRequest,
+        request: UpdateUserRequest,
     ) -> Result<UserInfo> {
-        // TODO: 实现更新用户逻辑
-        Err(anyhow!("功能待实现"))
+        // 权限检查
+        match current_user.role.as_str() {
+            "system_admin" => {
+                // 系统管理员可以更新任何用户
+            }
+            "user_admin" => {
+                // 用户管理员只能更新自己公司的员工
+                let user_id_int: i64 = user_id.parse().map_err(|_| anyhow!("无效的用户ID"))?;
+                let target_user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = ?")
+                    .bind(user_id_int)
+                    .fetch_optional(&self.database.pool)
+                    .await?;
+
+                if let Some(user) = target_user {
+                    if user.role != "employee" || user.company != current_user.company {
+                        return Err(anyhow!("权限不足：只能更新本公司的员工"));
+                    }
+                } else {
+                    return Err(anyhow!("用户不存在"));
+                }
+            }
+            "employee" => {
+                return Err(anyhow!("权限不足"));
+            }
+            _ => {
+                return Err(anyhow!("未知角色"));
+            }
+        }
+
+        // 解析用户ID
+        let user_id_int: i64 = user_id.parse().map_err(|_| anyhow!("无效的用户ID"))?;
+
+        // 检查用户是否存在
+        let mut user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = ?")
+            .bind(user_id_int)
+            .fetch_optional(&self.database.pool)
+            .await?
+            .ok_or_else(|| anyhow!("用户不存在"))?;
+
+        // 检查用户名唯一性（如果要更新用户名）
+        if let Some(ref username) = request.username {
+            if username != &user.username {
+                let existing = sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = ? AND id != ?")
+                    .bind(username)
+                    .bind(user_id_int)
+                    .fetch_optional(&self.database.pool)
+                    .await?;
+
+                if existing.is_some() {
+                    return Err(anyhow!("用户名已存在"));
+                }
+            }
+        }
+
+        // 构建更新SQL
+        let mut set_clauses = Vec::new();
+        let mut values: Vec<String> = Vec::new();
+
+        if let Some(username) = request.username {
+            set_clauses.push("username = ?");
+            values.push(username);
+        }
+
+        if let Some(email) = request.email {
+            set_clauses.push("email = ?");
+            values.push(email);
+        }
+
+        if let Some(phone) = request.phone {
+            set_clauses.push("phone = ?");
+            values.push(phone);
+        }
+
+        if let Some(full_name) = request.full_name {
+            set_clauses.push("full_name = ?");
+            values.push(full_name);
+        }
+
+        if let Some(company) = request.company {
+            set_clauses.push("company = ?");
+            values.push(company);
+        }
+
+        if let Some(max_employees) = request.max_employees {
+            set_clauses.push("max_employees = ?");
+            values.push(max_employees.to_string());
+        }
+
+        if let Some(is_active) = request.is_active {
+            set_clauses.push("is_active = ?");
+            values.push(is_active.to_string());
+        }
+
+        // 处理密码更新（需要哈希）
+        if let Some(password) = request.password {
+            use bcrypt::{hash, DEFAULT_COST};
+            let hashed_password = hash(password, DEFAULT_COST)?;
+            set_clauses.push("hashed_password = ?");
+            values.push(hashed_password);
+        }
+
+        if set_clauses.is_empty() {
+            return Err(anyhow!("没有要更新的字段"));
+        }
+
+        // 添加更新时间
+        set_clauses.push("updated_at = datetime('now')");
+
+        let sql = format!(
+            "UPDATE users SET {} WHERE id = ?",
+            set_clauses.join(", ")
+        );
+
+        let mut query = sqlx::query(&sql);
+        for value in values {
+            query = query.bind(value);
+        }
+        query = query.bind(user_id_int);
+
+        query.execute(&self.database.pool).await?;
+
+        // 获取更新后的用户信息
+        let updated_user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = ?")
+            .bind(user_id_int)
+            .fetch_one(&self.database.pool)
+            .await?;
+
+        Ok(updated_user.into())
     }
 
     pub async fn delete_user(&self, current_user: &UserInfo, user_id: &str) -> Result<()> {

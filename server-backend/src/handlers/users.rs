@@ -8,7 +8,7 @@ use serde::Deserialize;
 
 use crate::{
     middleware::auth::AuthContext,
-    models::{ApiResponse, CompanyStatistics, CreateUserRequest, User, UserInfo},
+    models::{ApiResponse, CompanyStatistics, CreateUserRequest, UpdateUserRequest, User, UserInfo},
     services::user::UserService,
     Config, Database,
 };
@@ -91,10 +91,10 @@ pub async fn get_user(
 }
 
 pub async fn update_user(
-    State((database, config)): State<AppState>,
+    State((database, _config)): State<AppState>,
     auth_context: AuthContext,
     Path(user_id): Path<String>,
-    Json(request): Json<CreateUserRequest>,
+    Json(request): Json<UpdateUserRequest>,
 ) -> Result<ResponseJson<ApiResponse<UserInfo>>, StatusCode> {
     let user_service = UserService::new(database);
 

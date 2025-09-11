@@ -58,6 +58,20 @@ pub struct CreateUserRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+pub struct UpdateUserRequest {
+    #[validate(length(min = 3, max = 50))]
+    pub username: Option<String>,
+    #[validate(email)]
+    pub email: Option<String>,
+    pub password: Option<String>, // 可选，只有提供时才更新
+    pub phone: Option<String>,
+    pub full_name: Option<String>,
+    pub company: Option<String>,
+    pub max_employees: Option<i32>,
+    pub is_active: Option<bool>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 pub struct LoginRequest {
     #[validate(length(min = 1))]
     pub username: String,

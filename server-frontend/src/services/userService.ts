@@ -23,7 +23,7 @@ export const userService = {
 
   // 系统管理员更新用户信息（包括密码）
   async adminUpdateUser(userId: number, userData: AdminUserUpdateRequest): Promise<User> {
-    const response = await apiClient.put(`/api/v1/users/admin/${userId}`, userData)
+    const response = await apiClient.put(`/api/v1/users/${userId}`, userData)
     return response.data
   },
 
