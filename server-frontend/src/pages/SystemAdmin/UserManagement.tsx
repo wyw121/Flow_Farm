@@ -21,6 +21,7 @@ import {
     Tag,
     Typography,
     message,
+    Alert,
 } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { AdminUserUpdateRequest, userService } from '../../services/userService'
@@ -51,6 +52,7 @@ const UserManagement: React.FC = () => {
     const [deleteModalVisible, setDeleteModalVisible] = useState(false)
     const [currentUser, setCurrentUser] = useState<UserAdmin | null>(null)
     const [userToDelete, setUserToDelete] = useState<UserAdmin | null>(null)
+    const [modalError, setModalError] = useState<string>('') // 添加模态框错误状态
     const [form] = Form.useForm()
 
     // 获取用户列表
@@ -130,6 +132,7 @@ const UserManagement: React.FC = () => {
             status: user.status,
             balance: user.balance
         })
+        setModalError('') // 清除之前的错误状态
         setEditModalVisible(true)
     }
 
@@ -209,6 +212,7 @@ const UserManagement: React.FC = () => {
             }
 
             setEditModalVisible(false)
+            setModalError('') // 清除错误状态
             fetchUsers()
         } catch (error: any) {
             console.error('🚨 保存失败:', error)
@@ -237,23 +241,35 @@ const UserManagement: React.FC = () => {
             // 特定错误的友好提示
             if (errorMessage.includes('用户名已存在')) {
                 console.log('✅ 匹配到用户名已存在错误 - 显示友好提示')
-                message.error('❌ 用户名已被使用，请选择其他用户名')
+                const errorMsg = '❌ 用户名已被使用，请选择其他用户名'
+                setModalError(errorMsg) // 在模态框中显示错误
+                message.error(errorMsg) // 同时显示全局消息
             } else if (errorMessage.includes('邮箱已存在')) {
                 console.log('✅ 匹配到邮箱已存在错误 - 显示友好提示')
-                message.error('❌ 邮箱已被注册，请使用其他邮箱地址')
+                const errorMsg = '❌ 邮箱已被注册，请使用其他邮箱地址'
+                setModalError(errorMsg)
+                message.error(errorMsg)
             } else if (errorMessage.includes('手机号已存在')) {
                 console.log('✅ 匹配到手机号已存在错误 - 显示友好提示')
-                message.error('❌ 手机号已被注册，请使用其他手机号')
+                const errorMsg = '❌ 手机号已被注册，请使用其他手机号'
+                setModalError(errorMsg)
+                message.error(errorMsg)
             } else if (errorMessage.includes('权限不足')) {
                 console.log('✅ 匹配到权限不足错误 - 显示友好提示')
-                message.error('❌ 权限不足，无法执行此操作')
+                const errorMsg = '❌ 权限不足，无法执行此操作'
+                setModalError(errorMsg)
+                message.error(errorMsg)
             } else if (errorMessage.includes('密码')) {
                 console.log('✅ 匹配到密码错误 - 显示友好提示')
-                message.error('❌ 密码格式不正确或加密失败')
+                const errorMsg = '❌ 密码格式不正确或加密失败'
+                setModalError(errorMsg)
+                message.error(errorMsg)
             } else {
                 console.log('❌ 未匹配到特定错误，显示通用错误')
                 console.log('❌ 原始错误信息:', errorMessage)
-                message.error(`操作失败: ${errorMessage}`)
+                const errorMsg = `操作失败: ${errorMessage}`
+                setModalError(errorMsg)
+                message.error(errorMsg)
             }
         }
     }
@@ -403,6 +419,7 @@ const UserManagement: React.FC = () => {
                                 onClick={() => {
                                     form.resetFields()
                                     setCurrentUser(null)
+                                    setModalError('') // 清除之前的错误状态
                                     setEditModalVisible(true)
                                 }}
                             >
@@ -438,6 +455,18 @@ const UserManagement: React.FC = () => {
                 okText="保存"
                 cancelText="取消"
             >
+                {/* 错误提示 */}
+                {modalError && (
+                    <Alert 
+                        message={modalError} 
+                        type="error" 
+                        showIcon 
+                        style={{ marginBottom: 16 }}
+                        closable
+                        onClose={() => setModalError('')}
+                    />
+                )}
+                
                 <Form form={form} layout="vertical">
                     <Row gutter={16}>
                         <Col span={12}>
