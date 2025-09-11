@@ -141,6 +141,53 @@ pub async fn create_app(database: Database, config: Config) -> Router {
             "/api/v1/billing/pricing-rules/:id",
             delete(handlers::billing::delete_pricing_rule),
         )
+        // 公司收费计划管理
+        .route(
+            "/api/v1/company-pricing/plans",
+            get(handlers::company_pricing::list_company_pricing_plans),
+        )
+        .route(
+            "/api/v1/company-pricing/plans",
+            post(handlers::company_pricing::create_company_pricing_plan),
+        )
+        .route(
+            "/api/v1/company-pricing/plans/by-company/:company_name",
+            get(handlers::company_pricing::get_company_pricing_plan),
+        )
+        .route(
+            "/api/v1/company-pricing/plans/by-id/:plan_id",
+            put(handlers::company_pricing::update_company_pricing_plan),
+        )
+        .route(
+            "/api/v1/company-pricing/plans/by-id/:plan_id",
+            delete(handlers::company_pricing::delete_company_pricing_plan),
+        )
+        // 公司操作收费规则
+        .route(
+            "/api/v1/company-pricing/operations",
+            get(handlers::company_pricing::list_company_operation_pricing),
+        )
+        .route(
+            "/api/v1/company-pricing/operations",
+            post(handlers::company_pricing::create_company_operation_pricing),
+        )
+        .route(
+            "/api/v1/company-pricing/operations/:pricing_id",
+            put(handlers::company_pricing::update_company_operation_pricing),
+        )
+        .route(
+            "/api/v1/company-pricing/operations/:pricing_id",
+            delete(handlers::company_pricing::delete_company_operation_pricing),
+        )
+        // 查询价格
+        .route(
+            "/api/v1/company-pricing/operation-price",
+            get(handlers::company_pricing::get_operation_price),
+        )
+        .route(
+            "/api/v1/company-pricing/employee-fee/:company_name",
+            get(handlers::company_pricing::get_employee_monthly_fee),
+        )
         // 报告
         .route(
             "/api/v1/reports/dashboard",

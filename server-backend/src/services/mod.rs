@@ -5,3 +5,4 @@ pub mod device;
 pub mod kpi;
 pub mod billing;
 pub mod report;
+pub mod company_pricing;

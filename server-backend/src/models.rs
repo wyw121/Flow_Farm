@@ -226,6 +226,69 @@ pub struct CreatePricingRuleRequest {
     pub unit_price: f64,
 }
 
+// 公司收费计划
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+pub struct CompanyPricingPlan {
+    pub id: i32,
+    pub company_name: String,
+    pub plan_name: String,
+    pub employee_monthly_fee: f64,
+    pub is_active: bool,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+pub struct CreateCompanyPricingPlanRequest {
+    #[validate(length(min = 1, max = 100))]
+    pub company_name: String,
+    #[validate(length(min = 1, max = 100))]
+    pub plan_name: String,
+    #[validate(range(min = 0.0))]
+    pub employee_monthly_fee: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+pub struct UpdateCompanyPricingPlanRequest {
+    #[validate(length(min = 1, max = 100))]
+    pub plan_name: Option<String>,
+    #[validate(range(min = 0.0))]
+    pub employee_monthly_fee: Option<f64>,
+    pub is_active: Option<bool>,
+}
+
+// 公司操作收费规则
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+pub struct CompanyOperationPricing {
+    pub id: i32,
+    pub company_name: String,
+    pub platform: String, // xiaohongshu, douyin
+    pub operation_type: String, // follow, like, favorite, comment
+    pub unit_price: f64,
+    pub is_active: bool,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+pub struct CreateCompanyOperationPricingRequest {
+    #[validate(length(min = 1, max = 100))]
+    pub company_name: String,
+    #[validate(length(min = 1, max = 50))]
+    pub platform: String,
+    #[validate(length(min = 1, max = 50))]
+    pub operation_type: String,
+    #[validate(range(min = 0.0))]
+    pub unit_price: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+pub struct UpdateCompanyOperationPricingRequest {
+    #[validate(range(min = 0.0))]
+    pub unit_price: Option<f64>,
+    pub is_active: Option<bool>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct KpiStats {
     pub total_actions: i64,

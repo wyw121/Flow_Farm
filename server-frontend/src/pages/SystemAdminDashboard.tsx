@@ -15,6 +15,7 @@ import { logout } from '../store/authSlice'
 
 // 页面组件导入（稍后创建）
 import ApiTestPage from './SystemAdmin/ApiTestPage'
+import CompanyPricingManagement from './SystemAdmin/CompanyPricingManagement'
 import CompanyStatistics from './SystemAdmin/CompanyStatistics'
 import SystemDashboard from './SystemAdmin/Dashboard'
 import PricingSettings from './SystemAdmin/PricingSettings'
@@ -50,6 +51,11 @@ const SystemAdminDashboard: React.FC = () => {
       key: 'pricing',
       icon: <SettingOutlined />,
       label: '收费设置',
+    },
+    {
+      key: 'company-pricing',
+      icon: <SettingOutlined />,
+      label: '公司收费管理',
     },
   ]
 
@@ -133,6 +139,7 @@ const SystemAdminDashboard: React.FC = () => {
             <Route path="/users" element={<UserManagement />} />
             <Route path="/companies" element={<CompanyStatistics />} />
             <Route path="/pricing" element={<PricingSettings />} />
+            <Route path="/company-pricing" element={<CompanyPricingManagement />} />
             <Route path="/api-test" element={<ApiTestPage />} />
             <Route path="/delete-test" element={<UserDeleteTest />} />
             {/* 默认重定向到dashboard */}

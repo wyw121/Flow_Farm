@@ -127,6 +127,42 @@ impl Database {
         .execute(&self.pool)
         .await?;
 
+        // 创建公司收费计划表
+        sqlx::query(
+            r#"
+            CREATE TABLE IF NOT EXISTS company_pricing_plans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company_name TEXT NOT NULL UNIQUE,
+                plan_name TEXT NOT NULL,
+                employee_monthly_fee REAL NOT NULL DEFAULT 50.0,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            "#,
+        )
+        .execute(&self.pool)
+        .await?;
+
+        // 创建公司操作收费规则表
+        sqlx::query(
+            r#"
+            CREATE TABLE IF NOT EXISTS company_operation_pricing (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company_name TEXT NOT NULL,
+                platform TEXT NOT NULL,
+                operation_type TEXT NOT NULL,
+                unit_price REAL NOT NULL,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(company_name, platform, operation_type)
+            )
+            "#,
+        )
+        .execute(&self.pool)
+        .await?;
+
         // 创建系统配置表
         sqlx::query(
             r#"
@@ -174,6 +210,9 @@ impl Database {
 
         // 创建测试价格规则
         self.create_test_pricing_rules().await?;
+
+        // 创建测试公司收费计划
+        self.create_test_company_pricing().await?;
 
         tracing::info!("✅ 数据库迁移完成");
         Ok(())
@@ -299,6 +338,77 @@ impl Database {
             tracing::info!("   - employee_1, employee_2, employee_3 (密码: admin123)");
         } else {
             tracing::info!("ℹ️  测试用户已存在，跳过创建");
+        }
+
+        Ok(())
+    }
+
+    async fn create_test_company_pricing(&self) -> Result<()> {
+        tracing::info!("🔄 创建测试公司收费计划");
+
+        // 检查是否已存在公司收费计划
+        let plans_count = sqlx::query("SELECT COUNT(*) as count FROM company_pricing_plans")
+            .fetch_one(&self.pool)
+            .await?
+            .get::<i64, _>("count");
+
+        if plans_count == 0 {
+            // 创建默认公司收费计划
+            let plans = vec![
+                ("company_001", "标准计划", 50.0),
+                ("company_002", "高级计划", 80.0),
+            ];
+
+            for (company_name, plan_name, monthly_fee) in plans {
+                sqlx::query(
+                    r#"
+                    INSERT INTO company_pricing_plans (company_name, plan_name, employee_monthly_fee, is_active)
+                    VALUES (?, ?, ?, ?)
+                    "#,
+                )
+                .bind(company_name)
+                .bind(plan_name)
+                .bind(monthly_fee)
+                .bind(true)
+                .execute(&self.pool)
+                .await?;
+            }
+
+            // 创建默认公司操作收费规则
+            let operation_pricing = vec![
+                // company_001 的收费标准
+                ("company_001", "xiaohongshu", "follow", 0.08),
+                ("company_001", "xiaohongshu", "like", 0.03),
+                ("company_001", "xiaohongshu", "favorite", 0.04),
+                ("company_001", "douyin", "follow", 0.05),
+                ("company_001", "douyin", "like", 0.02),
+                // company_002 的收费标准 (高级计划，价格更低)
+                ("company_002", "xiaohongshu", "follow", 0.06),
+                ("company_002", "xiaohongshu", "like", 0.02),
+                ("company_002", "xiaohongshu", "favorite", 0.03),
+                ("company_002", "douyin", "follow", 0.04),
+                ("company_002", "douyin", "like", 0.015),
+            ];
+
+            for (company_name, platform, operation_type, unit_price) in operation_pricing {
+                sqlx::query(
+                    r#"
+                    INSERT INTO company_operation_pricing (company_name, platform, operation_type, unit_price, is_active)
+                    VALUES (?, ?, ?, ?, ?)
+                    "#,
+                )
+                .bind(company_name)
+                .bind(platform)
+                .bind(operation_type)
+                .bind(unit_price)
+                .bind(true)
+                .execute(&self.pool)
+                .await?;
+            }
+
+            tracing::info!("✅ 测试公司收费计划创建完成");
+        } else {
+            tracing::info!("ℹ️  公司收费计划已存在，跳过创建");
         }
 
         Ok(())

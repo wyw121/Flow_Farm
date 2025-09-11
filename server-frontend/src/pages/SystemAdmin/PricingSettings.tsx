@@ -200,13 +200,22 @@ const PricingSettings: React.FC = () => {
             <p>管理系统的收费规则和价格标准</p>
           </Col>
           <Col>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleCreate}
-            >
-              添加规则
-            </Button>
+            <Space>
+              <Button
+                type="default"
+                icon={<SettingOutlined />}
+                onClick={() => window.location.href = '/system-admin/company-pricing'}
+              >
+                公司收费管理
+              </Button>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleCreate}
+              >
+                添加规则
+              </Button>
+            </Space>
           </Col>
         </Row>
       </div>

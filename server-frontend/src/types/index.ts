@@ -83,6 +83,29 @@ export interface PricingRule {
   updated_at?: string
 }
 
+// 公司收费计划
+export interface CompanyPricingPlan {
+  id: number
+  company_name: string
+  plan_name: string
+  employee_monthly_fee: number
+  is_active: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+// 公司操作收费规则
+export interface CompanyOperationPricing {
+  id: number
+  company_name: string
+  platform: string // xiaohongshu, douyin
+  operation_type: string // follow, like, favorite, comment
+  unit_price: number
+  is_active: boolean
+  created_at?: string
+  updated_at?: string
+}
+
 export interface UserCreate {
   username: string
   password: string
