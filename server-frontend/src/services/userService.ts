@@ -37,20 +37,35 @@ export const userService = {
       params.append('role', role)
     }
 
+    console.log('🌐 API调用详情:', {
+      url: `/api/v1/users?${params}`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+
     return callPaginatedApiWithFallback<UserWithStats>(
-      () => apiClient.get(`/api/v1/users?${params}`),
+      async () => {
+        console.log('🚀 主要API调用开始')
+        const response = await apiClient.get(`/api/v1/users?${params}`)
+        console.log('✅ 主要API调用响应:', response)
+        return response
+      },
       page,
       size,
-      () => {
-        // 备用Python API调用
+      async () => {
+        console.log('🔄 备用API调用开始')
+        // 备用调用：改用limit参数并移除多余斜杠
         const params2 = new URLSearchParams({
           page: page.toString(),
-          size: size.toString(),  // Python后端使用size
+          limit: size.toString(),  // 保持使用limit参数
         })
         if (role) {
           params2.append('role', role)
         }
-        return apiClient.get(`/api/v1/users/?${params2}`)
+        const response = await apiClient.get(`/api/v1/users?${params2}`)
+        console.log('✅ 备用API调用响应:', response)
+        return response
       }
     )
   },

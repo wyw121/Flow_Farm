@@ -35,6 +35,7 @@ export function adaptPaginatedResponse<T>(
 } {
   // 如果是Rust后端的ApiResponse格式
   if (response.data && typeof response.data.success === "boolean") {
+    console.log('🔍 Rust后端响应格式检测:', response.data)
     if (response.data.success) {
       const items = response.data.data || [];
       return {
@@ -45,6 +46,7 @@ export function adaptPaginatedResponse<T>(
         pages: Math.ceil(items.length / size),
       };
     } else {
+      console.error('❌ 后端返回错误:', response.data)
       throw new Error(response.data.message || "请求失败");
     }
   }

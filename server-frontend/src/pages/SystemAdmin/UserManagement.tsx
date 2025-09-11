@@ -58,6 +58,8 @@ const UserManagement: React.FC = () => {
         try {
             setLoading(true)
             console.log('🔄 开始获取用户列表...')
+            console.log('🔑 当前token:', localStorage.getItem('token'))
+            
             // 获取所有用户（包括用户管理员和员工）
             const response = await userService.getUsers(1, 100) // 移除角色过滤
             console.log('📋 获取到的用户数据:', response)
@@ -78,9 +80,15 @@ const UserManagement: React.FC = () => {
                 }))
             console.log('👥 处理后的用户列表:', userAdmins)
             setUsers(userAdmins)
-        } catch (error) {
+        } catch (error: any) {
             console.error('❌ 获取用户列表失败:', error)
-            message.error('获取用户列表失败')
+            console.error('❌ 错误详情:', {
+                message: error?.message,
+                response: error?.response?.data,
+                status: error?.response?.status,
+                config: error?.config
+            })
+            message.error(`获取用户列表失败: ${error?.message || '未知错误'}`)
         } finally {
             setLoading(false)
         }

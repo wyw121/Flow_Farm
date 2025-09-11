@@ -20,18 +20,25 @@ impl UserService {
         limit: i32,
         role_filter: Option<&str>,
     ) -> Result<Vec<UserInfo>> {
+        tracing::info!("🔍 列出用户 - 当前用户: {:?}, 页码: {}, 限制: {}, 角色过滤: {:?}", 
+            current_user, page, limit, role_filter);
+        
         // 权限检查
         match current_user.role.as_str() {
             "system_admin" => {
+                tracing::info!("✅ 系统管理员权限验证通过");
                 // 系统管理员可以查看所有用户
             }
             "user_admin" => {
+                tracing::info!("✅ 用户管理员权限验证通过");
                 // 用户管理员只能查看自己公司的用户
             }
             "employee" => {
+                tracing::error!("❌ 员工权限不足");
                 return Err(anyhow!("权限不足"));
             }
             _ => {
+                tracing::error!("❌ 未知角色: {}", current_user.role);
                 return Err(anyhow!("未知角色"));
             }
         }
@@ -42,16 +49,21 @@ impl UserService {
 
         // 根据当前用户角色添加过滤条件
         if current_user.role == "user_admin" {
+            tracing::info!("🔧 添加公司过滤条件: {}", current_user.company.as_deref().unwrap_or(""));
             query.push_str(" AND company = ?");
             bind_values.push(current_user.company.as_deref().unwrap_or("").to_string());
         }
 
         if let Some(role) = role_filter {
+            tracing::info!("🔧 添加角色过滤条件: {}", role);
             query.push_str(" AND role = ?");
             bind_values.push(role.to_string());
         }
 
         query.push_str(" ORDER BY created_at DESC LIMIT ? OFFSET ?");
+        
+        tracing::info!("📝 SQL查询: {}", query);
+        tracing::info!("🔧 绑定值: {:?}, limit: {}, offset: {}", bind_values, limit, offset);
 
         let mut sql_query = sqlx::query_as::<_, User>(&query);
 
@@ -63,8 +75,13 @@ impl UserService {
             .bind(limit)
             .bind(offset)
             .fetch_all(&self.database.pool)
-            .await?;
+            .await
+            .map_err(|e| {
+                tracing::error!("❌ 数据库查询失败: {}", e);
+                anyhow!("数据库查询失败: {}", e)
+            })?;
 
+        tracing::info!("✅ 查询成功，找到 {} 个用户", users.len());
         Ok(users.into_iter().map(|u| u.into()).collect())
     }
 
@@ -146,8 +163,8 @@ impl UserService {
             request.email,
             hashed_password,
             request.role,
-            true,
-            false,
+            1, // 使用整数 1 表示 true
+            0, // 使用整数 0 表示 false
             parent_id,
             request.full_name,
             request.phone,
@@ -270,7 +287,7 @@ impl UserService {
 
         if let Some(is_active) = request.is_active {
             set_clauses.push("is_active = ?");
-            values.push(is_active.to_string());
+            values.push((if is_active { 1 } else { 0 }).to_string()); // 转换为整数字符串
         }
 
         // 处理密码更新（需要哈希）

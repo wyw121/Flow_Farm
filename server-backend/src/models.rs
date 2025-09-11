@@ -10,8 +10,8 @@ pub struct User {
     pub email: Option<String>,
     pub hashed_password: String,
     pub role: String,
-    pub is_active: Option<bool>,
-    pub is_verified: Option<bool>,
+    pub is_active: Option<i32>, // SQLite 存储为整数
+    pub is_verified: Option<i32>, // SQLite 存储为整数
     pub parent_id: Option<i32>,
     pub full_name: Option<String>,
     pub phone: Option<String>,
@@ -21,6 +21,18 @@ pub struct User {
     pub created_at: Option<DateTime<Utc>>,
     pub updated_at: Option<DateTime<Utc>>,
     pub last_login: Option<DateTime<Utc>>,
+}
+
+impl User {
+    /// 将整数类型的is_active转换为布尔值
+    pub fn is_active_bool(&self) -> bool {
+        self.is_active.unwrap_or(0) != 0
+    }
+    
+    /// 将整数类型的is_verified转换为布尔值
+    pub fn is_verified_bool(&self) -> bool {
+        self.is_verified.unwrap_or(0) != 0
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
@@ -105,6 +117,10 @@ pub struct UserInfo {
 
 impl From<User> for UserInfo {
     fn from(user: User) -> Self {
+        // 先获取布尔值，避免借用检查问题
+        let is_active = user.is_active_bool();
+        let is_verified = user.is_verified_bool();
+        
         Self {
             id: user.id,
             username: user.username,
@@ -113,8 +129,8 @@ impl From<User> for UserInfo {
             phone: user.phone,
             company: user.company,
             role: user.role,
-            is_active: user.is_active.unwrap_or(true),
-            is_verified: user.is_verified.unwrap_or(false),
+            is_active,
+            is_verified,
             current_employees: user.current_employees.unwrap_or(0),
             max_employees: user.max_employees.unwrap_or(0),
             parent_id: user.parent_id,
