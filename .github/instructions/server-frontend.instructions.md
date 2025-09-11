@@ -42,7 +42,7 @@ server-frontend/
 │   │   ├── SystemAdmin/  # 系统管理员页面
 │   │   │   ├── Dashboard.tsx        # 总览仪表板
 │   │   │   ├── CompanyStatistics.tsx # 公司统计
-│   │   │   ├── PricingSettings.tsx  # 价格设置
+│   │   │   ├── CompanyPricingManagement.tsx # 公司收费管理
 │   │   │   ├── UserManagement.tsx   # 用户管理
 │   │   │   └── SystemLogs.tsx       # 系统日志
 │   │   └── UserAdmin/    # 用户管理员页面

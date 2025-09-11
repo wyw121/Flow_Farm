@@ -1,10 +1,10 @@
 import {
-    DashboardOutlined,
-    DownOutlined,
-    LogoutOutlined,
-    SettingOutlined,
-    TeamOutlined,
-    UserOutlined,
+  DashboardOutlined,
+  DownOutlined,
+  LogoutOutlined,
+  SettingOutlined,
+  TeamOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import { Avatar, Button, Dropdown, Layout, Menu, Space } from 'antd'
 import React, { useState } from 'react'
@@ -18,7 +18,6 @@ import ApiTestPage from './SystemAdmin/ApiTestPage'
 import CompanyPricingManagement from './SystemAdmin/CompanyPricingManagement'
 import CompanyStatistics from './SystemAdmin/CompanyStatistics'
 import SystemDashboard from './SystemAdmin/Dashboard'
-import PricingSettings from './SystemAdmin/PricingSettings'
 import UserDeleteTest from './SystemAdmin/UserDeleteTest'
 import UserManagement from './SystemAdmin/UserManagement'
 
@@ -46,11 +45,6 @@ const SystemAdminDashboard: React.FC = () => {
       key: 'companies',
       icon: <UserOutlined />,
       label: '公司统计',
-    },
-    {
-      key: 'pricing',
-      icon: <SettingOutlined />,
-      label: '收费设置',
     },
     {
       key: 'company-pricing',
@@ -138,7 +132,6 @@ const SystemAdminDashboard: React.FC = () => {
             <Route path="/dashboard" element={<SystemDashboard />} />
             <Route path="/users" element={<UserManagement />} />
             <Route path="/companies" element={<CompanyStatistics />} />
-            <Route path="/pricing" element={<PricingSettings />} />
             <Route path="/company-pricing" element={<CompanyPricingManagement />} />
             <Route path="/api-test" element={<ApiTestPage />} />
             <Route path="/delete-test" element={<UserDeleteTest />} />
