@@ -1,0 +1,18 @@
+[Unit]
+Description=Flow Farm Backend Server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/flow-farm
+ExecStart=/opt/flow-farm/flow-farm-backend
+Restart=always
+RestartSec=5
+Environment=RUST_LOG=info
+Environment=DATABASE_URL=sqlite:data/flow_farm.db
+Environment=STATIC_DIR=static
+Environment=PORT=8000
+
+[Install]
+WantedBy=multi-user.target
