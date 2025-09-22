@@ -10,7 +10,7 @@ use crate::{
     middleware::auth::AuthContext,
     models::{
         ApiResponse, BillingRecord, CreateBillingRecordRequest, CreatePricingRuleRequest,
-        PricingRule,
+        MyBillingInfo, PricingRule,
     },
     services::billing::BillingService,
     Config, Database,
@@ -166,6 +166,45 @@ pub async fn delete_pricing_rule(
             tracing::error!("删除价格规则失败: {}", e);
             Ok(ResponseJson(ApiResponse::error(format!(
                 "删除价格规则失败: {}",
+                e
+            ))))
+        }
+    }
+}
+
+// 获取我的计费信息（用户管理员）
+pub async fn get_my_billing_info(
+    State((database, _config)): State<AppState>,
+    auth_context: AuthContext,
+) -> Result<ResponseJson<ApiResponse<MyBillingInfo>>, StatusCode> {
+    let service = BillingService::new(database);
+
+    match service.get_my_billing_info(&auth_context.user).await {
+        Ok(billing_info) => Ok(ResponseJson(ApiResponse::success(billing_info))),
+        Err(e) => {
+            tracing::error!("获取计费信息失败: {}", e);
+            Ok(ResponseJson(ApiResponse::error(format!(
+                "获取计费信息失败: {}",
+                e
+            ))))
+        }
+    }
+}
+
+// 获取指定用户的计费信息（系统管理员专用）
+pub async fn get_user_billing_info(
+    State((database, _config)): State<AppState>,
+    auth_context: AuthContext,
+    Path(user_id): Path<i64>,
+) -> Result<ResponseJson<ApiResponse<MyBillingInfo>>, StatusCode> {
+    let service = BillingService::new(database);
+
+    match service.get_user_billing_info(&auth_context.user, user_id).await {
+        Ok(billing_info) => Ok(ResponseJson(ApiResponse::success(billing_info))),
+        Err(e) => {
+            tracing::error!("获取用户计费信息失败: {}", e);
+            Ok(ResponseJson(ApiResponse::error(format!(
+                "获取用户计费信息失败: {}",
                 e
             ))))
         }

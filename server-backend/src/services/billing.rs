@@ -260,4 +260,125 @@ impl BillingService {
 
         Ok(())
     }
+
+    // 获取我的计费信息（用户管理员）
+    pub async fn get_my_billing_info(&self, current_user: &UserInfo) -> Result<crate::models::MyBillingInfo> {
+        // 只有用户管理员可以查看自己的计费信息
+        if current_user.role != "user_admin" {
+            return Err(anyhow!("权限不足：只有用户管理员可以查看计费信息"));
+        }
+
+        // 计算总支出：查询该用户管理员的所有员工的计费记录总和
+        let total_spent: f64 = if let Some(company) = &current_user.company {
+            // 获取该公司所有员工的计费记录总和
+            let employee_ids: Vec<String> = sqlx::query_scalar(
+                "SELECT id FROM users WHERE parent_id = ? AND role = 'employee'"
+            )
+            .bind(current_user.id)
+            .fetch_all(&self.database.pool)
+            .await?
+            .into_iter()
+            .map(|id: i32| id.to_string())
+            .collect();
+
+            if employee_ids.is_empty() {
+                0.0
+            } else {
+                let placeholders = employee_ids
+                    .iter()
+                    .map(|_| "?")
+                    .collect::<Vec<_>>()
+                    .join(",");
+                
+                let query_sql = format!(
+                    "SELECT COALESCE(SUM(ABS(amount)), 0.0) FROM billing_records WHERE user_id IN ({})",
+                    placeholders
+                );
+
+                let mut query = sqlx::query_scalar::<_, f64>(&query_sql);
+                for employee_id in employee_ids {
+                    query = query.bind(employee_id);
+                }
+                
+                query.fetch_one(&self.database.pool).await.unwrap_or(0.0)
+            }
+        } else {
+            0.0
+        };
+
+        // 获取默认月费（可以从配置或数据库获取）
+        let monthly_fee = 300.0; // 默认值，实际可以从公司定价计划获取
+
+        Ok(crate::models::MyBillingInfo {
+            balance: current_user.balance,
+            total_spent,
+            employee_count: current_user.current_employees,
+            monthly_fee,
+        })
+    }
+
+    // 获取指定用户的计费信息（系统管理员专用）
+    pub async fn get_user_billing_info(&self, current_user: &UserInfo, target_user_id: i64) -> Result<crate::models::MyBillingInfo> {
+        // 只有系统管理员可以查看其他用户的计费信息
+        if current_user.role != "system_admin" {
+            return Err(anyhow!("权限不足：只有系统管理员可以查看其他用户的计费信息"));
+        }
+
+        // 获取目标用户信息
+        let target_user = sqlx::query_as::<_, UserInfo>(
+            "SELECT * FROM users WHERE id = ? AND role = 'user_admin'"
+        )
+        .bind(target_user_id)
+        .fetch_one(&self.database.pool)
+        .await
+        .map_err(|_| anyhow!("用户不存在或不是用户管理员"))?;
+
+        // 计算总支出：查询该用户管理员的所有员工的计费记录总和
+        let total_spent: f64 = if let Some(company) = &target_user.company {
+            // 获取该公司所有员工的计费记录总和
+            let employee_ids: Vec<String> = sqlx::query_scalar(
+                "SELECT id FROM users WHERE parent_id = ? AND role = 'employee'"
+            )
+            .bind(target_user.id)
+            .fetch_all(&self.database.pool)
+            .await?
+            .into_iter()
+            .map(|id: i32| id.to_string())
+            .collect();
+
+            if employee_ids.is_empty() {
+                0.0
+            } else {
+                let placeholders = employee_ids
+                    .iter()
+                    .map(|_| "?")
+                    .collect::<Vec<_>>()
+                    .join(",");
+                
+                let query_sql = format!(
+                    "SELECT COALESCE(SUM(ABS(amount)), 0.0) FROM billing_records WHERE user_id IN ({})",
+                    placeholders
+                );
+
+                let mut query = sqlx::query_scalar::<_, f64>(&query_sql);
+                for employee_id in employee_ids {
+                    query = query.bind(employee_id);
+                }
+                
+                query.fetch_one(&self.database.pool).await.unwrap_or(0.0)
+            }
+        } else {
+            0.0
+        };
+
+        // 获取默认月费（可以从配置或数据库获取）
+        let monthly_fee = 300.0; // 默认值，实际可以从公司定价计划获取
+
+        Ok(crate::models::MyBillingInfo {
+            balance: target_user.balance,
+            total_spent,
+            employee_count: target_user.current_employees,
+            monthly_fee,
+        })
+    }
 }

@@ -98,7 +98,7 @@ pub struct LoginResponse {
     pub user: UserInfo,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct UserInfo {
     pub id: i32,
     pub username: String,
@@ -290,6 +290,15 @@ pub struct UpdateCompanyOperationPricingRequest {
     #[validate(range(min = 0.0))]
     pub unit_price: Option<f64>,
     pub is_active: Option<bool>,
+}
+
+// 我的计费信息响应结构体
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MyBillingInfo {
+    pub balance: f64,
+    pub total_spent: f64,
+    pub employee_count: i32,
+    pub monthly_fee: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

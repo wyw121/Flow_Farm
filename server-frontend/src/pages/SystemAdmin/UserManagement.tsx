@@ -25,6 +25,7 @@ import {
 } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { AdminUserUpdateRequest, userService } from '../../services/userService'
+import { billingService } from '../../services/billingService'
 
 const { Title } = Typography
 const { Option } = Select
@@ -65,23 +66,47 @@ const UserManagement: React.FC = () => {
             // 获取所有用户（只包括用户管理员）
             const response = await userService.getUsers(1, 100) // 移除角色过滤
             console.log('📋 获取到的用户数据:', response)
-            const userAdmins: UserAdmin[] = response.items
-                .filter(user => user.role === 'user_admin') // 只显示用户管理员
-                .map(user => ({
-                    id: user.id,
-                    username: user.username,
-                    email: user.email || '',
-                    phone: user.phone || '',
-                    company_name: user.company || '',
-                    max_employees: user.max_employees,
-                    current_employees: user.current_employees,
-                    status: user.is_active ? 'active' : 'inactive',
-                    created_at: user.created_at,
-                    last_login: user.last_login || '',
-                    balance: 0 // 这个需要从billing API获取
-                }))
-            console.log('👥 处理后的用户列表:', userAdmins)
-            setUsers(userAdmins)
+            const userAdminsList = response.items.filter(user => user.role === 'user_admin')
+            
+            // 并行获取每个用户的余额信息
+            const userAdminsWithBalance: UserAdmin[] = await Promise.all(
+                userAdminsList.map(async (user) => {
+                    try {
+                        const billingInfo = await billingService.getUserBillingInfo(user.id)
+                        return {
+                            id: user.id,
+                            username: user.username,
+                            email: user.email || '',
+                            phone: user.phone || '',
+                            company_name: user.company || '',
+                            max_employees: user.max_employees,
+                            current_employees: user.current_employees,
+                            status: user.is_active ? 'active' : 'inactive',
+                            created_at: user.created_at,
+                            last_login: user.last_login || '',
+                            balance: billingInfo.balance
+                        }
+                    } catch (error) {
+                        console.warn(`获取用户 ${user.id} 的余额失败:`, error)
+                        return {
+                            id: user.id,
+                            username: user.username,
+                            email: user.email || '',
+                            phone: user.phone || '',
+                            company_name: user.company || '',
+                            max_employees: user.max_employees,
+                            current_employees: user.current_employees,
+                            status: user.is_active ? 'active' : 'inactive',
+                            created_at: user.created_at,
+                            last_login: user.last_login || '',
+                            balance: 0 // 获取失败时的默认值
+                        }
+                    }
+                })
+            )
+            
+            console.log('👥 处理后的用户列表（含余额）:', userAdminsWithBalance)
+            setUsers(userAdminsWithBalance)
         } catch (error: any) {
             console.error('❌ 获取用户列表失败:', error)
             console.error('❌ 错误详情:', {

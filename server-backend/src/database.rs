@@ -25,7 +25,6 @@ impl Database {
                 email TEXT UNIQUE,
                 hashed_password TEXT NOT NULL,
                 role TEXT NOT NULL CHECK (role IN ('system_admin', 'user_admin', 'employee')),
-                company_id TEXT,
                 is_active BOOLEAN DEFAULT TRUE,
                 is_verified BOOLEAN DEFAULT FALSE,
                 parent_id INTEGER,
@@ -34,6 +33,7 @@ impl Database {
                 company TEXT,
                 max_employees INTEGER DEFAULT 10,
                 current_employees INTEGER DEFAULT 0,
+                balance REAL DEFAULT 1000.0,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 last_login DATETIME

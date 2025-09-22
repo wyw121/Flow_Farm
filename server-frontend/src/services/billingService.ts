@@ -95,4 +95,58 @@ export const billingService = {
     })
     return response.data
   },
+
+  // 获取用户余额
+  async getUserBalance(userId?: number): Promise<number> {
+    try {
+      const params = userId ? `?user_id=${userId}` : ''
+      const response = await apiClient.get(`/api/v1/billing/balance${params}`)
+      return response.data.data || 0
+    } catch (error) {
+      console.warn('获取余额失败，返回默认值:', error)
+      return 0
+    }
+  },
+
+  // 获取我的计费信息（用户管理员）
+  async getMyBillingInfo(): Promise<{
+    balance: number
+    total_spent: number
+    employee_count: number
+    monthly_fee: number
+  }> {
+    try {
+      const response = await apiClient.get('/api/v1/billing/my-billing-info')
+      return response.data.data
+    } catch (error) {
+      console.warn('获取计费信息失败:', error)
+      return {
+        balance: 0,
+        total_spent: 0,
+        employee_count: 0,
+        monthly_fee: 300
+      }
+    }
+  },
+
+  // 获取指定用户的计费信息（系统管理员专用）
+  async getUserBillingInfo(userId: number): Promise<{
+    balance: number
+    total_spent: number
+    employee_count: number
+    monthly_fee: number
+  }> {
+    try {
+      const response = await apiClient.get(`/api/v1/billing/user-billing-info/${userId}`)
+      return response.data.data
+    } catch (error) {
+      console.warn('获取用户计费信息失败:', error)
+      return {
+        balance: 0,
+        total_spent: 0,
+        employee_count: 0,
+        monthly_fee: 300
+      }
+    }
+  },
 }

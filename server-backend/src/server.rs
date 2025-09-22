@@ -111,6 +111,14 @@ pub async fn create_app(database: Database, config: Config) -> Router {
             "/api/v1/billing/records",
             post(handlers::billing::create_billing_record),
         )
+        .route(
+            "/api/v1/billing/my-billing-info",
+            get(handlers::billing::get_my_billing_info),
+        )
+        .route(
+            "/api/v1/billing/user-billing-info/:id",
+            get(handlers::billing::get_user_billing_info),
+        )
         // 前端兼容性路由 (Python API fallback)
         .route(
             "/api/v1/billing/billing-records/",
