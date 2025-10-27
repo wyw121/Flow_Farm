@@ -83,7 +83,7 @@ impl WorkRecordRepository {
         sqlx::query(
             r#"
             INSERT INTO work_records (
-                id, user_id, device_id, platform, task_type, 
+                id, user_id, device_id, platform, action_type, 
                 target_count, completed_count, status, 
                 created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -93,7 +93,7 @@ impl WorkRecordRepository {
         .bind(user_id)
         .bind(device_id)
         .bind(&request.platform)
-        .bind(&request.task_type)
+        .bind(&request.action_type)
         .bind(request.target_count)
         .bind(0) // completed_count 初始为 0
         .bind("pending") // status 初始为 pending

@@ -1,6 +1,5 @@
-use crate::{models::{User, UserInfo, CreateUserRequest, UpdateUserRequest}, Database};
+use crate::{models::{User, CreateUserRequest, UpdateUserRequest}, Database};
 use anyhow::{anyhow, Result};
-use sqlx::Row;
 
 /// UserRepository: 负责所有用户相关的数据库操作
 pub struct UserRepository {
@@ -97,8 +96,8 @@ impl UserRepository {
             r#"
             INSERT INTO users (
                 id, username, password, role, email, phone, 
-                real_name, company, parent_id, balance, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                full_name, company, parent_id, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             "#,
         )
         .bind(&id)
@@ -107,10 +106,9 @@ impl UserRepository {
         .bind(&request.role)
         .bind(&request.email)
         .bind(&request.phone)
-        .bind(&request.real_name)
+        .bind(&request.full_name)
         .bind(&request.company)
         .bind(parent_id)
-        .bind(request.balance.unwrap_or(0.0))
         .bind(&now)
         .bind(&now)
         .execute(&self.database.pool)
@@ -140,19 +138,14 @@ impl UserRepository {
             bind_values.push(phone.clone());
         }
 
-        if let Some(ref real_name) = request.real_name {
-            query.push_str(", real_name = ?");
-            bind_values.push(real_name.clone());
+        if let Some(ref full_name) = request.full_name {
+            query.push_str(", full_name = ?");
+            bind_values.push(full_name.clone());
         }
 
         if let Some(ref company) = request.company {
             query.push_str(", company = ?");
             bind_values.push(company.clone());
-        }
-
-        if let Some(balance) = request.balance {
-            query.push_str(", balance = ?");
-            bind_values.push(balance.to_string());
         }
 
         if let Some(ref password) = request.password {
