@@ -95,13 +95,17 @@ const EmployeeManagement: React.FC = () => {
 
   const loadCurrentBalance = async () => {
     try {
+      console.log('🔄 开始加载余额信息...')
       const billingInfo = await billingService.getMyBillingInfo()
+      console.log('✅ 余额信息加载成功:', billingInfo)
       setCurrentBalance(billingInfo.balance)
       if (billingInfo.monthly_fee > 0) {
         setMonthlyFee(billingInfo.monthly_fee)
       }
+      console.log(`✅ 状态更新: 余额=${billingInfo.balance}, 月费=${billingInfo.monthly_fee}`)
     } catch (error: any) {
-      console.warn('获取余额失败:', error.message)
+      console.error('❌ 获取余额失败:', error)
+      console.error('Error details:', error.response?.data || error.message)
       // 使用默认值
       setCurrentBalance(0)
     }
@@ -220,8 +224,7 @@ const EmployeeManagement: React.FC = () => {
         await userService.createUser(createData)
         message.success(`员工创建成功！已扣费 ¥${monthlyFee}，下次扣费日期为31天后`)
         
-        // 更新余额
-        setCurrentBalance(prev => prev - monthlyFee)
+        // 不再手动减少余额，因为loadCurrentBalance()会获取最新余额
       }
       setModalVisible(false)
       loadEmployees()
@@ -404,8 +407,18 @@ const EmployeeManagement: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginBottom: '1rem' }}>
         <Col xs={24} lg={6}>
           <Card>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span>当前余额</span>
+              <Button 
+                type="link" 
+                size="small" 
+                onClick={loadCurrentBalance}
+                style={{ padding: 0 }}
+              >
+                刷新
+              </Button>
+            </div>
             <Statistic
-              title="当前余额"
               value={currentBalance}
               precision={2}
               prefix={<DollarOutlined />}

@@ -195,7 +195,36 @@ impl UserService {
             .fetch_one(&self.database.pool)
             .await?;
 
-        Ok(user.into())
+        let user_info: UserInfo = user.into();
+
+        // 如果是员工且由用户管理员创建，进行扣费
+        if request.role == "employee" && current_user.role == "user_admin" {
+            // 使用 BillingService 进行扣费
+            let billing_service = crate::services::billing::BillingService::new(self.database.clone());
+            
+            // 尝试扣费，如果失败需要回滚用户创建
+            if let Err(e) = billing_service.charge_for_employee_creation(current_user, &user_info).await {
+                // 扣费失败，删除刚创建的用户
+                sqlx::query!("DELETE FROM users WHERE id = ?", user_id)
+                    .execute(&self.database.pool)
+                    .await?;
+                
+                tracing::error!("员工创建扣费失败，已回滚用户创建: {}", e);
+                return Err(anyhow!("创建员工失败: {}", e));
+            }
+
+            // 更新父级用户的员工数量
+            sqlx::query!(
+                "UPDATE users SET current_employees = current_employees + 1, updated_at = datetime('now') WHERE id = ?",
+                current_user.id
+            )
+            .execute(&self.database.pool)
+            .await?;
+
+            tracing::info!("员工创建成功，已扣费并更新员工数量: {}", user_info.username);
+        }
+
+        Ok(user_info)
     }
 
     #[allow(unused_variables)]

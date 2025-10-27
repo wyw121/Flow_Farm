@@ -268,6 +268,24 @@ impl BillingService {
             return Err(anyhow!("权限不足：只有用户管理员可以查看计费信息"));
         }
 
+        // 从数据库获取最新的用户信息（余额和员工数量）
+        let current_balance: f64 = sqlx::query_scalar(
+            "SELECT balance FROM users WHERE id = ?"
+        )
+        .bind(current_user.id)
+        .fetch_one(&self.database.pool)
+        .await
+        .unwrap_or(0.0);
+
+        // 计算当前员工数量（通过parent_id关联）
+        let employee_count: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM users WHERE parent_id = ? AND role = 'employee'"
+        )
+        .bind(current_user.id)
+        .fetch_one(&self.database.pool)
+        .await
+        .unwrap_or(0);
+
         // 计算总支出：查询该用户管理员的所有员工的计费记录总和
         let total_spent: f64 = if let Some(company) = &current_user.company {
             // 获取该公司所有员工的计费记录总和
@@ -310,9 +328,9 @@ impl BillingService {
         let monthly_fee = 300.0; // 默认值，实际可以从公司定价计划获取
 
         Ok(crate::models::MyBillingInfo {
-            balance: current_user.balance,
+            balance: current_balance,
             total_spent,
-            employee_count: current_user.current_employees,
+            employee_count: employee_count as i32,
             monthly_fee,
         })
     }
@@ -380,5 +398,66 @@ impl BillingService {
             employee_count: target_user.current_employees,
             monthly_fee,
         })
+    }
+
+    /// 创建员工时扣费
+    pub async fn charge_for_employee_creation(
+        &self,
+        user_admin: &UserInfo,
+        employee_info: &UserInfo,
+    ) -> Result<()> {
+        tracing::info!("开始为用户 {} 创建员工 {} 进行扣费", user_admin.username, employee_info.username);
+
+        // 获取员工创建的价格规则
+        let pricing_rule = sqlx::query_scalar::<_, f64>(
+            "SELECT unit_price FROM pricing_rules WHERE billing_type = 'employee_creation' AND is_active = 1"
+        )
+        .fetch_optional(&self.database.pool)
+        .await?;
+
+        let employee_fee = pricing_rule.unwrap_or(300.0); // 默认300元
+
+        // 检查用户余额是否足够
+        if user_admin.balance < employee_fee {
+            return Err(anyhow!("余额不足，当前余额: ¥{:.2}，需要: ¥{:.2}", user_admin.balance, employee_fee));
+        }
+
+        // 开始事务
+        let mut tx = self.database.pool.begin().await?;
+
+        // 扣减用户余额
+        sqlx::query!(
+            "UPDATE users SET balance = balance - ?, updated_at = datetime('now') WHERE id = ?",
+            employee_fee,
+            user_admin.id
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        // 创建计费记录
+        let negative_fee = -employee_fee; // 负数表示扣费
+        let description = format!("创建员工: {}", employee_info.username);
+        
+        sqlx::query!(
+            "INSERT INTO billing_records (user_id, amount, billing_type, description, created_at)
+             VALUES (?, ?, 'employee_creation', ?, datetime('now'))",
+            user_admin.id,
+            negative_fee,
+            description
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        // 提交事务
+        tx.commit().await?;
+
+        tracing::info!(
+            "员工创建扣费成功: 用户 {} 扣费 ¥{:.2}，创建员工 {}",
+            user_admin.username,
+            employee_fee,
+            employee_info.username
+        );
+
+        Ok(())
     }
 }

@@ -116,10 +116,14 @@ export const billingService = {
     monthly_fee: number
   }> {
     try {
+      console.log('🌐 发送API请求: /api/v1/billing/my-billing-info')
       const response = await apiClient.get('/api/v1/billing/my-billing-info')
+      console.log('🌐 API响应成功:', response.data)
       return response.data.data
-    } catch (error) {
-      console.warn('获取计费信息失败:', error)
+    } catch (error: any) {
+      console.error('🌐 API请求失败:', error)
+      console.error('Error status:', error.response?.status)
+      console.error('Error data:', error.response?.data)
       return {
         balance: 0,
         total_spent: 0,
