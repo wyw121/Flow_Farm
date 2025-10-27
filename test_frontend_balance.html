@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前端余额测试</title>
+</head>
+<body>
+    <h1>前端余额API测试</h1>
+    <div id="result"></div>
+    
+    <script>
+        const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImV4cCI6MTczNDA2NjgyMH0.wD8j3WeuR5_kN1nEgxzk_Tf9ogUQTnNOLISdcqRPN0M'; // company_admin_1 token
+        
+        async function testBillingAPI() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/v1/billing/my-billing-info', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <h2 style="color: green;">✅ API调用成功</h2>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h2 style="color: red;">❌ API调用失败</h2>
+                        <p>Status: ${response.status}</p>
+                        <p>Error: ${await response.text()}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h2 style="color: red;">❌ 网络错误</h2>
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        }
+        
+        // 页面加载时自动测试
+        testBillingAPI();
+    </script>
+</body>
+</html>
