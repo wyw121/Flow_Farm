@@ -227,10 +227,93 @@ impl UserService {
         Ok(user_info)
     }
 
-    #[allow(unused_variables)]
+    /// 获取用户详情（带权限验证）
     pub async fn get_user(&self, current_user: &UserInfo, user_id: &str) -> Result<UserInfo> {
-        // TODO: 实现获取用户逻辑
-        Err(anyhow!("功能待实现"))
+        tracing::info!(
+            "查询用户详情 - 当前用户: {}, 目标用户ID: {}",
+            current_user.username,
+            user_id
+        );
+
+        // 解析用户ID
+        let target_user_id: i32 = user_id
+            .parse()
+            .map_err(|_| anyhow!("无效的用户ID格式"))?;
+
+        // 查询目标用户
+        let target_user = sqlx::query_as::<_, User>(
+            "SELECT * FROM users WHERE id = ?"
+        )
+        .bind(target_user_id)
+        .fetch_optional(&self.database.pool)
+        .await?
+        .ok_or_else(|| anyhow!("用户不存在"))?;
+
+        // 权限验证
+        match current_user.role.as_str() {
+            "system_admin" => {
+                // 系统管理员可以查看所有用户
+                tracing::info!("系统管理员查看用户: {}", target_user.username);
+            }
+            "user_admin" => {
+                // 用户管理员只能查看以下用户：
+                // 1. 自己
+                // 2. 自己创建的员工（parent_id = current_user.id）
+                if target_user_id != current_user.id {
+                    // 检查是否是自己的员工
+                    if target_user.parent_id != Some(current_user.id) {
+                        tracing::warn!(
+                            "用户管理员 {} 尝试访问无权限的用户 {}",
+                            current_user.username,
+                            target_user.username
+                        );
+                        return Err(anyhow!("无权限访问该用户信息"));
+                    }
+                    
+                    // 验证目标用户必须是员工角色
+                    if target_user.role != "employee" {
+                        tracing::warn!(
+                            "用户管理员尝试访问非员工用户: {}",
+                            target_user.username
+                        );
+                        return Err(anyhow!("无权限访问该用户信息"));
+                    }
+                }
+                tracing::info!(
+                    "用户管理员 {} 查看用户: {}",
+                    current_user.username,
+                    target_user.username
+                );
+            }
+            "employee" => {
+                // 员工只能查看自己的信息
+                if target_user_id != current_user.id {
+                    tracing::warn!(
+                        "员工 {} 尝试访问其他用户 {} 的信息",
+                        current_user.username,
+                        target_user.username
+                    );
+                    return Err(anyhow!("员工只能查看自己的信息"));
+                }
+                tracing::info!("员工 {} 查看自己的信息", current_user.username);
+            }
+            _ => {
+                tracing::error!("未知的用户角色: {}", current_user.role);
+                return Err(anyhow!("无效的用户角色"));
+            }
+        }
+
+        // 转换为 UserInfo 返回
+        let user_info = UserInfo::from(target_user);
+
+        tracing::info!(
+            "用户详情查询成功 - ID: {}, 用户名: {}, 角色: {}",
+            user_info.id,
+            user_info.username,
+            user_info.role
+        );
+
+        Ok(user_info)
     }
 
     pub async fn update_user(

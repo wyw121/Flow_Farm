@@ -43,20 +43,25 @@ impl Database {
         .execute(&self.pool)
         .await?;
 
-        // 创建工作记录表
+        // 删除旧的工作记录表（如果存在）并重新创建
+        sqlx::query("DROP TABLE IF EXISTS work_records")
+            .execute(&self.pool)
+            .await?;
+
+        // 创建工作记录表（匹配WorkRecord模型）
         sqlx::query(
             r#"
-            CREATE TABLE IF NOT EXISTS work_records (
+            CREATE TABLE work_records (
                 id TEXT PRIMARY KEY,
                 user_id TEXT NOT NULL,
                 device_id TEXT NOT NULL,
                 platform TEXT NOT NULL,
                 action_type TEXT NOT NULL,
-                target_user TEXT,
-                target_content TEXT,
-                success BOOLEAN NOT NULL,
-                error_message TEXT,
+                target_count INTEGER NOT NULL DEFAULT 0,
+                completed_count INTEGER NOT NULL DEFAULT 0,
+                status TEXT NOT NULL DEFAULT 'pending',
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id)
             )
             "#,
