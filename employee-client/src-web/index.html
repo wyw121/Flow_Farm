@@ -1,163 +1,324 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flow Farm Employee Client</title>
-    <link rel="stylesheet" href="device-styles.css">
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<!DOCTYPE html><!DOCTYPE html>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+<html lang="zh-CN"><html lang="zh-CN">
+
+<head><head>
+
+  <meta charset="UTF-8" />    <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Flow Farm 员工客户端</title>    <title>Flow Farm Employee Client</title>
+
+  <link rel="stylesheet" href="styles.css">    <link rel="stylesheet" href="device-styles.css">
+
+</head>    <link rel="stylesheet" href="styles.css">
+
+<body>    <style>
+
+  <!-- 登录界面 -->        * {
+
+  <div id="login-page" class="page">            margin: 0;
+
+    <div class="login-container">            padding: 0;
+
+      <h1>Flow Farm 员工客户端</h1>            box-sizing: border-box;
+
+      <form id="login-form">        }
+
+        <div class="form-group">
+
+          <label for="username">用户名</label>        body {
+
+          <input type="text" id="username" name="username" required>            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+        </div>            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        <div class="form-group">            height: 100vh;
+
+          <label for="password">密码</label>            display: flex;
+
+          <input type="password" id="password" name="password" required>            justify-content: center;
+
+        </div>            align-items: center;
+
+        <button type="submit" class="btn-primary">登录</button>        }
+
+        <div id="login-error" class="error-message"></div>
+
+      </form>        .app-container {
+
+    </div>            width: 100%;
+
+  </div>            height: 100%;
+
             display: flex;
-            justify-content: center;
-            align-items: center;
-        }
 
-        .app-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
+  <!-- 主应用界面 -->            flex-direction: column;
 
-        /* 登录界面 */
-        .login-container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 3rem;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 100%;
+  <div id="app-page" class="page hidden">        }
+
+    <!-- 顶部导航栏 -->
+
+    <nav class="navbar">        /* 登录界面 */
+
+      <div class="navbar-brand">        .login-container {
+
+        <h2>Flow Farm 员工客户端</h2>            background: rgba(255, 255, 255, 0.95);
+
+      </div>            padding: 3rem;
+
+      <div class="navbar-user">            border-radius: 20px;
+
+        <span id="user-info"></span>            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+
+        <button id="logout-btn" class="btn-secondary">退出登录</button>            backdrop-filter: blur(10px);
+
+      </div>            border: 1px solid rgba(255, 255, 255, 0.2);
+
+    </nav>            width: 100%;
+
             max-width: 400px;
-        }
 
-        .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
+    <!-- 侧边栏 -->        }
 
-        .login-header h1 {
-            color: #333;
-            margin-bottom: 0.5rem;
-            font-size: 2rem;
-        }
+    <aside class="sidebar">
 
-        .login-header p {
-            color: #666;
-            font-size: 0.9rem;
-        }
+      <ul class="sidebar-menu">        .login-header {
 
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
+        <li class="menu-item active" data-page="dashboard">            text-align: center;
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-            font-weight: 500;
-        }
+          <span class="icon">📊</span>            margin-bottom: 2rem;
 
-        .form-group input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e1e5e9;
+          <span>工作台</span>        }
+
+        </li>
+
+        <li class="menu-item" data-page="devices">        .login-header h1 {
+
+          <span class="icon">📱</span>            color: #333;
+
+          <span>设备管理</span>            margin-bottom: 0.5rem;
+
+        </li>            font-size: 2rem;
+
+        <li class="menu-item" data-page="tasks">        }
+
+          <span class="icon">📋</span>
+
+          <span>任务中心</span>        .login-header p {
+
+        </li>            color: #666;
+
+        <li class="menu-item" data-page="xiaohongshu">            font-size: 0.9rem;
+
+          <span class="icon">📕</span>        }
+
+          <span>小红书</span>
+
+        </li>        .form-group {
+
+        <li class="menu-item" data-page="douyin">            margin-bottom: 1.5rem;
+
+          <span class="icon">🎵</span>        }
+
+          <span>抖音</span>
+
+        </li>        .form-group label {
+
+        <li class="menu-item" data-page="statistics">            display: block;
+
+          <span class="icon">📈</span>            margin-bottom: 0.5rem;
+
+          <span>统计数据</span>            color: #333;
+
+        </li>            font-weight: 500;
+
+        <li class="menu-item" data-page="settings">        }
+
+          <span class="icon">⚙️</span>
+
+          <span>设置</span>        .form-group input {
+
+        </li>            width: 100%;
+
+      </ul>            padding: 0.75rem;
+
+    </aside>            border: 2px solid #e1e5e9;
+
             border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
 
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+    <!-- 主内容区域 -->            font-size: 1rem;
 
-        .login-button {
-            width: 100%;
-            padding: 0.75rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
+    <main class="main-content">            transition: border-color 0.3s ease;
 
-        .login-button:hover {
-            transform: translateY(-2px);
+      <!-- 工作台 -->        }
+
+      <div id="dashboard-view" class="content-view active">
+
+        <h3>工作台概览</h3>        .form-group input:focus {
+
+        <div class="dashboard-cards">            outline: none;
+
+          <div class="stat-card">            border-color: #667eea;
+
+            <h4>已连接设备</h4>        }
+
+            <p class="stat-value" id="connected-devices">0</p>
+
+          </div>        .login-button {
+
+          <div class="stat-card">            width: 100%;
+
+            <h4>今日任务</h4>            padding: 0.75rem;
+
+            <p class="stat-value" id="today-tasks">0</p>            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+          </div>            color: white;
+
+          <div class="stat-card">            border: none;
+
+            <h4>总关注数</h4>            border-radius: 8px;
+
+            <p class="stat-value" id="total-follows">0</p>            font-size: 1rem;
+
+          </div>            font-weight: 600;
+
+          <div class="stat-card">            cursor: pointer;
+
+            <h4>账户余额</h4>            transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+            <p class="stat-value" id="account-balance">¥0.00</p>        }
+
+          </div>
+
+        </div>        .login-button:hover {
+
+      </div>            transform: translateY(-2px);
+
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
 
-        .login-button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+      <!-- 设备管理 -->        }
+
+      <div id="devices-view" class="content-view">
+
+        <h3>设备管理 (最多10台)</h3>        .login-button:disabled {
+
+        <div class="device-controls">            background: #ccc;
+
+          <button id="scan-devices-btn" class="btn-primary">扫描设备</button>            cursor: not-allowed;
+
+          <button id="refresh-devices-btn" class="btn-secondary">刷新列表</button>            transform: none;
+
+        </div>            box-shadow: none;
+
+        <div id="devices-list" class="devices-grid"></div>        }
+
+      </div>
 
         .error-message {
-            color: #e74c3c;
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-            text-align: center;
-        }
 
-        .success-message {
-            color: #27ae60;
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-            text-align: center;
-        }
+      <!-- 任务中心 -->            color: #e74c3c;
 
-        .loading {
-            display: inline-block;
+      <div id="tasks-view" class="content-view">            font-size: 0.875rem;
+
+        <h3>任务中心</h3>            margin-top: 0.5rem;
+
+        <div class="task-tabs">            text-align: center;
+
+          <button class="tab-btn active" data-tab="contact">通讯录管理</button>        }
+
+          <button class="tab-btn" data-tab="monitor">精准获客</button>
+
+        </div>        .success-message {
+
+        <div id="task-content" class="task-content"></div>            color: #27ae60;
+
+      </div>            font-size: 0.875rem;
+
+            margin-top: 0.5rem;
+
+      <!-- 小红书自动化 -->            text-align: center;
+
+      <div id="xiaohongshu-view" class="content-view">        }
+
+        <h3>小红书自动化操作</h3>
+
+        <div id="xiaohongshu-content"></div>        .loading {
+
+      </div>            display: inline-block;
+
             width: 16px;
-            height: 16px;
-            border: 2px solid transparent;
-            border-top: 2px solid #ffffff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 8px;
-        }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+      <!-- 抖音自动化 -->            height: 16px;
+
+      <div id="douyin-view" class="content-view">            border: 2px solid transparent;
+
+        <h3>抖音自动化操作</h3>            border-top: 2px solid #ffffff;
+
+        <div id="douyin-content">            border-radius: 50%;
+
+          <p class="placeholder">抖音模块开发中...</p>            animation: spin 1s linear infinite;
+
+        </div>            margin-right: 8px;
+
+      </div>        }
+
+
+
+      <!-- 统计数据 -->        @keyframes spin {
+
+      <div id="statistics-view" class="content-view">            0% { transform: rotate(0deg); }
+
+        <h3>统计数据</h3>            100% { transform: rotate(360deg); }
+
+        <div id="statistics-content"></div>        }
+
+      </div>
 
         /* 主应用界面（登录后显示） */
-        .main-app {
-            display: none;
-            width: 100%;
-            height: 100%;
-            background: #f5f6fa;
-        }
 
-        .app-header {
-            background: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+      <!-- 设置 -->        .main-app {
+
+      <div id="settings-view" class="content-view">            display: none;
+
+        <h3>设置</h3>            width: 100%;
+
+        <div id="settings-content">            height: 100%;
+
+          <div class="settings-group">            background: #f5f6fa;
+
+            <h4>服务器配置</h4>        }
+
+            <div class="form-group">
+
+              <label for="server-url">服务器地址</label>        .app-header {
+
+              <input type="text" id="server-url" value="http://localhost:8000">            background: white;
+
+            </div>            padding: 1rem 2rem;
+
+            <button id="save-settings-btn" class="btn-primary">保存设置</button>            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+          </div>            display: flex;
+
+        </div>            justify-content: space-between;
+
+      </div>            align-items: center;
+
+    </main>        }
+
+  </div>
 
         .app-header h1 {
-            color: #333;
-            font-size: 1.5rem;
-        }
+
+  <!-- 加载 Tauri API -->            color: #333;
+
+  <script type="module" src="app.js"></script>            font-size: 1.5rem;
+
+</body>        }
+
+</html>
 
         .user-info {
             display: flex;
