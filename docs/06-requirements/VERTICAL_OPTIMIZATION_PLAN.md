@@ -5,13 +5,15 @@
 ### 当前架构评估
 
 **✅ 优势保留**
+
 - Rust + Axum 后端架构稳固
-- React + TypeScript 前端技术栈现代化  
+- React + TypeScript 前端技术栈现代化
 - Tauri 桌面客户端跨平台能力强
 - 用户权限体系架构良好
 - 数据库设计基础扎实
 
 **❌ 需要移除的社交媒体遗留功能**
+
 - ADB 设备管理 (`adb_manager.rs`, `adb_xml_reader/`)
 - 小红书自动化 (`xiaohongshu_automator.rs`)
 - 联系人自动关注 (`contact_manager.rs`)
@@ -19,6 +21,7 @@
 - 设备连接和任务分发逻辑
 
 **🔄 需要重构的业务模块**
+
 - 用户角色：从设备管理员 → 调研经理/外勤人员
 - 任务系统：从关注任务 → 问卷发布/客户拜访
 - 数据模型：从社交数据 → 调研数据
@@ -33,11 +36,12 @@
 #### 1.1 删除社交媒体相关模块
 
 **后端清理**
+
 ```bash
 # 删除的文件和模块
 server-backend/src/handlers/
 ├── social_platforms.rs        ❌ 删除
-├── device_management.rs       ❌ 删除  
+├── device_management.rs       ❌ 删除
 ├── automation_tasks.rs        ❌ 删除
 └── contact_import.rs          ❌ 删除
 
@@ -49,6 +53,7 @@ server-backend/src/models.rs
 ```
 
 **前端清理**
+
 ```bash
 # 删除的组件
 server-frontend/src/components/
@@ -64,6 +69,7 @@ server-frontend/src/services/
 ```
 
 **员工客户端清理**
+
 ```bash
 # 删除的Tauri模块
 employee-client/src-tauri/src/
@@ -106,6 +112,7 @@ DELETE FROM system_configs WHERE config_key LIKE 'automation_%';
 #### 2.1 问卷设计系统
 
 **新增数据模型**
+
 ```rust
 // server-backend/src/models/survey.rs
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
@@ -138,6 +145,7 @@ pub struct SurveyResponse {
 ```
 
 **新增API端点**
+
 ```rust
 // server-backend/src/handlers/survey.rs
 pub async fn create_survey(
@@ -163,21 +171,22 @@ pub async fn get_survey_analytics(
 ```
 
 **前端问卷设计器**
+
 ```typescript
 // server-frontend/src/components/Survey/SurveyDesigner.tsx
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const SurveyDesigner: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
-  
+
   const addQuestion = (type: QuestionType) => {
     // 添加问题逻辑
   };
-  
+
   const onDragEnd = (result: DropResult) => {
     // 拖拽排序逻辑
   };
-  
+
   return (
     <div className="survey-designer">
       <QuestionLibrary onAddQuestion={addQuestion} />
@@ -195,6 +204,7 @@ const SurveyDesigner: React.FC = () => {
 #### 2.2 数据分析和报表系统
 
 **数据分析引擎**
+
 ```rust
 // server-backend/src/services/analytics.rs
 pub struct SurveyAnalytics {
@@ -217,15 +227,16 @@ impl SurveyAnalytics {
 ```
 
 **前端报表展示**
+
 ```typescript
 // server-frontend/src/components/Analytics/SurveyReport.tsx
 import { Line, Bar, Pie } from '@ant-design/plots';
 
 const SurveyReport: React.FC<{ surveyId: number }> = ({ surveyId }) => {
-  const { data: analytics } = useQuery(['survey-analytics', surveyId], 
+  const { data: analytics } = useQuery(['survey-analytics', surveyId],
     () => surveyService.getAnalytics(surveyId)
   );
-  
+
   return (
     <div className="survey-report">
       <Row gutter={16}>
@@ -236,7 +247,7 @@ const SurveyReport: React.FC<{ surveyId: number }> = ({ surveyId }) => {
           <StatisticCard title="完成率" value={`${analytics.completionRate}%`} />
         </Col>
       </Row>
-      
+
       <Row gutter={16}>
         <Col span={12}>
           <Card title="回答分布">
@@ -259,6 +270,7 @@ const SurveyReport: React.FC<{ surveyId: number }> = ({ surveyId }) => {
 #### 3.1 客户信息管理
 
 **新增客户模型**
+
 ```rust
 // server-backend/src/models/customer.rs
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
@@ -312,6 +324,7 @@ pub struct VisitRecord {
 #### 3.2 GPS轨迹和签到功能 (Tauri客户端)
 
 **地理位置服务**
+
 ```rust
 // employee-client/src-tauri/src/geolocation.rs
 use tauri::{command, State};
@@ -357,6 +370,7 @@ pub async fn end_visit_tracking(
 ```
 
 **前端拜访界面 (Tauri Web)**
+
 ```html
 <!-- employee-client/src-web/visit-tracker.html -->
 <div id="visit-tracker">
@@ -364,7 +378,7 @@ pub async fn end_visit_tracking(
         <h2>客户拜访 - 德玛西亚科技有限公司</h2>
         <div class="status-badge">进行中</div>
     </div>
-    
+
     <div class="location-info">
         <div class="gps-status">
             <span class="gps-icon">📍</span>
@@ -372,13 +386,13 @@ pub async fn end_visit_tracking(
         </div>
         <div class="current-time">开始时间: 09:30</div>
     </div>
-    
+
     <div class="action-buttons">
         <button id="take-photo" class="btn-primary">📷 拍照记录</button>
         <button id="record-voice" class="btn-secondary">🎤 语音备忘</button>
         <button id="end-visit" class="btn-success">✅ 结束拜访</button>
     </div>
-    
+
     <div class="visit-notes">
         <textarea placeholder="请输入拜访记录..."></textarea>
     </div>
@@ -388,6 +402,7 @@ pub async fn end_visit_tracking(
 #### 3.3 拍照和语音记录功能
 
 **多媒体处理**
+
 ```rust
 // employee-client/src-tauri/src/media_capture.rs
 #[command]
@@ -423,6 +438,7 @@ pub async fn record_voice_memo(
 #### 4.1 差旅费用跟踪
 
 **费用模型**
+
 ```rust
 // server-backend/src/models/expense.rs
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
@@ -447,6 +463,7 @@ pub struct ExpenseRecord {
 #### 4.2 发票识别和验证
 
 **OCR集成**
+
 ```rust
 // server-backend/src/services/ocr.rs
 pub struct InvoiceOCR {
@@ -456,15 +473,15 @@ pub struct InvoiceOCR {
 
 impl InvoiceOCR {
     pub async fn extract_invoice_info(
-        &self, 
+        &self,
         image_data: &[u8]
     ) -> Result<InvoiceInfo> {
         // 调用OCR API识别发票信息
         // 返回金额、商家、时间等结构化数据
     }
-    
+
     pub async fn validate_invoice(
-        &self, 
+        &self,
         invoice_info: &InvoiceInfo
     ) -> Result<bool> {
         // 验证发票真伪
@@ -478,6 +495,7 @@ impl InvoiceOCR {
 #### 5.1 市场趋势分析
 
 **AI数据分析**
+
 ```rust
 // server-backend/src/services/ai_analytics.rs
 pub struct MarketAnalytics {
@@ -504,6 +522,7 @@ impl MarketAnalytics {
 #### 5.2 智能推荐系统
 
 **客户推荐算法**
+
 ```rust
 // server-backend/src/services/recommendation.rs
 pub struct CustomerRecommendation {
@@ -528,30 +547,35 @@ impl CustomerRecommendation {
 ## 🛠️ 实施路线图
 
 ### Week 1-2: 代码清理阶段
+
 - [ ] 删除所有社交媒体相关代码
 - [ ] 数据库迁移脚本执行
 - [ ] 更新Cargo.toml和package.json依赖
 - [ ] 运行测试确保基础功能正常
 
 ### Week 3-6: 核心功能开发
+
 - [ ] 实现问卷设计系统
 - [ ] 客户信息管理模块
 - [ ] 拜访记录和GPS跟踪
 - [ ] 基础数据分析功能
 
 ### Week 7-10: 移动端功能
+
 - [ ] Tauri客户端GPS定位
 - [ ] 拍照和语音记录
 - [ ] 离线数据同步
 - [ ] 移动端界面优化
 
 ### Week 11-14: 高级功能
+
 - [ ] 费用管理和报销
 - [ ] 发票OCR识别
 - [ ] 数据可视化报表
 - [ ] 权限和安全加固
 
 ### Week 15-16: 测试和部署
+
 - [ ] 端到端测试
 - [ ] 性能优化
 - [ ] 文档完善
@@ -562,18 +586,21 @@ impl CustomerRecommendation {
 ## 📊 预期改进效果
 
 ### 业务价值提升
+
 - **市场定位明确**: 从通用工具 → 垂直行业专家
 - **客户群体精准**: B2B企业级调研需求
 - **收费模式清晰**: 按调研项目/受访数量计费
 - **竞争优势显著**: 专业调研+智能分析
 
 ### 技术架构优化
+
 - **代码量减少30%**: 删除无关功能模块
 - **性能提升40%**: 专注核心业务逻辑
 - **维护成本降低**: 业务逻辑更加清晰
 - **扩展性增强**: 垂直领域深度优化
 
 ### 用户体验改善
+
 - **专业工具感**: 界面和功能更加专业
 - **学习成本低**: 符合行业工作流程
 - **效率显著提升**: 自动化程度更高

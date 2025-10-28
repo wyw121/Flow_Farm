@@ -57,6 +57,8 @@ pub async fn create_app(database: Database, config: Config) -> Router {
         .route("/api/v1/auth/register", post(handlers::auth::register))
         .route("/api/v1/auth/logout", post(handlers::auth::logout))
         .route("/docs", get(handlers::docs::api_docs))
+        // 公开问卷回答提交（无需认证）
+        .route("/api/v1/surveys/:id/responses", post(handlers::survey::submit_survey_response))
         .with_state((database.clone(), config.clone()));
 
     // 受保护路由（需要认证）
@@ -200,6 +202,49 @@ pub async fn create_app(database: Database, config: Config) -> Router {
             "/api/v1/reports/export",
             get(handlers::reports::export_data),
         )
+        // 问卷管理
+        .route("/api/v1/surveys", get(handlers::survey::get_surveys))
+        .route("/api/v1/surveys", post(handlers::survey::create_survey))
+        .route("/api/v1/surveys/:id", get(handlers::survey::get_survey))
+        .route("/api/v1/surveys/:id", put(handlers::survey::update_survey))
+        .route("/api/v1/surveys/:id", delete(handlers::survey::delete_survey))
+        .route("/api/v1/surveys/:id/publish", post(handlers::survey::publish_survey))
+        .route("/api/v1/surveys/:id/close", post(handlers::survey::close_survey))
+        // 问卷分析
+        .route("/api/v1/surveys/:id/analytics", get(handlers::analytics::get_survey_analytics))
+        .route("/api/v1/surveys/:id/export", get(handlers::analytics::export_survey_report))
+        // 客户管理
+        .route("/api/v1/customers", get(handlers::customer::get_customers))
+        .route("/api/v1/customers", post(handlers::customer::create_customer))
+        .route("/api/v1/customers/:id", get(handlers::customer::get_customer))
+        .route("/api/v1/customers/:id", put(handlers::customer::update_customer))
+        .route("/api/v1/customers/:id", delete(handlers::customer::delete_customer))
+        .route("/api/v1/customers/stats", get(handlers::customer::get_customer_statistics))
+        // 拜访管理
+        .route("/api/v1/visits", get(handlers::visit::get_visits))
+        .route("/api/v1/visits", post(handlers::visit::create_visit))
+        .route("/api/v1/visits/:id", get(handlers::visit::get_visit))
+        .route("/api/v1/visits/:id/start", post(handlers::visit::start_visit))
+        .route("/api/v1/visits/:id/end", post(handlers::visit::end_visit))
+        .route("/api/v1/visits/:id/cancel", post(handlers::visit::cancel_visit))
+        .route("/api/v1/visits/stats", get(handlers::visit::get_visit_statistics))
+        // 拜访附件管理
+        .route("/api/v1/visits/:id/attachments", get(handlers::attachment::get_visit_attachments))
+        .route("/api/v1/visits/:id/attachments", post(handlers::attachment::upload_visit_attachment))
+        .route("/api/v1/visits/:visit_id/attachments/:attachment_id", delete(handlers::attachment::delete_visit_attachment))
+        .route("/api/v1/visits/:visit_id/attachments/:attachment_id/download", get(handlers::attachment::download_visit_attachment))
+        // 费用管理
+        .route("/api/v1/expenses", get(handlers::expense::get_expenses))
+        .route("/api/v1/expenses", post(handlers::expense::create_expense))
+        .route("/api/v1/expenses/:id", get(handlers::expense::get_expense))
+        .route("/api/v1/expenses/:id", put(handlers::expense::update_expense))
+        .route("/api/v1/expenses/:id", delete(handlers::expense::delete_expense))
+        .route("/api/v1/expenses/submit", post(handlers::expense::submit_expense))
+        .route("/api/v1/expenses/approve", post(handlers::expense::approve_expense))
+        .route("/api/v1/expenses/statistics", get(handlers::expense::get_expense_statistics))
+        // 费用类别管理
+        .route("/api/v1/expense-categories", get(handlers::expense::get_expense_categories))
+        .route("/api/v1/expense-categories", post(handlers::expense::create_expense_category))
         .layer(middleware::from_fn_with_state(
             (database.clone(), config.clone()),
             crate::middleware::auth::AuthLayer::middleware,

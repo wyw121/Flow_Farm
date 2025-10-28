@@ -15,12 +15,16 @@ mod commands;
 // 导入类型
 use models::DeviceInfo;
 use auth_service::{AuthService, AuthConfig};
+use commands::gps::GpsService;
+use commands::media::MediaService;
 
 // 应用状态
 pub struct AppState {
     pub devices: Arc<Mutex<HashMap<String, DeviceInfo>>>,    // 重用于GPS设备管理
     pub tasks: Arc<Mutex<HashMap<String, models::TaskInfo>>>, // 重用于拜访任务
     pub auth_service: Arc<AuthService>,
+    pub gps_service: Arc<GpsService>,
+    pub media_service: Arc<MediaService>,
 }
 
 // 设备扫描器（后台任务）
@@ -68,10 +72,21 @@ fn main() {
     };
     let auth_service = Arc::new(AuthService::new(Some(auth_config)));
 
+    // 创建GPS服务
+    let gps_service = Arc::new(GpsService::new());
+
+    // 创建媒体服务
+    let media_dir = std::env::current_dir()
+        .unwrap_or_else(|_| std::path::PathBuf::from("."))
+        .join("media");
+    let media_service = Arc::new(MediaService::new(media_dir));
+
     let app_state = AppState {
         devices: Arc::new(Mutex::new(HashMap::new())),
         tasks: Arc::new(Mutex::new(HashMap::new())),
         auth_service,
+        gps_service,
+        media_service,
     };
 
     tauri::Builder::default()
@@ -101,7 +116,31 @@ fn main() {
             commands::get_tasks,
             commands::start_task,
             commands::stop_task,
-            commands::get_statistics
+            commands::get_statistics,
+            // GPS服务命令
+            commands::get_current_location,
+            commands::start_gps_tracking,
+            commands::stop_gps_tracking,
+            commands::calculate_distance,
+            commands::get_gps_status,
+            commands::request_gps_permission,
+            // 拜访管理命令  
+            commands::get_today_visits,
+            commands::start_visit,
+            commands::end_visit,
+            commands::get_active_visit,
+            commands::cancel_visit,
+            commands::get_visit_attachments,
+            // 多媒体录制命令
+            commands::take_photo,
+            commands::start_audio_recording,
+            commands::stop_audio_recording,
+            commands::start_video_recording,
+            commands::stop_video_recording,
+            commands::get_recording_status,
+            commands::upload_media_file,
+            commands::get_recording_config,
+            commands::update_recording_config
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

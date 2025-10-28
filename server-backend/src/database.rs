@@ -219,6 +219,12 @@ impl Database {
         // 创建测试公司收费计划
         self.create_test_company_pricing().await?;
 
+        // 创建客户拜访相关表
+        self.create_customer_visit_tables().await?;
+
+        // 创建费用管理相关表
+        self.create_expense_management_tables().await?;
+
         tracing::info!("✅ 数据库迁移完成");
         Ok(())
     }
@@ -416,6 +422,121 @@ impl Database {
             tracing::info!("ℹ️  公司收费计划已存在，跳过创建");
         }
 
+        Ok(())
+    }
+
+    async fn create_customer_visit_tables(&self) -> Result<()> {
+        tracing::info!("🔄 创建客户拜访相关表");
+
+        // 读取并执行 SQL 迁移文件
+        let migration_sql = include_str!("../migrations/003_create_customer_visit_tables.sql");
+        
+        // 智能分割 SQL 语句，考虑触发器等复合语句
+        let mut statements = Vec::new();
+        let mut current_statement = String::new();
+        let mut in_trigger = false;
+        
+        for line in migration_sql.lines() {
+            let trimmed_line = line.trim();
+            
+            // 检测触发器开始
+            if trimmed_line.starts_with("CREATE TRIGGER") {
+                in_trigger = true;
+            }
+            
+            current_statement.push_str(line);
+            current_statement.push('\n');
+            
+            // 检测语句结束
+            if trimmed_line.ends_with(';') {
+                if in_trigger && trimmed_line == "END;" {
+                    // 触发器结束
+                    in_trigger = false;
+                    statements.push(current_statement.trim().to_string());
+                    current_statement.clear();
+                } else if !in_trigger {
+                    // 普通语句结束
+                    statements.push(current_statement.trim().to_string());
+                    current_statement.clear();
+                }
+            }
+        }
+        
+        // 执行每个语句
+        for statement in statements {
+            if !statement.is_empty() && !statement.starts_with("--") {
+                sqlx::query(&statement)
+                    .execute(&self.pool)
+                    .await
+                    .map_err(|e| {
+                        tracing::error!("执行 SQL 语句失败: {}, 语句: {}", e, statement);
+                        e
+                    })?;
+            }
+        }
+
+        tracing::info!("✅ 客户拜访相关表创建完成");
+        Ok(())
+    }
+
+    /// 创建费用管理相关表
+    async fn create_expense_management_tables(&self) -> Result<()> {
+        tracing::info!("🔄 创建费用管理相关表");
+
+        // 读取并执行费用管理迁移脚本
+        let sql_content = std::fs::read_to_string("migrations/005_expense_management.sql")
+            .map_err(|e| anyhow::anyhow!("无法读取费用管理迁移文件: {}", e))?;
+
+        // 解析SQL语句（处理多行语句和触发器）
+        let mut statements = Vec::new();
+        let mut current_statement = String::new();
+        let mut in_trigger = false;
+
+        for line in sql_content.lines() {
+            let trimmed_line = line.trim();
+            
+            // 跳过注释和空行
+            if trimmed_line.is_empty() || trimmed_line.starts_with("--") {
+                continue;
+            }
+
+            current_statement.push_str(line);
+            current_statement.push('\n');
+
+            // 检测触发器开始
+            if trimmed_line.contains("CREATE TRIGGER") {
+                in_trigger = true;
+            }
+
+            // 检测语句结束
+            if trimmed_line.ends_with(';') {
+                if in_trigger && trimmed_line == "END;" {
+                    // 触发器结束
+                    in_trigger = false;
+                    statements.push(current_statement.trim().to_string());
+                    current_statement.clear();
+                } else if !in_trigger {
+                    // 普通语句结束
+                    statements.push(current_statement.trim().to_string());
+                    current_statement.clear();
+                }
+            }
+        }
+        
+        // 执行每个语句
+        for statement in statements {
+            if !statement.is_empty() && !statement.starts_with("--") {
+                sqlx::query(&statement)
+                    .execute(&self.pool)
+                    .await
+                    .map_err(|e| {
+                        tracing::error!("执行费用管理 SQL 语句失败: {}, 语句: {}", e, statement);
+                        e
+                    })?;
+            }
+        }
+
+        tracing::info!("✅ 费用管理相关表创建完成");
         Ok(())
     }
 }

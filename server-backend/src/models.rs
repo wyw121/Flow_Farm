@@ -3,6 +3,18 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
 
+// 导入问卷相关模型
+pub mod survey;
+pub use survey::*;
+
+// 导入客户相关模型
+pub mod customer;
+pub use customer::*;
+
+// 导入费用相关模型
+pub mod expense;
+pub use expense::*;
+
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct User {
     pub id: i32,
@@ -106,6 +118,7 @@ pub struct UserInfo {
     pub full_name: Option<String>,
     pub phone: Option<String>,
     pub company: Option<String>,
+    pub company_id: Option<i32>, // 添加company_id字段
     pub role: String,
     pub is_active: bool,
     pub is_verified: bool,
@@ -129,7 +142,8 @@ impl From<User> for UserInfo {
             email: user.email,
             full_name: user.full_name,
             phone: user.phone,
-            company: user.company,
+            company: user.company.clone(),
+            company_id: Some(1), // 临时设置，需要从数据库获取实际的company_id
             role: user.role,
             is_active,
             is_verified,

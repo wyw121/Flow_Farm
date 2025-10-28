@@ -65,7 +65,7 @@ impl AuthService {
         let now = Utc::now();
 
         // 插入新用户 - 使用数据库的实际字段
-        let result = sqlx::query(
+        sqlx::query(
             r#"
             INSERT INTO users (username, email, hashed_password, role, is_active, max_employees, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -81,26 +81,14 @@ impl AuthService {
         .execute(&self.database.pool)
         .await?;
 
-        let user_id = result.last_insert_rowid() as i32;
+        // 获取新插入的用户信息
+        let user: User = sqlx::query_as("SELECT * FROM users WHERE username = ?")
+            .bind(&request.username)
+            .fetch_one(&self.database.pool)
+            .await?;
 
         // 返回用户信息
-        Ok(UserInfo {
-            id: user_id,
-            username: request.username,
-            email: request.email,
-            full_name: None,
-            phone: None,
-            company: request.company,
-            role: request.role.to_string(),
-            is_active: true,
-            is_verified: false,
-            current_employees: 0,
-            max_employees: request.max_employees.unwrap_or(10),
-            balance: 1000.0, // 新用户默认余额
-            parent_id: None,
-            created_at: now.format("%Y-%m-%d %H:%M:%S").to_string(),
-            last_login: None,
-        })
+        Ok(UserInfo::from(user))
     }
 
     pub async fn refresh_token(&self, user_id: &str) -> Result<String> {

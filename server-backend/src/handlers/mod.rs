@@ -1,9 +1,15 @@
+pub mod analytics;
+pub mod attachment;
 pub mod auth;
 pub mod billing;
 pub mod company_pricing;
+pub mod customer;
 pub mod docs;
+pub mod expense;
 pub mod health;
 pub mod kpi;
 pub mod reports;
+pub mod survey;
 pub mod users;
+pub mod visit;
 pub mod work_records;

@@ -58,6 +58,7 @@ pub mod error_codes {
     pub const VALIDATION_MISSING_FIELD: u32 = 2002;
     pub const VALIDATION_INVALID_FORMAT: u32 = 2003;
     pub const VALIDATION_OUT_OF_RANGE: u32 = 2004;
+    pub const VALIDATION_BAD_REQUEST: u32 = 2005;
 
     // 数据库操作错误 (3000-3999)
     pub const DATABASE_CONNECTION_ERROR: u32 = 3001;
@@ -99,8 +100,8 @@ pub enum AppError {
     #[error("未授权访问")]
     Unauthorized,
 
-    #[error("权限不足")]
-    Forbidden,
+    #[error("权限不足: {0}")]
+    Forbidden(String),
 
     #[error("用户不存在: {0}")]
     UserNotFound(String),
@@ -121,12 +122,26 @@ pub enum AppError {
     #[error("数据超出范围: {0}")]
     OutOfRange(String),
 
+    // 验证错误
+    #[error("验证失败: {0}")]
+    ValidationError(String),
+
+    #[error("请求无效: {0}")]
+    BadRequest(String),
+
+    // 权限错误
+    #[error("权限被拒绝: {0}")]
+    PermissionDenied(String),
+
     // 数据库操作错误
     #[error("数据库连接失败")]
     DatabaseConnection,
 
     #[error("数据库查询错误: {0}")]
     DatabaseQuery(String),
+
+    #[error("数据库操作失败: {0}")]
+    DatabaseError(String),
 
     #[error("资源未找到: {0}")]
     NotFound(String),
@@ -167,6 +182,9 @@ pub enum AppError {
     #[error("内部服务器错误: {0}")]
     Internal(String),
 
+    #[error("内部服务器错误: {0}")]
+    InternalServerError(String),
+
     #[error("未知错误: {0}")]
     Unknown(String),
 }
@@ -181,7 +199,7 @@ impl AppError {
             AppError::TokenExpired => AUTH_TOKEN_EXPIRED,
             AppError::TokenInvalid => AUTH_TOKEN_INVALID,
             AppError::Unauthorized => AUTH_UNAUTHORIZED,
-            AppError::Forbidden => AUTH_FORBIDDEN,
+            AppError::Forbidden(_) => AUTH_FORBIDDEN,
             AppError::UserNotFound(_) => AUTH_USER_NOT_FOUND,
             AppError::DuplicateUsername(_) => AUTH_DUPLICATE_USERNAME,
 
@@ -190,10 +208,16 @@ impl AppError {
             AppError::MissingField(_) => VALIDATION_MISSING_FIELD,
             AppError::InvalidFormat(_) => VALIDATION_INVALID_FORMAT,
             AppError::OutOfRange(_) => VALIDATION_OUT_OF_RANGE,
+            AppError::ValidationError(_) => VALIDATION_INVALID_INPUT,
+            AppError::BadRequest(_) => VALIDATION_BAD_REQUEST,
+
+            // 权限
+            AppError::PermissionDenied(_) => AUTH_FORBIDDEN,
 
             // 数据库
             AppError::DatabaseConnection => DATABASE_CONNECTION_ERROR,
             AppError::DatabaseQuery(_) => DATABASE_QUERY_ERROR,
+            AppError::DatabaseError(_) => DATABASE_QUERY_ERROR,
             AppError::NotFound(_) => DATABASE_NOT_FOUND,
             AppError::Conflict(_) => DATABASE_CONFLICT,
             AppError::ConstraintViolation(_) => DATABASE_CONSTRAINT_VIOLATION,
@@ -212,6 +236,7 @@ impl AppError {
 
             // 内部错误
             AppError::Internal(_) => INTERNAL_SERVER_ERROR,
+            AppError::InternalServerError(_) => INTERNAL_SERVER_ERROR,
             AppError::Unknown(_) => INTERNAL_UNKNOWN_ERROR,
         }
     }
@@ -225,7 +250,8 @@ impl AppError {
             | AppError::TokenInvalid
             | AppError::Unauthorized => StatusCode::UNAUTHORIZED,
 
-            AppError::Forbidden => StatusCode::FORBIDDEN,
+            AppError::Forbidden(_)
+            | AppError::PermissionDenied(_) => StatusCode::FORBIDDEN,
 
             // 数据验证 - 400
             AppError::InvalidInput(_)
@@ -233,6 +259,8 @@ impl AppError {
             | AppError::InvalidFormat(_)
             | AppError::OutOfRange(_)
             | AppError::InvalidState(_)
+            | AppError::ValidationError(_)
+            | AppError::BadRequest(_)
             | AppError::OperationNotAllowed(_) => StatusCode::BAD_REQUEST,
 
             // 未找到 - 404
@@ -257,7 +285,9 @@ impl AppError {
             // 内部错误 - 500
             AppError::DatabaseConnection
             | AppError::DatabaseQuery(_)
+            | AppError::DatabaseError(_)
             | AppError::Internal(_)
+            | AppError::InternalServerError(_)
             | AppError::Unknown(_)
             | AppError::ExternalApiError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
@@ -319,6 +349,12 @@ impl From<validator::ValidationErrors> for AppError {
 impl From<std::io::Error> for AppError {
     fn from(err: std::io::Error) -> Self {
         AppError::Internal(err.to_string())
+    }
+}
+
+impl From<serde_json::Error> for AppError {
+    fn from(err: serde_json::Error) -> Self {
+        AppError::InvalidFormat(format!("JSON序列化/反序列化错误: {}", err))
     }
 }
 

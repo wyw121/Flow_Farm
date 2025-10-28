@@ -533,24 +533,23 @@ impl UserService {
             .await?;
         }
 
-        // 删除相关的工作记录（级联删除）
-        // 注意：work_records表中的字段是employee_id(INTEGER)
-        sqlx::query!(
-            "DELETE FROM work_records WHERE employee_id = ?",
-            user_id_int
+        // 删除相关的费用记录（级联删除）
+        sqlx::query(
+            "DELETE FROM expense_records WHERE employee_id = ?"
         )
+        .bind(user_id_int)
         .execute(&self.database.pool)
         .await?;
 
         // 删除相关的计费记录（级联删除）
-        // 注意：billing_records表中的user_id是TEXT类型
-        sqlx::query!("DELETE FROM billing_records WHERE user_id = ?", user_id)
+        sqlx::query("DELETE FROM billing_records WHERE user_id = ?")
+            .bind(user_id)
             .execute(&self.database.pool)
             .await?;
 
         // 删除相关的设备记录（级联删除）
-        // 注意：devices表中的user_id是TEXT类型
-        sqlx::query!("DELETE FROM devices WHERE user_id = ?", user_id)
+        sqlx::query("DELETE FROM devices WHERE user_id = ?")
+            .bind(user_id)
             .execute(&self.database.pool)
             .await?;
 

@@ -186,6 +186,18 @@ impl AuthService {
     pub fn is_admin(&self) -> bool {
         self.has_role("user_admin") || self.has_role("system_admin")
     }
+
+    /// 获取当前会话的token
+    pub fn get_token(&self) -> Option<String> {
+        if let Ok(session_guard) = self.current_session.lock() {
+            if let Some(session) = session_guard.as_ref() {
+                if session.is_valid() {
+                    return Some(session.token.clone());
+                }
+            }
+        }
+        None
+    }
 }
 
 #[cfg(test)]

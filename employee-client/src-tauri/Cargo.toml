@@ -31,3 +31,5 @@ base64 = "0.21"                   # Base64编码
 mime_guess = "2.0"                # MIME类型检测
 geo = "0.26"                      # 地理位置计算
 once_cell = "1.19"                # 全局状态管理
+rand = "0.8"                      # 随机数生成（GPS模拟）
+url = "2.5"                       # URL解析
