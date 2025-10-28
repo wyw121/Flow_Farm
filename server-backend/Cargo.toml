@@ -9,7 +9,7 @@ authors = ["Flow Farm Team"]
 # Web框架
 axum = "0.7"
 axum-extra = { version = "0.9", features = ["typed-header"] }
-tower = "0.4"
+tower = { version = "0.4", features = ["util"] }  # 添加util feature用于测试
 tower-http = { version = "0.5", features = [
     "fs",
     "cors",
@@ -70,3 +70,5 @@ validator = { version = "0.18", features = ["derive"] }
 [dev-dependencies]
 # 测试
 tokio-test = "0.4"
+mockall = "0.13"  # Mock框架
+serial_test = "3.0"  # 串行测试
