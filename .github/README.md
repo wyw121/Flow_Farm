@@ -2,35 +2,38 @@
 
 本项目采用最新的GitHub Copilot和VS Code配置最佳实践（2025年版），为开发团队提供智能化的编程辅助。
 
+## 技术栈概览
+
+| 模块 | 技术栈 |
+|------|--------|
+| 服务器后端 | **Rust + Axum + SQLx + SQLite** |
+| 服务器前端（管理后台） | **React 19 + TypeScript + Ant Design 5 + Vite** |
+| 员工客户端 | **Rust + Tauri 2.0 + HTML/CSS/JS** |
+
 ## 配置文件结构
 
 ```
 .github/
-├── copilot-instructions.md          # 主要仓库指令
 ├── instructions/                    # 路径特定指令
-│   ├── gui-development.instructions.md
-│   ├── server-backend.instructions.md
-│   ├── server-frontend.instructions.md
-│   ├── platform-automation.instructions.md
-│   ├── core-modules.instructions.md
-│   ├── auth-system.instructions.md
-│   ├── employee-client.instructions.md
-│   └── build-scripts.instructions.md
+│   ├── server-backend.instructions.md       # Rust 后端指令
+│   ├── server-frontend.instructions.md      # React 前端指令
+│   ├── employee-client.instructions.md      # Tauri 客户端指令
+│   ├── platform-automation.instructions.md  # 平台自动化指令
+│   ├── core-modules.instructions.md         # 核心模块指令
+│   ├── auth-system.instructions.md          # 认证系统指令
+│   └── build-scripts.instructions.md        # 构建脚本指令
 ├── prompts/                         # 可复用提示文件
 │   ├── contact-management.prompt.md
 │   ├── precision-acquisition.prompt.md
 │   ├── device-management.prompt.md
 │   ├── billing-system.prompt.md
 │   ├── statistics-dashboard.prompt.md
-│   ├── main-window-architecture.prompt.md
 │   ├── api-development.prompt.md
-│   ├── gui-modernization.prompt.md
 │   ├── rbac-system.prompt.md
 │   ├── device-automation.prompt.md
 │   ├── server-optimization.prompt.md
-│   ├── project-setup.prompt.md
-│   └── build-system.prompt.md
-└── AGENTS.md                        # AI代理指令（2025新功能）
+│   └── project-setup.prompt.md
+└── README.md                        # 本文件
 ```
 
 ## 如何使用
@@ -42,33 +45,27 @@
 ```json
 {
     "chat.promptFiles": true,
-    "chat.promptFilesLocations": [".github/prompts"],
     "copilot.chat.useInstructionFiles": true,
     "github.copilot.enable": {
         "*": true,
-        "python": true,
         "rust": true,
         "javascript": true,
-        "typescript": true
-    }
+        "typescript": true,
+        "toml": true
+    },
+    "rust-analyzer.checkOnSave.command": "clippy",
+    "typescript.tsdk": "server-frontend/node_modules/typescript/lib"
 }
 ```
 
 ### 2. 使用自定义指令
 
-#### 仓库级指令（自动应用）
-- `.github/copilot-instructions.md` 会自动应用到所有聊天请求
-- 包含项目概述、技术架构、业务需求等核心信息
-
 #### 路径特定指令（智能匹配）
 当您在特定路径下工作时，相应的指令文件会自动应用：
 
-```markdown
----
-applyTo: "src/gui/**/*.py"
----
-# GUI开发专用指令会在编辑GUI文件时自动应用
-```
+- `server-backend/**/*.rs` → `server-backend.instructions.md`
+- `server-frontend/**/*.{tsx,ts}` → `server-frontend.instructions.md`
+- `employee-client/src-tauri/**/*.rs` → `employee-client.instructions.md`
 
 ### 3. 使用提示文件
 
@@ -84,20 +81,6 @@ applyTo: "src/gui/**/*.py"
 /precision-acquisition
 /device-management
 ```
-
-#### 通过命令面板使用
-1. 按 `Ctrl+Shift+P`
-2. 输入 "Chat: Run Prompt"
-3. 选择所需的提示文件
-
-### 4. AI代理指令 (AGENTS.md)
-
-这是2025年的新功能，用于GitHub Copilot coding agent：
-- 自动应用到编程代理任务
-- 包含构建、测试、验证指令
-- 提供架构和代码质量规范
-
-## 提示文件使用场景
 
 | 提示文件 | 使用场景 | 推荐时机 |
 |---------|----------|---------|

@@ -5,143 +5,129 @@
 			"path": "."
 		},
 		{
-			"name": "🖥️ 服务器后端 (管理员)",
+			"name": "🖥️ 服务器后端 (Rust + Axum)",
 			"path": "./server-backend"
 		},
 		{
-			"name": "🌐 服务器前端 (管理员)",
+			"name": "🌐 服务器前端 (React + TypeScript)",
 			"path": "./server-frontend"
 		},
 		{
-			"name": "💻 员工客户端",
+			"name": "💻 员工客户端 (Tauri + Rust)",
 			"path": "./employee-client"
 		}
 	],
 	"settings": {
-		"python.defaultInterpreterPath": "./venv/Scripts/python.exe",
-		"python.linting.enabled": true,
-		"python.linting.pylintEnabled": true,
-		"python.linting.flake8Enabled": true,
-		"python.formatting.provider": "black",
-		"python.testing.pytestEnabled": true,
-		"python.testing.pytestArgs": [
-			"tests"
-		],
+		// ========== Rust 开发配置 ==========
+		"rust-analyzer.checkOnSave.command": "clippy",
+		"rust-analyzer.cargo.features": "all",
+		"rust-analyzer.inlayHints.enable": true,
+		"rust-analyzer.lens.enable": true,
+		
+		// ========== TypeScript/JavaScript 配置 ==========
+		"typescript.tsdk": "server-frontend/node_modules/typescript/lib",
+		"typescript.enablePromptUseWorkspaceTsdk": true,
+		"[typescript]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode",
+			"editor.formatOnSave": true
+		},
+		"[typescriptreact]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode",
+			"editor.formatOnSave": true
+		},
+		"[javascript]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode"
+		},
+		
+		// ========== 文件管理 ==========
 		"files.exclude": {
-			"**/__pycache__": true,
-			"**/*.pyc": true,
-			"**/node_modules": true,
 			"**/.git": false,
 			"**/.DS_Store": true,
 			"**/Thumbs.db": true,
-			"**/*.egg-info": true,
+			"**/node_modules": true,
+			"**/target": true,
 			"**/dist": true,
-			"**/build": true
+			"**/*.exe": true,
+			"**/*.dll": true
 		},
 		"search.exclude": {
 			"**/node_modules": true,
-			"**/bower_components": true,
-			"**/*.code-search": true,
-			"**/__pycache__": true,
-			"**/venv": true,
-			"**/env": true
+			"**/target": true,
+			"**/dist": true,
+			"**/build": true
 		},
-		"editor.rulers": [88],
+		
+		// ========== 编辑器配置 ==========
+		"editor.rulers": [100],
 		"editor.formatOnSave": true,
 		"editor.codeActionsOnSave": {
 			"source.organizeImports": "explicit"
 		},
 		"files.trimTrailingWhitespace": true,
 		"files.insertFinalNewline": true,
-
-		// 全局Python环境
-		"terminal.integrated.env.windows": {
-			"PYTHONPATH": "${workspaceFolder}/src"
-		},
-
-		// 模块特定配置
-		"[server-backend]": {
-			"python.defaultInterpreterPath": "./server-backend/venv/Scripts/python.exe",
-			"terminal.integrated.env.windows": {
-				"PYTHONPATH": "${workspaceFolder}/server-backend"
-			}
-		},
-
-		"[employee-client]": {
-			"python.defaultInterpreterPath": "./employee-client/venv/Scripts/python.exe",
-			"terminal.integrated.env.windows": {
-				"PYTHONPATH": "${workspaceFolder}/employee-client/src"
-			}
-		},
-
+		
+		// ========== GitHub Copilot 配置 ==========
 		"github.copilot.enable": {
 			"*": true,
 			"yaml": true,
 			"plaintext": true,
 			"markdown": true,
-			"python": true
+			"rust": true,
+			"javascript": true,
+			"typescript": true,
+			"toml": true
 		},
-
-		// 启用GitHub Copilot提示文件功能
 		"chat.promptFiles": true,
-
-		// GitHub Copilot指令文件设置
-		"github.copilot.advanced": {
-			"inlineSuggestEnable": true,
-			"listMaxCount": 10
-		},
-
+		"copilot.chat.useInstructionFiles": true,
+		
+		// ========== 终端配置 ==========
+		"terminal.integrated.defaultProfile.windows": "PowerShell",
 		"powershell.cwd": "🏢 Flow Farm - 完整项目"
 	},
 	"extensions": {
 		"recommendations": [
-			"ms-python.python",
-			"ms-python.flake8",
-			"ms-python.pylint",
-			"ms-python.black-formatter",
-			"ms-python.isort",
+			// Rust
+			"rust-lang.rust-analyzer",
+			"vadimcn.vscode-lldb",
+			"serayuzgur.crates",
+			"tauri-apps.tauri-vscode",
+			
+			// TypeScript/React
+			"dbaeumer.vscode-eslint",
+			"esbenp.prettier-vscode",
+			"dsznajder.es7-react-js-snippets",
+			
+			// GitHub Copilot
 			"github.copilot",
 			"github.copilot-chat",
+			
+			// 通用工具
 			"ms-vscode.vscode-json",
 			"yzhang.markdown-all-in-one",
 			"streetsidesoftware.code-spell-checker",
-			"ms-python.debugpy"
+			"eamodio.gitlens"
 		]
 	},
 	"launch": {
 		"version": "0.2.0",
 		"configurations": [
 			{
-				"name": "Flow Farm - Debug Mode",
-				"type": "debugpy",
+				"name": "🖥️ Debug 服务器后端 (Rust)",
+				"type": "lldb",
 				"request": "launch",
-				"program": "${workspaceFolder}/employee-client/src/main.py",
-				"args": ["--debug", "--log-level", "DEBUG"],
-				"console": "integratedTerminal",
-				"envFile": "${workspaceFolder}/employee-client/.env",
-				"cwd": "${workspaceFolder}/employee-client",
-				"python": "${workspaceFolder}/employee-client/venv/Scripts/python.exe"
+				"program": "${workspaceFolder}/server-backend/target/debug/server-backend",
+				"args": [],
+				"cwd": "${workspaceFolder}/server-backend",
+				"preLaunchTask": "🔧 构建服务器后端"
 			},
 			{
-				"name": "Flow Farm - GUI Mode",
-				"type": "debugpy",
+				"name": "💻 Debug 员工客户端 (Tauri)",
+				"type": "lldb",
 				"request": "launch",
-				"program": "${workspaceFolder}/employee-client/src/main.py",
-				"args": ["--gui"],
-				"console": "integratedTerminal",
-				"envFile": "${workspaceFolder}/employee-client/.env",
+				"program": "${workspaceFolder}/employee-client/src-tauri/target/debug/employee-client",
+				"args": [],
 				"cwd": "${workspaceFolder}/employee-client",
-				"python": "${workspaceFolder}/employee-client/venv/Scripts/python.exe"
-			},
-			{
-				"name": "Run Tests",
-				"type": "debugpy",
-				"request": "launch",
-				"module": "pytest",
-				"args": ["tests/", "-v"],
-				"console": "integratedTerminal",
-				"cwd": "${workspaceFolder}",
-				"python": "${workspaceFolder}/venv/Scripts/python.exe"
+				"preLaunchTask": "✅ 检查员工客户端代码"
 			}
 		]
 	},
@@ -158,33 +144,26 @@
 				"dependsOrder": "sequence",
 				"dependsOn": [
 					"初始化服务器后端",
-					"初始化服务器前端",
-					"初始化员工客户端"
+					"初始化服务器前端"
 				]
 			},
 
-			// ========== 服务器后端任务 ==========
+			// ========== 服务器后端任务 (Rust) ==========
 			{
 				"label": "初始化服务器后端",
 				"type": "shell",
-				"command": "python",
-				"args": ["-m", "venv", "venv"],
+				"command": "cargo",
+				"args": ["fetch"],
 				"group": "build",
 				"options": {
 					"cwd": "${workspaceFolder}/server-backend"
-				},
-				"presentation": {
-					"echo": true,
-					"reveal": "always",
-					"panel": "shared",
-					"group": "backend"
 				}
 			},
 			{
 				"label": "🚀 启动服务器后端",
 				"type": "shell",
-				"command": "${workspaceFolder}/server-backend/venv/Scripts/python.exe",
-				"args": ["-m", "uvicorn", "app.main:app", "--reload", "--port", "8000"],
+				"command": "cargo",
+				"args": ["run", "--release"],
 				"group": "build",
 				"options": {
 					"cwd": "${workspaceFolder}/server-backend"
@@ -196,20 +175,30 @@
 					"group": "backend"
 				},
 				"isBackground": true,
-				"problemMatcher": []
+				"problemMatcher": ["$rustc"]
 			},
 			{
 				"label": "🧪 测试服务器后端",
 				"type": "shell",
-				"command": "${workspaceFolder}/server-backend/venv/Scripts/python.exe",
-				"args": ["-m", "pytest", "tests/", "-v"],
+				"command": "cargo",
+				"args": ["test", "--", "--nocapture"],
 				"group": "test",
 				"options": {
 					"cwd": "${workspaceFolder}/server-backend"
 				}
 			},
+			{
+				"label": "🔧 构建服务器后端",
+				"type": "shell",
+				"command": "cargo",
+				"args": ["build", "--release"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}/server-backend"
+				}
+			},
 
-			// ========== 服务器前端任务 ==========
+			// ========== 服务器前端任务 (React + TypeScript) ==========
 			{
 				"label": "初始化服务器前端",
 				"type": "shell",
@@ -218,12 +207,6 @@
 				"group": "build",
 				"options": {
 					"cwd": "${workspaceFolder}/server-frontend"
-				},
-				"presentation": {
-					"echo": true,
-					"reveal": "always",
-					"panel": "shared",
-					"group": "frontend"
 				}
 			},
 			{
@@ -255,28 +238,12 @@
 				}
 			},
 
-			// ========== 员工客户端任务 ==========
+			// ========== 员工客户端任务 (Tauri + Rust) ==========
 			{
-				"label": "初始化员工客户端",
+				"label": "💻 启动员工客户端开发",
 				"type": "shell",
-				"command": "python",
-				"args": ["-m", "venv", "venv"],
-				"group": "build",
-				"options": {
-					"cwd": "${workspaceFolder}/employee-client"
-				},
-				"presentation": {
-					"echo": true,
-					"reveal": "always",
-					"panel": "shared",
-					"group": "client"
-				}
-			},
-			{
-				"label": "💻 启动员工客户端GUI",
-				"type": "shell",
-				"command": "${workspaceFolder}/employee-client/venv/Scripts/python.exe",
-				"args": ["src/main.py", "--mode", "gui", "--debug"],
+				"command": "cargo",
+				"args": ["tauri", "dev"],
 				"group": "build",
 				"options": {
 					"cwd": "${workspaceFolder}/employee-client"
@@ -286,111 +253,30 @@
 					"reveal": "always",
 					"panel": "dedicated",
 					"group": "client"
-				}
+				},
+				"isBackground": true,
+				"problemMatcher": ["$rustc"]
 			},
 			{
-				"label": "⚡ 启动员工客户端控制台",
+				"label": "🔨 构建员工客户端",
 				"type": "shell",
-				"command": "${workspaceFolder}/employee-client/venv/Scripts/python.exe",
-				"args": ["src/main.py", "--mode", "console", "--debug"],
+				"command": "cargo",
+				"args": ["tauri", "build"],
 				"group": "build",
 				"options": {
 					"cwd": "${workspaceFolder}/employee-client"
 				}
 			},
 			{
-				"label": "🧪 测试员工客户端",
+				"label": "✅ 检查员工客户端代码",
 				"type": "shell",
-				"command": "${workspaceFolder}/employee-client/venv/Scripts/python.exe",
-				"args": ["-m", "pytest", "tests/", "-v"],
+				"command": "cargo",
+				"args": ["check"],
 				"group": "test",
 				"options": {
-					"cwd": "${workspaceFolder}/employee-client"
-				}
-			},
-
-			// ========== 原有兼容任务 ==========
-			{
-				"label": "Setup Development Environment",
-				"type": "shell",
-				"command": "python",
-				"args": ["-m", "venv", "venv"],
-				"group": "build",
-				"presentation": {
-					"echo": true,
-					"reveal": "always",
-					"focus": false,
-					"panel": "shared"
+					"cwd": "${workspaceFolder}/employee-client/src-tauri"
 				},
-				"options": {
-					"cwd": "${workspaceFolder}"
-				},
-				"problemMatcher": []
-			},
-			{
-				"label": "Install Dependencies",
-				"type": "shell",
-				"command": "${workspaceFolder}/venv/Scripts/pip.exe",
-				"args": ["install", "-r", "requirements.txt"],
-				"group": "build",
-				"presentation": {
-					"echo": true,
-					"reveal": "always",
-					"focus": false,
-					"panel": "shared"
-				},
-				"options": {
-					"cwd": "${workspaceFolder}"
-				},
-				"dependsOn": "Setup Development Environment"
-			},
-			{
-				"label": "Run Tests",
-				"type": "shell",
-				"command": "${workspaceFolder}/venv/Scripts/python.exe",
-				"args": ["-m", "pytest", "tests/", "-v"],
-				"group": "test",
-				"presentation": {
-					"echo": true,
-					"reveal": "always",
-					"focus": false,
-					"panel": "shared"
-				},
-				"options": {
-					"cwd": "${workspaceFolder}"
-				}
-			},
-			{
-				"label": "Build Development Version",
-				"type": "shell",
-				"command": "${workspaceFolder}/venv/Scripts/python.exe",
-				"args": ["scripts/build.py", "--mode", "development"],
-				"group": "build",
-				"presentation": {
-					"echo": true,
-					"reveal": "always",
-					"focus": false,
-					"panel": "shared"
-				},
-				"options": {
-					"cwd": "${workspaceFolder}"
-				}
-			},
-			{
-				"label": "Build Production Version",
-				"type": "shell",
-				"command": "${workspaceFolder}/venv/Scripts/python.exe",
-				"args": ["scripts/build.py", "--mode", "production", "--encrypt"],
-				"group": "build",
-				"presentation": {
-					"echo": true,
-					"reveal": "always",
-					"focus": false,
-					"panel": "shared"
-				},
-				"options": {
-					"cwd": "${workspaceFolder}"
-				}
+				"problemMatcher": ["$rustc"]
 			}
 		]
 	}

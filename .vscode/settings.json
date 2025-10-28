@@ -1,0 +1,54 @@
+{
+    "powershell.powerShellDefaultVersion": "Windows PowerShell (x86)",
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "icon": "terminal-powershell"
+        },
+        "Windows PowerShell": {
+            "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "args": [],
+            "icon": "terminal-powershell"
+        }
+    },
+    "chat.promptFiles": true,
+    "chat.promptFilesLocations": [".github/prompts"],
+    "copilot.chat.useInstructionFiles": true,
+    "github.copilot.enable": {
+        "*": true,
+        "yaml": true,
+        "plaintext": true,
+        "markdown": true,
+        "rust": true,
+        "javascript": true,
+        "typescript": true,
+        "toml": true
+    },
+
+    // Rust 开发配置
+    "rust-analyzer.checkOnSave.command": "clippy",
+    "rust-analyzer.cargo.features": "all",
+    "rust-analyzer.inlayHints.enable": true,
+    
+    // TypeScript/React 开发配置
+    "typescript.tsdk": "server-frontend/node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    
+    // 文件关联
+    "files.associations": {
+        "*.toml": "toml",
+        "Cargo.lock": "toml"
+    }
+}

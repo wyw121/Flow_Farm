@@ -1,0 +1,178 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        // ========== 服务器后端任务 (Rust) ==========
+        {
+            "label": "🚀 启动服务器后端",
+            "type": "shell",
+            "command": "cargo",
+            "args": ["run", "--release"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "group": "backend"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/server-backend"
+            },
+            "problemMatcher": ["$rustc"],
+            "isBackground": true
+        },
+        {
+            "label": "🧪 测试服务器后端",
+            "type": "shell",
+            "command": "cargo",
+            "args": ["test", "--", "--nocapture"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "group": "backend"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/server-backend"
+            },
+            "problemMatcher": ["$rustc"]
+        },
+        {
+            "label": "🔧 构建服务器后端",
+            "type": "shell",
+            "command": "cargo",
+            "args": ["build", "--release"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "group": "backend"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/server-backend"
+            },
+            "problemMatcher": ["$rustc"]
+        },
+        
+        // ========== 服务器前端任务 (React + TypeScript) ==========
+        {
+            "label": "🌐 启动服务器前端开发",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "dev"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "group": "frontend"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/server-frontend"
+            },
+            "problemMatcher": [],
+            "isBackground": true
+        },
+        {
+            "label": "🏗️ 构建服务器前端",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "build"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "group": "frontend"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/server-frontend"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📦 安装前端依赖",
+            "type": "shell",
+            "command": "npm",
+            "args": ["install"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "group": "frontend"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/server-frontend"
+            },
+            "problemMatcher": []
+        },
+        
+        // ========== 员工客户端任务 (Tauri + Rust) ==========
+        {
+            "label": "💻 启动员工客户端开发",
+            "type": "shell",
+            "command": "cargo",
+            "args": ["tauri", "dev"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "group": "employee-client"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/employee-client"
+            },
+            "problemMatcher": ["$rustc"],
+            "isBackground": true
+        },
+        {
+            "label": "🔨 构建员工客户端",
+            "type": "shell",
+            "command": "cargo",
+            "args": ["tauri", "build"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "group": "employee-client"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/employee-client"
+            },
+            "problemMatcher": ["$rustc"]
+        },
+        {
+            "label": "✅ 检查员工客户端代码",
+            "type": "shell",
+            "command": "cargo",
+            "args": ["check"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "group": "employee-client"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/employee-client/src-tauri"
+            },
+            "problemMatcher": ["$rustc"]
+        }
+    ]
+}
