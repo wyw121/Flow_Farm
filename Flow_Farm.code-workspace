@@ -1,19 +1,19 @@
 {
 	"folders": [
 		{
-			"name": "🏢 Flow Farm - 完整项目",
+			"name": "🏢 Flow Farm - 市场调研与客户拜访管理平台",
 			"path": "."
 		},
 		{
-			"name": "🖥️ 服务器后端 (Rust + Axum)",
+			"name": "🖥️ 业务后端 (Rust + Axum)",
 			"path": "./server-backend"
 		},
 		{
-			"name": "🌐 服务器前端 (React + TypeScript)",
+			"name": "🌐 管理后台 (React + TypeScript)",
 			"path": "./server-frontend"
 		},
 		{
-			"name": "💻 员工客户端 (Tauri + Rust)",
+			"name": "💻 外勤客户端 (Tauri + Rust)",
 			"path": "./employee-client"
 		}
 	],
@@ -82,7 +82,7 @@
 		
 		// ========== 终端配置 ==========
 		"terminal.integrated.defaultProfile.windows": "PowerShell",
-		"powershell.cwd": "🏢 Flow Farm - 完整项目"
+		"powershell.cwd": "🏢 Flow Farm - 市场调研与客户拜访管理平台"
 	},
 	"extensions": {
 		"recommendations": [
@@ -112,22 +112,22 @@
 		"version": "0.2.0",
 		"configurations": [
 			{
-				"name": "🖥️ Debug 服务器后端 (Rust)",
+				"name": "🖥️ Debug 业务后端 (Rust)",
 				"type": "lldb",
 				"request": "launch",
 				"program": "${workspaceFolder}/server-backend/target/debug/server-backend",
 				"args": [],
 				"cwd": "${workspaceFolder}/server-backend",
-				"preLaunchTask": "🔧 构建服务器后端"
+				"preLaunchTask": "🔧 构建业务后端"
 			},
 			{
-				"name": "💻 Debug 员工客户端 (Tauri)",
+				"name": "💻 Debug 外勤客户端 (Tauri)",
 				"type": "lldb",
 				"request": "launch",
 				"program": "${workspaceFolder}/employee-client/src-tauri/target/debug/employee-client",
 				"args": [],
 				"cwd": "${workspaceFolder}/employee-client",
-				"preLaunchTask": "✅ 检查员工客户端代码"
+				"preLaunchTask": "✅ 检查外勤客户端代码"
 			}
 		]
 	},
@@ -139,18 +139,18 @@
 				"label": "🏗️ 初始化整个项目",
 				"type": "shell",
 				"command": "echo",
-				"args": ["开始初始化Flow Farm项目..."],
+				"args": ["开始初始化 Flow Farm 市场调研与客户拜访管理平台..."],
 				"group": "build",
 				"dependsOrder": "sequence",
 				"dependsOn": [
-					"初始化服务器后端",
-					"初始化服务器前端"
+					"初始化业务后端",
+					"初始化管理后台"
 				]
 			},
 
-			// ========== 服务器后端任务 (Rust) ==========
+			// ========== 业务后端任务 (Rust) ==========
 			{
-				"label": "初始化服务器后端",
+				"label": "初始化业务后端",
 				"type": "shell",
 				"command": "cargo",
 				"args": ["fetch"],
@@ -160,7 +160,7 @@
 				}
 			},
 			{
-				"label": "🚀 启动服务器后端",
+				"label": "🚀 启动业务后端",
 				"type": "shell",
 				"command": "cargo",
 				"args": ["run", "--release"],
@@ -178,7 +178,7 @@
 				"problemMatcher": ["$rustc"]
 			},
 			{
-				"label": "🧪 测试服务器后端",
+				"label": "🧪 测试业务后端",
 				"type": "shell",
 				"command": "cargo",
 				"args": ["test", "--", "--nocapture"],
@@ -188,7 +188,7 @@
 				}
 			},
 			{
-				"label": "🔧 构建服务器后端",
+				"label": "🔧 构建业务后端",
 				"type": "shell",
 				"command": "cargo",
 				"args": ["build", "--release"],
@@ -198,9 +198,9 @@
 				}
 			},
 
-			// ========== 服务器前端任务 (React + TypeScript) ==========
+			// ========== 管理后台任务 (React + TypeScript) ==========
 			{
-				"label": "初始化服务器前端",
+				"label": "初始化管理后台",
 				"type": "shell",
 				"command": "npm",
 				"args": ["install"],
@@ -210,7 +210,7 @@
 				}
 			},
 			{
-				"label": "🌐 启动服务器前端开发",
+				"label": "🌐 启动管理后台开发",
 				"type": "shell",
 				"command": "npm",
 				"args": ["run", "dev"],
@@ -228,7 +228,7 @@
 				"problemMatcher": []
 			},
 			{
-				"label": "🏗️ 构建服务器前端",
+				"label": "🏗️ 构建管理后台",
 				"type": "shell",
 				"command": "npm",
 				"args": ["run", "build"],
@@ -238,9 +238,9 @@
 				}
 			},
 
-			// ========== 员工客户端任务 (Tauri + Rust) ==========
+			// ========== 外勤客户端任务 (Tauri + Rust) ==========
 			{
-				"label": "💻 启动员工客户端开发",
+				"label": "💻 启动外勤客户端开发",
 				"type": "shell",
 				"command": "cargo",
 				"args": ["tauri", "dev"],
@@ -258,7 +258,7 @@
 				"problemMatcher": ["$rustc"]
 			},
 			{
-				"label": "🔨 构建员工客户端",
+				"label": "🔨 构建外勤客户端",
 				"type": "shell",
 				"command": "cargo",
 				"args": ["tauri", "build"],
@@ -268,7 +268,7 @@
 				}
 			},
 			{
-				"label": "✅ 检查员工客户端代码",
+				"label": "✅ 检查外勤客户端代码",
 				"type": "shell",
 				"command": "cargo",
 				"args": ["check"],
