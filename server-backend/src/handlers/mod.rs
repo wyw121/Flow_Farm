@@ -1,7 +1,6 @@
 pub mod auth;
 pub mod billing;
 pub mod company_pricing;
-pub mod devices;
 pub mod docs;
 pub mod health;
 pub mod kpi;

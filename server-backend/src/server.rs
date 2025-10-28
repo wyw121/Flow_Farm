@@ -90,15 +90,6 @@ pub async fn create_app(database: Database, config: Config) -> Router {
             "/api/v1/work-records/:id",
             get(handlers::work_records::get_work_record),
         )
-        // 设备管理
-        .route("/api/v1/devices", get(handlers::devices::list_devices))
-        .route("/api/v1/devices", post(handlers::devices::create_device))
-        .route("/api/v1/devices/:id", get(handlers::devices::get_device))
-        .route("/api/v1/devices/:id", put(handlers::devices::update_device))
-        .route(
-            "/api/v1/devices/:id",
-            delete(handlers::devices::delete_device),
-        )
         // KPI统计
         .route("/api/v1/kpi/stats", get(handlers::kpi::get_kpi_stats))
         .route("/api/v1/kpi/user-stats", get(handlers::kpi::get_user_stats))
